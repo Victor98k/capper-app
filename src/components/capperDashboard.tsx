@@ -113,7 +113,7 @@ export function CapperDashboard() {
                 <ul className="space-y-4">
                   <li className="flex items-center">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                    <span className="flex-grow">New bets played</span>
+                    <span className="flex-grow">New subscriptions</span>
                     <span className="text-sm text-muted-foreground">
                       2h ago
                     </span>
