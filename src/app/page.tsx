@@ -1,12 +1,10 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { LogIn, UserPlus, ArrowRight, Menu, X } from "lucide-react";
 
 export default function LandingPage() {
-  const [isHovered, setIsHovered] = useState(false);
   const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -15,26 +13,10 @@ export default function LandingPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFeatureIndex((prevIndex) => (prevIndex + 1) % features.length);
-    }, 3000); // Change feature every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [features.length]);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -101,16 +83,8 @@ export default function LandingPage() {
       )}
 
       <main className="flex-grow flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-        <motion.div
-          className="text-center px-4 sm:px-6 lg:px-8 lg:mb-20"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <motion.h1
-            className="text-4xl md:text-6xl lg:text-8xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12 lg:mt-28"
-            variants={itemVariants}
-          >
+        <div className="text-center px-4 sm:px-6 lg:px-8 lg:mb-20">
+          <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12 lg:mt-28">
             <span className="block sm:hidden text-5xl text-white">
               Discover <span className="text-primary">YourApp</span>
             </span>
@@ -118,35 +92,22 @@ export default function LandingPage() {
               <span className="text-white">Join the exclusive </span>
               <span className="text-blue-500">Cappers community</span>
             </span>
-          </motion.h1>
-          <motion.p
-            className="text-base sm:text-lg mb-8 sm:mb-12 font-semibold text-white"
-            variants={itemVariants}
-          >
+          </h1>
+
+          <p className="text-base sm:text-lg mb-8 sm:mb-12 font-semibold text-white">
             Become a member and take your{" "}
             <span className="text-blue-500">sports betting </span>
             to the next level.
-          </motion.p>
+          </p>
 
-          <motion.div
-            className="space-y-4 sm:space-y-0 sm:space-x-8 mb-12"
-            variants={itemVariants}
-          >
-            <button
-              className="w-full sm:w-auto px-8 py-4 text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
+          <div className="space-y-4 sm:space-y-0 sm:space-x-8 mb-12">
+            <button className="w-full sm:w-auto px-8 py-4 text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
               <Link href="/login" className="flex items-center justify-center">
                 <span className="mr-2">Sign In</span>
-                <motion.span
-                  animate={{ x: isHovered ? 5 : 0 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <LogIn className="inline-block" />
-                </motion.span>
+                <LogIn className="inline-block" />
               </Link>
             </button>
+
             <button className="w-full sm:w-auto px-8 py-4 text-lg bg-transparent rounded-full border-2 border-white text-white hover:bg-white hover:text-primary transition-colors">
               <Link
                 href="/sign-up"
@@ -156,47 +117,26 @@ export default function LandingPage() {
                 <UserPlus className="inline-block" />
               </Link>
             </button>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="mb-12 h-16 perspective-[1000px]"
-            variants={itemVariants}
-          >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentFeatureIndex}
-                initial={{ rotateX: -90, opacity: 0 }}
-                animate={{ rotateX: 0, opacity: 1 }}
-                exit={{ rotateX: 90, opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="text-white text-2xl sm:text-5xl font-bold"
-              >
-                {features[currentFeatureIndex]}
-              </motion.div>
-            </AnimatePresence>
-          </motion.div>
+          <div className="mb-12 h-16">
+            <div className="text-white text-2xl sm:text-5xl font-bold">
+              {features[currentFeatureIndex]}
+            </div>
+          </div>
 
-          <motion.div
-            className="mt-12 mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-          >
+          <div className="mt-12 mb-12">
             <Link
               href="#learn-more"
               className="text-white hover:text-primary transition-colors flex items-center justify-center group"
             >
               Learn More
-              <motion.span
-                className="ml-2"
-                animate={{ x: [0, 5, 0] }}
-                transition={{ repeat: Infinity, duration: 2.5 }}
-              >
+              <span className="ml-2">
                 <ArrowRight className="inline-block" />
-              </motion.span>
+              </span>
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </main>
     </div>
   );
