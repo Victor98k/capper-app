@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Facebook, Mail } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Facebook, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,24 +11,25 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function Login() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [alert, setAlert] = useState<{
     type: "success" | "error" | "loading";
     message: string;
     description: string;
-  } | null>(null)
-  const router = useRouter()
+  } | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    setAlert(null);
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -36,49 +37,61 @@ export function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      })
+      });
+
+      const data = await response.json();
 
       if (!response.ok) {
-        setAlert({
-          type: "error",
-          message: "Login failed",
-          description: "Please check your email and password",
-        })
-        return
+        if (response.status === 504) {
+          setAlert({
+            type: "error",
+            message: "Server timeout",
+            description: "Please try again.",
+          });
+        } else {
+          setAlert({
+            type: "error",
+            message: data.error || "Login failed",
+            description: "Please check your email and password",
+          });
+        }
+        return;
       }
 
       setAlert({
         type: "success",
         message: "Login successful",
         description: "You have successfully logged in",
-      })
+      });
 
-      const data = await response.json()
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("userId", data.userId)
-      localStorage.setItem("isAdmin", data.isAdmin)
-      localStorage.setItem("userName", data.firstName)
-      localStorage.setItem("userLastName", data.lastName)
-      localStorage.setItem("userEmail", data.email)
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+      localStorage.setItem("isAdmin", data.isAdmin);
+      localStorage.setItem("userName", data.firstName);
+      localStorage.setItem("userLastName", data.lastName);
+      localStorage.setItem("userEmail", data.email);
 
-      router.push("/home")
+      router.push("/home");
     } catch (error) {
-      console.error("Error during login:", error)
+      console.error("Error during login:", error);
       setAlert({
         type: "error",
-        message: "Login failed",
+        message: "Network error",
         description: "An error occurred during login. Please try again.",
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black">
       {alert && (
-        <Alert 
+        <Alert
           className={`mb-4 w-full max-w-md ${
-            alert.type === 'error' ? 'bg-destructive text-destructive-foreground' : 
-            alert.type === 'success' ? 'bg-primary text-primary-foreground' : ''
+            alert.type === "error"
+              ? "bg-destructive text-destructive-foreground"
+              : alert.type === "success"
+              ? "bg-primary text-primary-foreground"
+              : ""
           }`}
         >
           <AlertTitle>{alert.message}</AlertTitle>
@@ -166,8 +179,7 @@ export function Login() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
 
-export default Login
-
+export default Login;
