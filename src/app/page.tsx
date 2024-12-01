@@ -24,7 +24,7 @@ export default function LandingPage() {
         <nav className="flex justify-between items-center">
           <Link
             href="/"
-            className="text-primary text-2xl sm:text-3xl font-bold text-blue-500"
+            className="text-primary text-2xl sm:text-3xl font-bold text-blue-900"
           >
             Cappers
           </Link>
@@ -84,13 +84,16 @@ export default function LandingPage() {
 
       <main className="flex-grow flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
         <div className="text-center px-4 sm:px-6 lg:px-8 lg:mb-20">
-          <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12 lg:mt-28">
-            <span className="block sm:hidden text-5xl text-white">
-              Discover <span className="text-primary">YourApp</span>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12 lg:mt-28">
+            <span className="block sm:hidden text-6xl text-white">
+              Discover <span className="text-blue-500">Cappers</span>
             </span>
             <span className="hidden sm:block">
-              <span className="text-white">Join the exclusive </span>
-              <span className="text-blue-500">Cappers community</span>
+              <span className="text-white text-4xl">
+                Want to start winning bets?{" "}
+              </span>
+              <br />
+              <span className="text-blue-500 text-8xl">Join Cappers Club</span>
             </span>
           </h1>
 
@@ -101,19 +104,19 @@ export default function LandingPage() {
           </p>
 
           <div className="space-y-4 sm:space-y-0 sm:space-x-8 mb-12">
-            <button className="w-full sm:w-auto px-8 py-4 text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+            <button className="w-full sm:w-auto px-8 py-4 text-lg rounded-full bg-blue-600 text-white hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
               <Link href="/login" className="flex items-center justify-center">
-                <span className="mr-2">Sign In</span>
+                <span className="mr-2 font-semibold">Sign In</span>
                 <LogIn className="inline-block" />
               </Link>
             </button>
 
-            <button className="w-full sm:w-auto px-8 py-4 text-lg bg-transparent rounded-full border-2 border-white text-white hover:bg-white hover:text-primary transition-colors">
+            <button className="w-full sm:w-auto px-8 py-4 text-lg rounded-full bg-transparent border-2 border-blue-500 text-white hover:bg-blue-500 hover:border-transparent transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
               <Link
                 href="/sign-up"
                 className="flex items-center justify-center"
               >
-                <span className="mr-2">Sign Up</span>
+                <span className="mr-2 font-semibold">Sign Up</span>
                 <UserPlus className="inline-block" />
               </Link>
             </button>
