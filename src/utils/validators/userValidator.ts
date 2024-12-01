@@ -7,7 +7,6 @@ export function userRegistrationValidator(
   let errors: ErrorObject = {};
   if (!data.email) {
     errors.email = "Email is required";
-    return [true, errors];
   }
   if (!data.password) {
     errors.password = "Password is required";
@@ -18,8 +17,8 @@ export function userRegistrationValidator(
   if (!data.lastName) {
     errors.lastName = "Last name is required";
   }
-  const hasErrors = Object.keys(errors).length !== 0;
 
+  const hasErrors = Object.keys(errors).length > 0;
   return [hasErrors, errors];
 }
 

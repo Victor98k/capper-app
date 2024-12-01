@@ -1,20 +1,31 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { UserRegistrationData } from "@/types/user";
 import { userRegistrationValidator } from "@/utils/validators/userValidator";
 import { hashPassword } from "@/utils/bcrypt";
 import { signJWT } from "@/utils/jwt";
-const prisma = new PrismaClient();
+import { prisma } from "@/utils/prisma";
 
 export async function POST(request: Request) {
   try {
-    // Using the UserRegistrationData type here to aviod errors.
     const body: UserRegistrationData = await request.json();
-    //
+
     const [hasErrors, errors] = userRegistrationValidator(body);
-    // Validating the data using the userRegistrationValidator function.
+
     if (hasErrors) {
       return NextResponse.json({ errors }, { status: 400 });
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email: body.email,
+      },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User with this email already exists" },
+        { status: 400 }
+      );
     }
 
     const hashedPassword = await hashPassword(body.password);
@@ -25,7 +36,7 @@ export async function POST(request: Request) {
         lastName: body.lastName,
         email: body.email,
         password: hashedPassword,
-        isAdmin: body.isAdmin,
+        isAdmin: body.isAdmin || false,
       },
     });
 
@@ -37,10 +48,10 @@ export async function POST(request: Request) {
       {
         token,
         userId: user.id,
+        isAdmin: user.isAdmin,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        isAdmin: user.isAdmin,
       },
       { status: 201 }
     );

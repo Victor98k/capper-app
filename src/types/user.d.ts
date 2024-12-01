@@ -9,13 +9,13 @@ export type User = {
   updatedAt: Date;
 };
 
-export type UserRegistrationData = {
+export interface UserRegistrationData {
   firstName: string;
   lastName: string;
   email: string;
   password: string;
-  isAdmin: boolean;
-};
+  isAdmin?: boolean;
+}
 
 export type UserLoginData = {
   email: string;
