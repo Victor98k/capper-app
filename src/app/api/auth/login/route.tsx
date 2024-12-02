@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       token: token,
       userId: user.id,
-      isAdmin: user.isAdmin,
+      isCapper: user.isCapper || false, // IS capper optional to not let in anyone as a capper
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,

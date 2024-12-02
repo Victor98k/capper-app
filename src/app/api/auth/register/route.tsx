@@ -36,7 +36,7 @@ export async function POST(request: Request) {
         lastName: body.lastName,
         email: body.email,
         password: hashedPassword,
-        isAdmin: body.isAdmin || false,
+        isCapper: body.isCapper,
       },
     });
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       {
         token,
         userId: user.id,
-        isAdmin: user.isAdmin,
+        isCapper: user.isCapper,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,

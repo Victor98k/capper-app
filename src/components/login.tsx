@@ -66,12 +66,12 @@ export function Login() {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
-      localStorage.setItem("isAdmin", data.isAdmin);
+      localStorage.setItem("isCapper", data.isCapper);
       localStorage.setItem("userName", data.firstName);
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);
 
-      router.push("/home");
+      router.push(data.isCapper ? "/home-capper" : "/home");
     } catch (error) {
       console.error("Error during login:", error);
       setAlert({
@@ -84,6 +84,9 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black">
+      <h1 className="text-6xl font-bold text-white mb-8">
+        Welcome back to <span className="text-[#4e43ff]">Cappers club</span>
+      </h1>
       {alert && (
         <Alert
           className={`mb-4 w-full max-w-md ${
@@ -101,7 +104,8 @@ export function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Sign in to <span className="text-teal-200">Roamly</span> Account
+            Sign in to your <span className="text-[#4e43ff]">Cappers</span>{" "}
+            Account
           </CardTitle>
           <CardDescription className="text-center">
             Enter your email and password to access your account
@@ -139,7 +143,10 @@ export function Login() {
                 Remember me
               </label>
             </div>
-            <Button type="submit" className="w-full">
+            <Button
+              type="submit"
+              className="w-full bg-[#4e43ff] text-white hover:bg-[#3d35cc]"
+            >
               Log in
             </Button>
           </form>

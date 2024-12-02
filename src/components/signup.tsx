@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Facebook, Mail } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Facebook, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,34 +11,34 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function Signup() {
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isAdmin, setIsAdmin] = useState<boolean | undefined>(undefined)
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isCapper, setIsCapper] = useState<boolean | undefined>(undefined);
   const [alert, setAlert] = useState<{
     type: "success" | "error" | "info" | "warning";
     message: string;
     description: string;
-  } | null>(null)
-  const router = useRouter()
+  } | null>(null);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -50,51 +50,54 @@ export function Signup() {
           lastName,
           email,
           password,
-          isAdmin: isAdmin ?? false,
+          isCapper: isCapper,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
         setAlert({
           type: "error",
           message: "Sign-up failed",
           description: data.error || "Please check your details and try again",
-        })
-        return
+        });
+        return;
       }
 
       if (!data.token || !data.userId || data.firstName === undefined) {
-        throw new Error("Incomplete user data received")
+        throw new Error("Incomplete user data received");
       }
 
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("userId", data.userId)
-      localStorage.setItem("isAdmin", String(data.isAdmin))
-      localStorage.setItem("userName", data.firstName)
-      localStorage.setItem("userLastName", data.lastName)
-      localStorage.setItem("userEmail", data.email)
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+      localStorage.setItem("isCapper", String(data.isCapper));
+      localStorage.setItem("userName", data.firstName);
+      localStorage.setItem("userLastName", data.lastName);
+      localStorage.setItem("userEmail", data.email);
 
       setAlert({
         type: "success",
         message: "Sign-up successful",
         description: "You have successfully signed up",
-      })
+      });
 
-      router.push("/home")
+      router.push("/home");
     } catch (error) {
-      console.error("Error:", error)
+      console.error("Error:", error);
       setAlert({
         type: "error",
         message: "Sign-up failed",
         description: "An unexpected error occurred. Please try again.",
-      })
+      });
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+      <h1 className="text-6xl font-bold text-white mb-8">
+        Start earning <span className="text-[#4e43ff]">Today</span>
+      </h1>
       <Card className="w-full max-w-md">
         {alert && (
           <Alert variant={alert.type === "error" ? "destructive" : "default"}>
@@ -104,7 +107,8 @@ export function Signup() {
         )}
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Create Your <span className="text-primary">YourApp</span> Account
+            Create Your{" "}
+            <span className="text-primary text-[#4e43ff]">Cappers</span> Account
           </CardTitle>
           <CardDescription className="text-center">
             Enter your details to sign up for an account
@@ -153,7 +157,9 @@ export function Signup() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+
+            {/* Removed capper option for now. */}
+            {/* <div className="space-y-2">
               <Label htmlFor="userType">I am a...</Label>
               <Select
                 onValueChange={(value) => setIsAdmin(value === "true")}
@@ -167,7 +173,7 @@ export function Signup() {
                   <SelectItem value="false">Guest</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
             <div className="flex items-center space-x-2">
               <Checkbox id="terms" required />
               <label
@@ -176,6 +182,7 @@ export function Signup() {
               >
                 I agree to the terms and conditions
               </label>
+              {/* TODO Add terms and conditions, link to that. */}
             </div>
             <Button type="submit" className="w-full">
               Sign Up
@@ -185,8 +192,8 @@ export function Signup() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+            <div className="relative flex justify-center text-xs uppercase ">
+              <span className="bg-background px-3 text-muted-foreground">
                 Or sign up with
               </span>
             </div>
@@ -211,8 +218,7 @@ export function Signup() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
 
-export default Signup
-
+export default Signup;
