@@ -1,9 +1,12 @@
+// test
+
 {
   "functions": {
     "api/**/*": {
       "maxDuration": 30
     }
   },
+
   "headers": [
     {
       "headers": [
