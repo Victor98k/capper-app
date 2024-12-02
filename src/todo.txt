@@ -1,0 +1,13 @@
+//TODO: 
+
+- Flow for customers 
+
+- Flow for capper to get request to become a capper.
+
+- Add reviews to capper.
+
+- A way to accept request to become a capper.
+
+
+
+COLOR: text-[#4e43ff]   

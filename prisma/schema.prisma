@@ -5,6 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 // Changed DB acess IP to allow from anywhere. In the Mongo DB GUI
+// The IP made the GATEWAY error to be gone. 
+// Read that next.js has a slow backend call for hobbyprojects. 
 
 generator client {
   provider = "prisma-client-js"
@@ -21,7 +23,7 @@ model User {
   lastName  String
   email     String   @unique
   password  String
-  isAdmin   Boolean  @default(false)
+  isCapper  Boolean?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

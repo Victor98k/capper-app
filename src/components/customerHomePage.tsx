@@ -17,6 +17,7 @@ import {
   MoreHorizontal,
   Bookmark,
   CheckCircle,
+  LogOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -96,18 +97,32 @@ export function CustomerHomepageComponent() {
     },
   ]);
 
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/");
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">CAPPERS</h1>
-          <Input
-            type="search"
-            placeholder="Search"
-            className="w-1/3 bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-          />
-          <nav className="flex items-center space-x-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
+          {/* Logo - taking up 1/4 of the space */}
+          <div className="w-1/4">
+            <h1 className="text-2xl font-bold text-blue-600">CAPPERS</h1>
+          </div>
+
+          {/* Search - taking up 1/2 of the space and centered */}
+          <div className="w-1/2 flex justify-center">
+            <Input
+              type="search"
+              placeholder="Search"
+              className="w-2/3 bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+            />
+          </div>
+
+          {/* Navigation - taking up 1/4 of the space */}
+          <nav className="w-1/4 flex items-center justify-end space-x-4">
             <Button variant="ghost" size="icon">
               <Home className="h-5 w-5" />
             </Button>
@@ -130,6 +145,9 @@ export function CustomerHomepageComponent() {
               />
               <AvatarFallback>UN</AvatarFallback>
             </Avatar>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
           </nav>
         </div>
       </header>

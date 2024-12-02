@@ -10,9 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export function CapperDashboard() {
   const [username, setUsername] = useState("Zacharias Dahl Skytthammar");
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/");
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -30,6 +37,9 @@ export function CapperDashboard() {
             </Button>
             <Button variant="ghost" size="icon">
               <Settings className="h-5 w-5" />
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
             </Button>
           </div>
         </div>

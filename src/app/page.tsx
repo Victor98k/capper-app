@@ -24,7 +24,7 @@ export default function LandingPage() {
         <nav className="flex justify-between items-center">
           <Link
             href="/"
-            className="text-primary text-2xl sm:text-3xl font-bold text-blue-900"
+            className=" text-2xl sm:text-3xl font-bold text-[#4e43ff]"
           >
             Cappers
           </Link>
@@ -86,20 +86,20 @@ export default function LandingPage() {
         <div className="text-center px-4 sm:px-6 lg:px-8 lg:mb-20">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12 lg:mt-28">
             <span className="block sm:hidden text-6xl text-white">
-              Discover <span className="text-blue-500">Cappers</span>
+              Discover <span className="text-[#4e43ff]">Cappers</span>
             </span>
             <span className="hidden sm:block">
               <span className="text-white text-4xl">
-                Want to start winning bets?{" "}
+                Want to start earning from sports bets?{" "}
               </span>
               <br />
-              <span className="text-blue-500 text-8xl">Join Cappers Club</span>
+              <span className="text-[#4e43ff] text-9xl">Join Cappers Club</span>
             </span>
           </h1>
 
           <p className="text-base sm:text-lg mb-8 sm:mb-12 font-semibold text-white">
             Become a member and take your{" "}
-            <span className="text-blue-500">sports betting </span>
+            <span className="text-[#4e43ff]">sports betting </span>
             to the next level.
           </p>
 

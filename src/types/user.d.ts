@@ -14,7 +14,7 @@ export interface UserRegistrationData {
   lastName: string;
   email: string;
   password: string;
-  isAdmin?: boolean;
+  isCapper?: boolean;
 }
 
 export type UserLoginData = {
