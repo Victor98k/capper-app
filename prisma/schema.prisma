@@ -4,7 +4,7 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-// deploy fixed with this commit. 
+// Changed DB acess IP to allow from anywhere. In the Mongo DB GUI
 
 generator client {
   provider = "prisma-client-js"
