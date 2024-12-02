@@ -2,10 +2,8 @@ import { UserLoginData } from "@/types/user";
 import { comparePassword } from "@/utils/bcrypt";
 import { signJWT } from "@/utils/jwt";
 import { userLoginValidator } from "@/utils/validators/userValidator";
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
