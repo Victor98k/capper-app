@@ -4,6 +4,7 @@ import { signJWT } from "@/utils/jwt";
 import { userLoginValidator } from "@/utils/validators/userValidator";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,15 +42,26 @@ export async function POST(request: NextRequest) {
     const token = await signJWT({
       userId: user.id,
     });
-    // Adding isAdmin here so i can use that in localstorage. To conditional render the remove as admin BTN.
-    return NextResponse.json({
-      token: token,
+
+    const response = NextResponse.json({
       userId: user.id,
-      isCapper: user.isCapper || false, // IS capper optional to not let in anyone as a capper
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      isCapper: user.isCapper,
     });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict" as const,
+      maxAge: 60 * 60 * 24, // 1 day
+      path: "/",
+    };
+
+    response.cookies.set("token", token, cookieOptions);
+
+    return response;
   } catch (error: any) {
     console.log("Error: failed to login", error.message);
     return NextResponse.json(

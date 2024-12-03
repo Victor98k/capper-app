@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Home,
   Search,
@@ -33,6 +34,7 @@ type Admin = {
 };
 
 export function CustomerHomepageComponent() {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [admins, setAdmins] = useState<Admin[]>([
     {
@@ -97,9 +99,14 @@ export function CustomerHomepageComponent() {
     },
   ]);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.clear(); // Clear any non-sensitive data
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -145,9 +152,16 @@ export function CustomerHomepageComponent() {
               />
               <AvatarFallback>UN</AvatarFallback>
             </Avatar>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              className="ml-4"
+            >
+              Logout
             </Button>
+            {/* <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button> */}
           </nav>
         </div>
       </header>

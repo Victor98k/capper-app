@@ -11,14 +11,31 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export function CapperDashboard() {
-  const [username, setUsername] = useState("Zacharias Dahl Skytthammar");
+  const { user, loading } = useAuth();
   const router = useRouter();
 
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/");
+  // Show loading state
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // Redirect non-cappers
+  if (!user?.isCapper) {
+    router.push("/home");
+    return null;
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.clear(); // Clear any non-sensitive data
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -26,7 +43,7 @@ export function CapperDashboard() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back Capper, {username}
+            Welcome back, {user?.firstName}
           </h1>
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon">
@@ -48,7 +65,7 @@ export function CapperDashboard() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Welcome back, {username}!
+            Welcome back, {user?.firstName}!
           </h2>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

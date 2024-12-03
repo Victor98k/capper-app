@@ -8,7 +8,6 @@ import { prisma } from "@/utils/prisma";
 export async function POST(request: Request) {
   try {
     const body: UserRegistrationData = await request.json();
-
     const [hasErrors, errors] = userRegistrationValidator(body);
 
     if (hasErrors) {
@@ -44,17 +43,32 @@ export async function POST(request: Request) {
       userId: user.id,
     });
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
-        token,
         userId: user.id,
-        isCapper: user.isCapper,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
       },
       { status: 201 }
     );
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict" as const,
+      maxAge: 60 * 60 * 24, // 1 day
+      path: "/",
+    };
+
+    response.cookies.set("token", token, cookieOptions);
+    response.cookies.set(
+      "isCapper",
+      user.isCapper ? "true" : "false",
+      cookieOptions
+    );
+
+    return response;
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(

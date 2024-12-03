@@ -17,26 +17,17 @@ export async function middleware(request: NextRequest) {
   ) {
     try {
       console.log("Unsafe");
-      // If theese unsafe part are true we check for the auth header.
-      const Authorization = request.headers.get("Authorization");
+      // Get token from cookie instead of Authorization header
+      const token = request.cookies.get("token")?.value;
 
-      if (!Authorization) {
-        // If there is no auth header we throw an error.
-        throw new Error("No authrization header");
-      }
-      // We split the auth header to get the token.
-      // Split the token to acess the Bearer correctly.
-      const token = Authorization.split(" ")?.[1] || null;
       if (!token) {
-        throw new Error("No token");
+        throw new Error("No token found");
       }
-      // console.log("Authorization -> token", token);
-      // We verify the token.
+
       const decryptedToken = await verifyJWT(token);
       if (!decryptedToken) {
-        throw new Error("No token payload");
+        throw new Error("Invalid token");
       }
-      console.log("Authorization -> decrypted", decryptedToken);
 
       const headers = new Headers(request.headers);
       headers.set("userId", decryptedToken.userId);
