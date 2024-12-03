@@ -9,5 +9,8 @@
 - A way to accept request to become a capper.
 
 
-
+BASE COLOR 
 COLOR: text-[#4e43ff]   
+
+
+Add types for posts etc. 
