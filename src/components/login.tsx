@@ -64,9 +64,6 @@ export function Login() {
         description: "You have successfully logged in",
       });
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
-      localStorage.setItem("isCapper", data.isCapper);
       localStorage.setItem("userName", data.firstName);
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);

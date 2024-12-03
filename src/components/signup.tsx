@@ -65,13 +65,10 @@ export function Signup() {
         return;
       }
 
-      if (!data.token || !data.userId || data.firstName === undefined) {
+      if (!data.userId || !data.firstName) {
         throw new Error("Incomplete user data received");
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
-      localStorage.setItem("isCapper", String(data.isCapper));
       localStorage.setItem("userName", data.firstName);
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);
