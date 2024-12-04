@@ -42,7 +42,6 @@ export async function POST(request: Request) {
             create: {
               bio: "",
               tags: [],
-              username: body.username,
             },
           },
         }),
