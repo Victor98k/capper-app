@@ -383,11 +383,11 @@ export function CapperDashboard() {
               <DisplayCapperCard
                 firstName={user?.firstName || ""}
                 lastName={user?.lastName || ""}
-                username={user?.username || ""}
+                username={username}
                 bio={bio}
                 tags={tags}
-                subscribers={0} // You might want to fetch this from the server
-                isVerified={false} // You might want to add this as a field in your user model
+                subscribers={0}
+                isVerified={false}
               />
             </CardContent>
           </Card>
