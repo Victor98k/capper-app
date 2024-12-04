@@ -15,7 +15,7 @@ interface CapperCardProps {
   tags: string[];
   subscribers: number;
 }
-
+// deploy,
 function DisplayCapperCard({
   avatar = "https://via.placeholder.com/150",
   firstName = "",
