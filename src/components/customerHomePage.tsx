@@ -173,10 +173,19 @@ export function CustomerHomepageComponent() {
 
         {/* Admin Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <DisplayCapperCard />
-          <DisplayCapperCard />
-          <DisplayCapperCard />
-          <DisplayCapperCard />
+          {admins.map((admin) => (
+            <DisplayCapperCard
+              key={admin.id}
+              firstName={admin.name.split(" ")[0]}
+              lastName={admin.name.split(" ")[1]}
+              username={admin.username}
+              bio={admin.bio}
+              tags={admin.tags}
+              subscribers={admin.subscribers}
+              isVerified={admin.isVerified}
+              avatar={admin.avatar}
+            />
+          ))}
         </div>
       </main>
     </div>
