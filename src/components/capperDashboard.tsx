@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, MessageSquare, PieChart, Settings, Users } from "lucide-react";
 import {
   Card,
@@ -16,6 +16,31 @@ import { useAuth } from "@/hooks/useAuth";
 export function CapperDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [bio, setBio] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [isEditingBio, setIsEditingBio] = useState(false);
+
+  // Update useEffect to fetch tags as well
+  useEffect(() => {
+    const fetchCapperProfile = async () => {
+      if (user?.id) {
+        try {
+          const response = await fetch("/api/cappers");
+          const data = await response.json();
+          const capperData = data.find((c: any) => c.userId === user.id);
+          if (capperData) {
+            setBio(capperData.bio || "");
+            setTags(capperData.tags || []);
+          }
+        } catch (error) {
+          console.error("Failed to fetch capper profile:", error);
+        }
+      }
+    };
+
+    fetchCapperProfile();
+  }, [user?.id]);
 
   // Show loading state
   if (loading) {
@@ -36,6 +61,44 @@ export function CapperDashboard() {
     } catch (error) {
       console.error("Logout failed:", error);
     }
+  };
+
+  const handleBioUpdate = async () => {
+    try {
+      const response = await fetch("/api/cappers", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          bio,
+          tags,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Failed to update profile:", data.error);
+        return;
+      }
+
+      setIsEditingBio(false);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
+  };
+
+  const handleAddTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   return (
@@ -108,6 +171,88 @@ export function CapperDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="col-span-full">
+            <CardHeader>
+              <CardTitle>Your Bio</CardTitle>
+              <CardDescription>
+                Update your profile information visible to subscribers
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isEditingBio ? (
+                <div className="space-y-4">
+                  <textarea
+                    placeholder="Write something about yourself..."
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    className="w-full min-h-[100px] p-2 border rounded-md"
+                  />
+                  <div className="flex space-x-2">
+                    <Button onClick={handleBioUpdate}>Save Bio</Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditingBio(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {bio || "No bio set yet"}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditingBio(true)}
+                  >
+                    Edit Bio
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Your Tags</CardTitle>
+              <CardDescription>
+                Add tags to help users find your expertise
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <div
+                      key={tag}
+                      className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full"
+                    >
+                      <span>{tag}</span>
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        className="text-gray-500 hover:text-red-500"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
+                    placeholder="Add a tag..."
+                    className="flex-1 p-2 border rounded-md"
+                  />
+                  <Button onClick={handleAddTag}>Add Tag</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
             <Card>
