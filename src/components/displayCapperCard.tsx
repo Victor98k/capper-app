@@ -18,12 +18,12 @@ interface CapperCardProps {
 
 function DisplayCapperCard({
   avatar = "https://via.placeholder.com/150",
-  firstName,
-  lastName,
+  firstName = "",
+  lastName = "",
   isVerified = false,
-  username,
-  bio,
-  tags,
+  username = "",
+  bio = "",
+  tags = [],
   subscribers = 0,
 }: CapperCardProps) {
   return (
@@ -33,8 +33,8 @@ function DisplayCapperCard({
           <Avatar className="h-16 w-16">
             <AvatarImage src={avatar} alt={`${firstName} ${lastName}`} />
             <AvatarFallback>
-              {firstName[0]}
-              {lastName[0]}
+              {firstName?.charAt(0) || ""}
+              {lastName?.charAt(0) || ""}
             </AvatarFallback>
           </Avatar>
           <div>
