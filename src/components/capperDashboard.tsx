@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import DisplayCapperCard from "./displayCapperCard";
 
 export function CapperDashboard() {
   const { user, loading } = useAuth();
@@ -20,6 +21,8 @@ export function CapperDashboard() {
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [isEditingBio, setIsEditingBio] = useState(false);
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [username, setUsername] = useState("");
 
   // Update useEffect to fetch tags as well
   useEffect(() => {
@@ -32,6 +35,7 @@ export function CapperDashboard() {
           if (capperData) {
             setBio(capperData.bio || "");
             setTags(capperData.tags || []);
+            setUsername(capperData.user.username || "");
           }
         } catch (error) {
           console.error("Failed to fetch capper profile:", error);
@@ -118,8 +122,56 @@ export function CapperDashboard() {
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
+  const handleRemoveTag = async (tagToRemove: string) => {
+    try {
+      const response = await fetch("/api/cappers", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          tagToRemove: tagToRemove,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error("Failed to remove tag:", data.error);
+        return;
+      }
+
+      // Only update the UI if the server request was successful
+      setTags(tags.filter((tag) => tag !== tagToRemove));
+    } catch (error) {
+      console.error("Failed to remove tag:", error);
+    }
+  };
+
+  const handleUsernameUpdate = async () => {
+    try {
+      const response = await fetch("/api/cappers", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          username,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Failed to update username:", data.error);
+        return;
+      }
+
+      setIsEditingUsername(false);
+    } catch (error) {
+      console.error("Failed to update username:", error);
+    }
   };
 
   return (
@@ -193,7 +245,52 @@ export function CapperDashboard() {
             </Card>
           </div>
 
-          <Card className="col-span-full">
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Your Username</CardTitle>
+              <CardDescription>
+                This is your unique identifier on the platform
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isEditingUsername ? (
+                <div className="space-y-4">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full p-2 border-2 border-blue-500 rounded-md bg-blue-50"
+                    placeholder="Enter new username"
+                  />
+                  <div className="flex space-x-2">
+                    <Button onClick={handleUsernameUpdate}>
+                      Save Username
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditingUsername(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-blue-700 font-semibold">
+                    @{username}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditingUsername(true)}
+                  >
+                    Edit Username
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="col-span-full mt-5">
             <CardHeader>
               <CardTitle>Your Bio</CardTitle>
               <CardDescription>
@@ -207,7 +304,7 @@ export function CapperDashboard() {
                     placeholder="Write something about yourself..."
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    className="w-full min-h-[100px] p-2 border rounded-md"
+                    className="w-full min-h-[100px] p-2 border-2 border-blue-500 rounded-md bg-blue-50"
                   />
                   <div className="flex space-x-2">
                     <Button onClick={handleBioUpdate}>Save Bio</Button>
@@ -221,7 +318,7 @@ export function CapperDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-blue-700 font-semibold">
                     {bio || "No bio set yet"}
                   </p>
                   <Button
@@ -248,12 +345,12 @@ export function CapperDashboard() {
                   {tags.map((tag) => (
                     <div
                       key={tag}
-                      className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full"
+                      className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
                     >
-                      <span>{tag}</span>
+                      <span className="text-[#4e43ff]">{tag}</span>
                       <button
                         onClick={() => handleRemoveTag(tag)}
-                        className="text-gray-500 hover:text-red-500"
+                        className="text-[#4e43ff]/70 hover:text-red-500"
                       >
                         ×
                       </button>
@@ -272,6 +369,26 @@ export function CapperDashboard() {
                   <Button onClick={handleAddTag}>Add Tag</Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Preview Your Profile Card</CardTitle>
+              <CardDescription>
+                This is how your profile appears to other users
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DisplayCapperCard
+                firstName={user?.firstName || ""}
+                lastName={user?.lastName || ""}
+                username={user?.username || ""}
+                bio={bio}
+                tags={tags}
+                subscribers={0} // You might want to fetch this from the server
+                isVerified={false} // You might want to add this as a field in your user model
+              />
             </CardContent>
           </Card>
 

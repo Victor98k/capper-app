@@ -27,13 +27,13 @@ export async function GET() {
   }
 }
 
-// Endpoint to update capper BIO
+// Endpoint to update capper BIO and username
 export async function PUT(request: Request) {
   try {
     const data = await request.json();
-    const { userId, bio } = data;
+    const { userId, bio, username } = data;
 
-    if (!userId || bio === undefined) {
+    if (!userId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -45,6 +45,9 @@ export async function PUT(request: Request) {
       where: {
         userId: userId,
       },
+      include: {
+        user: true,
+      },
     });
 
     if (!capper) {
@@ -54,20 +57,50 @@ export async function PUT(request: Request) {
       );
     }
 
-    const updatedCapper = await prisma.capper.update({
-      where: {
-        id: capper.id, // Use the capper's ID, not userId
-      },
-      data: {
-        bio: bio,
-      },
-    });
+    // If username is provided, check if it's unique
+    if (username) {
+      const existingUser = await prisma.user.findUnique({
+        where: {
+          username: username,
+          NOT: {
+            id: userId,
+          },
+        },
+      });
 
-    return NextResponse.json(updatedCapper);
+      if (existingUser) {
+        return NextResponse.json(
+          { error: "Username already taken" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Update both user and capper
+    const [updatedUser, updatedCapper] = await prisma.$transaction([
+      prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          ...(username && { username }),
+        },
+      }),
+      prisma.capper.update({
+        where: {
+          id: capper.id,
+        },
+        data: {
+          ...(bio !== undefined && { bio }),
+        },
+      }),
+    ]);
+
+    return NextResponse.json({ user: updatedUser, capper: updatedCapper });
   } catch (error) {
-    console.error("Update bio error:", error);
+    console.error("Update error:", error);
     return NextResponse.json(
-      { error: "Failed to update capper bio" },
+      { error: "Failed to update profile" },
       { status: 500 }
     );
   }
@@ -117,6 +150,56 @@ export async function POST(request: Request) {
     console.error("Add tags error:", error);
     return NextResponse.json(
       { error: "Failed to add tags to capper" },
+      { status: 500 }
+    );
+  }
+}
+
+// New endpoint to delete a tag
+export async function DELETE(request: Request) {
+  try {
+    const data = await request.json();
+    const { userId, tagToRemove } = data;
+
+    if (!userId || !tagToRemove) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Find the capper record
+    const capper = await prisma.capper.findFirst({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (!capper) {
+      return NextResponse.json(
+        { error: "Capper profile not found" },
+        { status: 404 }
+      );
+    }
+
+    // Filter out the tag to remove
+    const updatedTags = capper.tags.filter((tag) => tag !== tagToRemove);
+
+    // Update the capper's tags
+    const updatedCapper = await prisma.capper.update({
+      where: {
+        id: capper.id,
+      },
+      data: {
+        tags: updatedTags,
+      },
+    });
+
+    return NextResponse.json(updatedCapper);
+  } catch (error) {
+    console.error("Delete tag error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete tag" },
       { status: 500 }
     );
   }
