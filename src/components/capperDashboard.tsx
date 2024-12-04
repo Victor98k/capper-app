@@ -90,10 +90,31 @@ export function CapperDashboard() {
     }
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
+      const updatedTags = [...tags, newTag.trim()];
+      setTags(updatedTags);
       setNewTag("");
+
+      try {
+        const response = await fetch("/api/cappers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user?.id,
+            tags: [newTag.trim()],
+          }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          console.error("Failed to add tag:", data.error);
+        }
+      } catch (error) {
+        console.error("Failed to add tag:", error);
+      }
     }
   };
 

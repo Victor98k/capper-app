@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { UserRegistrationData } from "@/types/user";
 
 export function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -35,32 +36,47 @@ export function Signup() {
     message: string;
     description: string;
   } | null>(null);
+  const [username, setUsername] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const registrationData: UserRegistrationData = {
+      username,
+      firstName,
+      lastName,
+      email,
+      password,
+      isCapper,
+    };
+
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-          isCapper: isCapper,
-        }),
+        body: JSON.stringify(registrationData),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error("Failed to parse response:", parseError);
+        setAlert({
+          type: "error",
+          message: "Server Error",
+          description: "Invalid response from server. Please try again later.",
+        });
+        return;
+      }
 
       if (!response.ok) {
         setAlert({
           type: "error",
           message: "Sign-up failed",
-          description: data.error || "Please check your details and try again",
+          description: data?.error || `Server error: ${response.status}`,
         });
         return;
       }
@@ -72,6 +88,7 @@ export function Signup() {
       localStorage.setItem("userName", data.firstName);
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);
+      localStorage.setItem("username", data.username);
 
       setAlert({
         type: "success",
@@ -81,11 +98,12 @@ export function Signup() {
 
       router.push("/home");
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Network Error:", error);
       setAlert({
         type: "error",
-        message: "Sign-up failed",
-        description: "An unexpected error occurred. Please try again.",
+        message: "Connection Error",
+        description:
+          "Failed to connect to the server. Please check your connection and try again.",
       });
     }
   };
@@ -132,6 +150,16 @@ export function Signup() {
                   onChange={(e) => setLastName(e.target.value)}
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Choose a username"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

@@ -1,5 +1,6 @@
 export type User = {
   id: string;
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -10,6 +11,7 @@ export type User = {
 };
 
 export interface UserRegistrationData {
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
