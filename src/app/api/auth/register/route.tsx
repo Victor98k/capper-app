@@ -36,6 +36,17 @@ export async function POST(request: Request) {
         email: body.email,
         password: hashedPassword,
         isCapper: body.isCapper,
+        ...(body.isCapper && {
+          capperProfile: {
+            create: {
+              bio: "",
+              tags: [],
+            },
+          },
+        }),
+      },
+      include: {
+        capperProfile: true,
       },
     });
 
