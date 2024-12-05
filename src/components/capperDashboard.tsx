@@ -76,6 +76,7 @@ export function CapperDashboard() {
         },
         body: JSON.stringify({
           userId: user?.id,
+          username,
           bio,
           tags,
         }),
@@ -88,6 +89,7 @@ export function CapperDashboard() {
         return;
       }
 
+      console.log("Profile updated successfully:", data);
       setIsEditingBio(false);
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -268,7 +270,7 @@ export function CapperDashboard() {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => setIsEditingUsername(false)}
+                      onClick={() => setIsEditingUsername(true)}
                     >
                       Cancel
                     </Button>
