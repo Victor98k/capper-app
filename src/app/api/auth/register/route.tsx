@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { UserRegistrationData } from "@/types/user";
 import { userRegistrationValidator } from "@/utils/validators/userValidator";
 import { hashPassword } from "@/utils/bcrypt";
-import { signJWT } from "@/utils/jwt";
+import { JWTUserPayload, signJWT } from "@/utils/jwt";
 import { prisma } from "@/utils/prisma";
 
 export async function POST(request: Request) {
@@ -14,9 +14,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ errors }, { status: 400 });
     }
 
+    const normalizedEmail = body.email.toLowerCase();
+
     const existingUser = await prisma.user.findUnique({
       where: {
-        email: body.email,
+        email: normalizedEmail,
       },
     });
 
@@ -34,26 +36,31 @@ export async function POST(request: Request) {
         username: body.username,
         firstName: body.firstName,
         lastName: body.lastName,
-        email: body.email,
+        email: normalizedEmail,
         password: hashedPassword,
-        isCapper: body.isCapper,
-        ...(body.isCapper && {
-          capperProfile: {
-            create: {
-              bio: "",
-              tags: [],
-            },
-          },
-        }),
-      },
-      include: {
-        capperProfile: true,
+        isCapper: body.isCapper || false,
       },
     });
 
-    const token = await signJWT({
+    if (body.isCapper) {
+      await prisma.capper.create({
+        data: {
+          userId: user.id,
+          bio: "",
+          tags: [],
+        },
+      });
+    }
+
+    if (!user?.id) {
+      throw new Error("User creation failed - no ID generated");
+    }
+
+    const jwtPayload: JWTUserPayload = {
       userId: user.id,
-    });
+    };
+
+    const token = await signJWT(jwtPayload);
 
     const response = NextResponse.json(
       {

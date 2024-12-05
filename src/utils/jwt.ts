@@ -20,12 +20,20 @@ const encodedSecret = new TextEncoder().encode(secret);
 // SIGN function that uses the JWTUserPayload and promises a return of the string thats the payload..
 // Then we return the new payload thats signed thorigh JOSE.
 export async function signJWT(payload: JWTUserPayload): Promise<string> {
-  return await new Jose.SignJWT(payload)
-    // jwt.io för att byta krypterings algorithm.
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Invalid JWT payload");
+  }
+
+  // Ensure payload is a plain object (MongoDB ObjectId needs to be converted to string)
+  const sanitizedPayload = {
+    ...payload,
+    userId: payload.userId.toString(), // Ensure userId is a string
+  };
+
+  return await new Jose.SignJWT(sanitizedPayload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1d")
-    // Using the encodedSecret to signt the JWT Token to see if it matches with the env variable.
     .sign(encodedSecret);
 }
 

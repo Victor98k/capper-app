@@ -10,6 +10,7 @@ export async function GET() {
             firstName: true,
             lastName: true,
             email: true,
+            username: true,
           },
         },
         _count: {
@@ -28,79 +29,40 @@ export async function GET() {
 }
 
 // Endpoint to update capper BIO and username
-export async function PUT(request: Request) {
+export async function PUT(req: Request) {
   try {
-    const data = await request.json();
-    const { userId, bio, username } = data;
+    const { userId, username, bio, tags } = await req.json();
+    console.log("Received update request:", { userId, username, bio, tags });
 
+    // Validate the request
     if (!userId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return new Response(JSON.stringify({ error: "User ID is required" }), {
+        status: 400,
+      });
     }
 
-    // First find the capper record
-    const capper = await prisma.capper.findFirst({
+    // Update the capper profile
+    const updatedCapper = await prisma.capper.update({
       where: {
         userId: userId,
       },
-      include: {
-        user: true,
+      data: {
+        bio: bio,
+        tags: tags,
+        user: {
+          update: {
+            username: username,
+          },
+        },
       },
     });
 
-    if (!capper) {
-      return NextResponse.json(
-        { error: "Capper profile not found" },
-        { status: 404 }
-      );
-    }
-
-    // If username is provided, check if it's unique
-    if (username) {
-      const existingUser = await prisma.user.findUnique({
-        where: {
-          username: username,
-          NOT: {
-            id: userId,
-          },
-        },
-      });
-
-      if (existingUser) {
-        return NextResponse.json(
-          { error: "Username already taken" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Update both user and capper
-    const [updatedUser, updatedCapper] = await prisma.$transaction([
-      prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          ...(username && { username }),
-        },
-      }),
-      prisma.capper.update({
-        where: {
-          id: capper.id,
-        },
-        data: {
-          ...(bio !== undefined && { bio }),
-        },
-      }),
-    ]);
-
-    return NextResponse.json({ user: updatedUser, capper: updatedCapper });
+    console.log("Updated capper:", updatedCapper);
+    return new Response(JSON.stringify(updatedCapper), { status: 200 });
   } catch (error) {
-    console.error("Update error:", error);
-    return NextResponse.json(
-      { error: "Failed to update profile" },
+    console.error("Error updating capper:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to update capper profile" }),
       { status: 500 }
     );
   }
