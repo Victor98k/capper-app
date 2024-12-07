@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, MessageSquare, PieChart, Settings, Users } from "lucide-react";
+import {
+  Bell,
+  MessageSquare,
+  PieChart,
+  Settings,
+  Terminal,
+  Users,
+} from "lucide-react";
 import {
   Card,
   CardContent,
