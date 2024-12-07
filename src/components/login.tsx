@@ -68,7 +68,7 @@ export function Login() {
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);
 
-      router.push(data.isCapper ? "/home-capper" : "/home");
+      router.push("/home");
     } catch (error) {
       console.error("Error during login:", error);
       setAlert({
