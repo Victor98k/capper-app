@@ -328,7 +328,7 @@ export default function LandingPage() {
         {/* Hero Section - Full viewport */}
         <section className="min-h-screen flex items-center justify-center">
           <div className="text-center px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12 lg:mt-28">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12">
               <span className="block sm:hidden">
                 <img
                   src={CappersLogo.src}
@@ -342,7 +342,7 @@ export default function LandingPage() {
                   <span className="text-[#4e43ff]">sports bets?</span>{" "}
                 </span>
                 <br />
-                <span className="text-white  text-4xl">Welcome to </span>
+                <span className="text-white text-4xl">Welcome to </span>
                 <br />
                 <img
                   src={CappersLogo.src}
@@ -351,14 +351,6 @@ export default function LandingPage() {
                 />
               </span>
             </h1>
-
-            {/* <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 sm:mb-12 font-semibold text-white">
-              Become a member and take your{" "}
-              <span className="text-[#4e43ff]">sports betting </span>
-              to the next level.
-            </p> */}
-
-            {/* Optional: Add a scroll indicator */}
           </div>
         </section>
 
