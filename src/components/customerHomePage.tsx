@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import CappersLogo from "@/images/Cappers Logga.png";
 import {
   Home,
   Search,
@@ -19,9 +20,17 @@ import {
   Bookmark,
   CheckCircle,
   LogOut,
+  Compass,
+  TicketIcon,
+  BarChart3,
+  Settings,
+  Menu,
+  X,
+  LineChart,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import DisplayCapperCard from "@/components/displayCapperCard";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type Admin = {
   id: string;
@@ -99,93 +108,156 @@ export function CustomerHomepageComponent() {
       tags: ["Basketball", "Hockey"],
     },
   ]);
+  const [isCapper, setIsCapper] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkCapperStatus = async () => {
+      try {
+        const response = await fetch("/api/cappers");
+        if (!response.ok) throw new Error("Failed to fetch cappers");
+        const cappers = await response.json();
+
+        const isUserCapper = cappers.some(
+          (capper: any) => capper.user.email === user?.email
+        );
+
+        setIsCapper(isUserCapper);
+      } catch (error) {
+        console.error("Error checking capper status:", error);
+        setIsCapper(false);
+      }
+    };
+
+    if (user?.email) {
+      checkCapperStatus();
+    }
+  }, [user?.email]);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      localStorage.clear(); // Clear any non-sensitive data
+
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
-      {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
-          {/* Logo - taking up 1/4 of the space */}
-          <div className="w-1/4">
-            <h1 className="text-2xl font-bold text-blue-600">CAPPERS</h1>
-          </div>
+  const NavLinks = () => (
+    <nav className="space-y-4">
+      <div className="mb-8">
+        <Input
+          type="search"
+          placeholder="Search"
+          className="w-full bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+        />
+      </div>
 
-          {/* Search - taking up 1/2 of the space and centered */}
-          <div className="w-1/2 flex justify-center">
-            <Input
-              type="search"
-              placeholder="Search"
-              className="w-2/3 bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
+      <Button variant="ghost" className="w-full justify-start" size="lg">
+        <Home className="h-5 w-5 mr-3" />
+        Home
+      </Button>
+      <Button variant="ghost" className="w-full justify-start" size="lg">
+        <Compass className="h-5 w-5 mr-3" />
+        Explore
+      </Button>
+      <Button variant="ghost" className="w-full justify-start" size="lg">
+        <TicketIcon className="h-5 w-5 mr-3" />
+        My Bets
+      </Button>
+      <Button variant="ghost" className="w-full justify-start" size="lg">
+        <BarChart3 className="h-5 w-5 mr-3" />
+        Analytics
+      </Button>
+      <Button variant="ghost" className="w-full justify-start" size="lg">
+        <MessageCircle className="h-5 w-5 mr-3" />
+        Messages
+      </Button>
+      <Button variant="ghost" className="w-full justify-start" size="lg">
+        <Settings className="h-5 w-5 mr-3" />
+        Settings
+      </Button>
+
+      <div className="pt-4 border-t border-gray-700">
+        <div className="flex items-center space-x-3 mb-4">
+          <Avatar>
+            <AvatarImage
+              src="/placeholder.svg?height=32&width=32"
+              alt="@username"
             />
+            <AvatarFallback>UN</AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <p className="text-sm font-medium">Profile</p>
           </div>
-
-          {/* Navigation - taking up 1/4 of the space */}
-          <nav className="w-1/4 flex items-center justify-end space-x-4">
-            <Button variant="ghost" size="icon">
-              <Home className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <MessageCircle className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <PlusSquare className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Heart className="h-5 w-5" />
-            </Button>
-            <Avatar>
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="@username"
-              />
-              <AvatarFallback>UN</AvatarFallback>
-            </Avatar>
-            <Button
-              variant="destructive"
-              onClick={handleLogout}
-              className="ml-4"
-            >
-              Logout
-            </Button>
-            {/* <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button> */}
-          </nav>
         </div>
-      </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Featured Admins */}
-        <h2 className="text-2xl font-bold mb-4">Featured Cappers </h2>
+        {isCapper && (
+          <Button
+            variant="secondary"
+            onClick={() => router.push("/home-capper")}
+            className="w-full mb-2"
+          >
+            <LineChart className="h-5 w-5 mr-2" />
+            Capper Dashboard
+          </Button>
+        )}
 
-        {/* Admin Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {admins.map((admin) => (
-            <DisplayCapperCard
-              key={admin.id}
-              firstName={admin.name.split(" ")[0]}
-              lastName={admin.name.split(" ")[1]}
-              username={admin.username}
-              bio={admin.bio}
-              tags={admin.tags}
-              subscribers={admin.subscribers}
-              isVerified={admin.isVerified}
-              avatar={admin.avatar}
-            />
-          ))}
+        <Button variant="destructive" onClick={handleLogout} className="w-full">
+          <LogOut className="h-5 w-5 mr-2" />
+          Logout
+        </Button>
+      </div>
+    </nav>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100 flex">
+      {/* Mobile Menu */}
+      <div className="lg:hidden fixed top-6 left-6 z-50">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="left"
+            className="w-64 p-6 bg-gray-800 border-gray-700"
+          >
+            <h1 className="text-2xl font-bold text-blue-600 mb-8">CAPPERS</h1>
+            <NavLinks />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block w-64 bg-gray-800 border-r border-gray-700 h-screen sticky top-0">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold text-blue-600 mb-8">CAPPERS</h1>
+          <NavLinks />
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-8 lg:p-8">
+        <div className="lg:mt-0 mt-8">
+          <h2 className="text-2xl font-bold mb-4">Featured Cappers</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {admins.map((admin) => (
+              <DisplayCapperCard
+                key={admin.id}
+                firstName={admin.name.split(" ")[0]}
+                lastName={admin.name.split(" ")[1]}
+                username={admin.username}
+                bio={admin.bio}
+                tags={admin.tags}
+                subscribers={admin.subscribers}
+                isVerified={admin.isVerified}
+                avatar={admin.avatar}
+              />
+            ))}
+          </div>
         </div>
       </main>
     </div>
