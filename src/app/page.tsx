@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   CheckCircle,
+  DollarSign,
 } from "lucide-react";
 import CappersLogo from "@/images/Cappers Logga.png";
 import gsap from "gsap";
@@ -76,6 +77,11 @@ export default function LandingPage() {
       title: "Place Bets",
       description: "Use the insights to make informed betting decisions.",
       icon: <LogIn className="h-14 w-14 text-[#4e43ff]" />,
+    },
+    {
+      title: "Earn Money",
+      description: "Start winning consistently and grow your bankroll.",
+      icon: <DollarSign className="h-14 w-14 text-[#4e43ff]" />,
     },
   ];
 
@@ -460,7 +466,7 @@ export default function LandingPage() {
               How It <span className="text-[#4e43ff]">Works</span>
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
               {steps.map((step, index) => (
                 <div
                   key={index}
