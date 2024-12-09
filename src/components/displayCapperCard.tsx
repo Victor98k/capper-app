@@ -1,37 +1,44 @@
+"use client";
 import { CheckCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 interface CapperCardProps {
-  avatar?: string;
+  userId: string;
+  imageUrl?: string;
   firstName: string;
   lastName: string;
-  isVerified?: boolean;
   username: string;
-  bio: string;
+  bio?: string;
+  title?: string;
   tags: string[];
-  subscribers: number;
+  subscriberIds: string[];
+  isVerified?: boolean;
 }
-// deploy,
+
 function DisplayCapperCard({
-  avatar = "https://via.placeholder.com/150",
-  firstName = "",
-  lastName = "",
-  isVerified = false,
-  username = "",
+  userId,
+  imageUrl = "https://via.placeholder.com/150",
+  firstName,
+  lastName,
+  username,
   bio = "",
+  title,
   tags = [],
-  subscribers = 0,
+  subscriberIds = [],
+  isVerified = false,
 }: CapperCardProps) {
+  const router = useRouter();
+
   return (
     <Card className="overflow-hidden bg-gray-800 border-gray-700">
       <CardContent className="p-6">
         <div className="flex items-center space-x-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={avatar} alt={`${firstName} ${lastName}`} />
+            <AvatarImage src={imageUrl} alt={`${firstName} ${lastName}`} />
             <AvatarFallback>
               {firstName?.charAt(0) || ""}
               {lastName?.charAt(0) || ""}
@@ -45,6 +52,7 @@ function DisplayCapperCard({
               )}
             </h3>
             <p className="text-sm text-gray-400">@{username}</p>
+            {title && <p className="text-sm text-gray-300">{title}</p>}
           </div>
         </div>
         <p className="mt-4 text-sm text-gray-300">{bio || "No bio yet"}</p>
@@ -60,14 +68,14 @@ function DisplayCapperCard({
           ))}
         </div>
         <p className="mt-4 text-m font-semibold text-violet-400">
-          {subscribers.toLocaleString()} Capper Subscribers
+          {subscriberIds.length.toLocaleString()} Capper Subscribers
         </p>
         <Button
           className="w-full mt-4 bg-violet-600 hover:bg-violet-700 text-white border-0"
           variant="default"
-          onClick={() => router.push("/Subscriptions")}
+          onClick={() => router.push(`/cappers/${username}`)}
         >
-          Profile
+          View Profile
         </Button>
       </CardContent>
     </Card>

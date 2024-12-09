@@ -83,19 +83,15 @@ export function CapperDashboard() {
         },
         body: JSON.stringify({
           userId: user?.id,
-          username,
-          bio,
-          tags,
+          bio: bio,
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error("Failed to update profile:", data.error);
-        return;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      const data = await response.json();
       console.log("Profile updated successfully:", data);
       setIsEditingBio(false);
     } catch (error) {
@@ -105,10 +101,6 @@ export function CapperDashboard() {
 
   const handleAddTag = async () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
-      const updatedTags = [...tags, newTag.trim()];
-      setTags(updatedTags);
-      setNewTag("");
-
       try {
         const response = await fetch("/api/cappers", {
           method: "POST",
@@ -122,9 +114,13 @@ export function CapperDashboard() {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          console.error("Failed to add tag:", data.error);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
+        // Only update UI after successful API call
+        setTags([...tags, newTag.trim()]);
+        setNewTag("");
       } catch (error) {
         console.error("Failed to add tag:", error);
       }
@@ -140,17 +136,16 @@ export function CapperDashboard() {
         },
         body: JSON.stringify({
           userId: user?.id,
-          tagToRemove: tagToRemove,
+          tagToRemove,
         }),
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        console.error("Failed to remove tag:", data.error);
-        return;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Only update the UI if the server request was successful
+      const data = await response.json();
+      // Only update UI after successful API call
       setTags(tags.filter((tag) => tag !== tagToRemove));
     } catch (error) {
       console.error("Failed to remove tag:", error);
@@ -396,7 +391,7 @@ export function CapperDashboard() {
                 username={username}
                 bio={bio}
                 tags={tags}
-                subscribers={0}
+                subscriberIds={[]}
                 isVerified={false}
               />
             </CardContent>

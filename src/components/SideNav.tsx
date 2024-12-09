@@ -33,10 +33,15 @@ export function SideNav() {
         if (!response.ok) throw new Error("Failed to fetch cappers");
         const cappers = await response.json();
 
+        // Add console.log for debugging
+        console.log("Cappers:", cappers);
+        console.log("Current user email:", user?.email);
+
         const isUserCapper = cappers.some(
-          (capper: any) => capper.user.email === user?.email
+          (capper: any) => capper.user?.email === user?.email
         );
 
+        console.log("Is user capper:", isUserCapper);
         setIsCapper(isUserCapper);
       } catch (error) {
         console.error("Error checking capper status:", error);
