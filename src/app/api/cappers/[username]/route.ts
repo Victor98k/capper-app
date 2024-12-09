@@ -1,15 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// Define the correct type for the params
-type Props = {
-  params: {
-    username: string;
-  };
-};
-
-// Update the GET function to use the correct type
-export async function GET(request: Request, { params }: Props) {
+export async function GET(
+  request: Request,
+  { params }: { params: { username: string } }
+) {
   try {
     const { username } = params;
 
