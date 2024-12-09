@@ -1,14 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-interface RouteParams {
-  params: {
-    username: string;
-  };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: { username: string } }
+) {
   try {
     const { username } = params;
 
