@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET(
-  request: NextRequest,
-  context: { params: { username: string } }
+  _req: Request,
+  { params }: { params: { username: string } }
 ) {
   try {
-    const { username } = context.params;
+    const { username } = params;
 
     const capper = await prisma.capper.findFirst({
       where: {
