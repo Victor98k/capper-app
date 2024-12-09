@@ -1,13 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(
-  request: Request,
-  context: { params: { username: string } }
-) {
-  const username = await context.params.username;
+// Define the correct type for the params
+type Props = {
+  params: {
+    username: string;
+  };
+};
 
+// Update the GET function to use the correct type
+export async function GET(request: Request, { params }: Props) {
   try {
+    const { username } = params;
+
     const capper = await prisma.capper.findFirst({
       where: {
         user: {
