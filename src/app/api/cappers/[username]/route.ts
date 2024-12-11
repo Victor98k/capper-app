@@ -2,13 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { type NextRequest } from "next/server";
 
-interface Params {
-  params: {
-    username: string;
-  };
-}
-
-export async function GET(request: NextRequest, { params }: Params) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { username: string } }
+) {
   try {
     const { username } = params;
 
