@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const cappers = await prisma.capper.findMany({
       include: {
@@ -28,7 +29,7 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { userId, bio } = body;
@@ -55,7 +56,7 @@ export async function PUT(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json();
     const { userId, tagToRemove } = body;
@@ -67,7 +68,6 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // First get the current capper to access their tags
     const capper = await prisma.capper.findUnique({
       where: { userId },
       select: { tags: true },
@@ -77,10 +77,8 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Capper not found" }, { status: 404 });
     }
 
-    // Filter out the tag to remove
     const updatedTags = capper.tags.filter((tag) => tag !== tagToRemove);
 
-    // Update the capper with the new tags array
     const updatedCapper = await prisma.capper.update({
       where: { userId },
       data: { tags: updatedTags },
@@ -96,7 +94,7 @@ export async function DELETE(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { userId, tags } = body;
@@ -108,7 +106,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get current capper to access existing tags
     const capper = await prisma.capper.findUnique({
       where: { userId },
       select: { tags: true },
@@ -118,10 +115,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Capper not found" }, { status: 404 });
     }
 
-    // Add new tags to existing tags array
     const updatedTags = [...new Set([...capper.tags, ...tags])];
 
-    // Update the capper with the new tags array
     const updatedCapper = await prisma.capper.update({
       where: { userId },
       data: { tags: updatedTags },
