@@ -8,6 +8,13 @@ export async function GET(
   try {
     const { username } = params;
 
+    if (!username) {
+      return NextResponse.json(
+        { error: "Username is required" },
+        { status: 400 }
+      );
+    }
+
     const capper = await prisma.capper.findFirst({
       where: {
         user: {
