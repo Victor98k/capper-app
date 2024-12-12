@@ -2,26 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { type NextRequest } from "next/server";
 
-type Props = {
-  params: { username: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { username: string } }
+) {
+  const username = params.username;
 
-export async function GET(request: NextRequest, props: Props) {
   try {
-    const { username } = props.params;
-
-    if (!username) {
-      return NextResponse.json(
-        { error: "Username is required" },
-        { status: 400 }
-      );
-    }
-
     const capper = await prisma.capper.findFirst({
       where: {
         user: {
-          username: username,
+          username,
         },
       },
       include: {
