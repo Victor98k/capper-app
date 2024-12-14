@@ -18,7 +18,7 @@ export async function GET(req: Request) {
             user: {
               select: {
                 username: true,
-                imageUrl: true,
+                // imageUrl: true,
               },
             },
           },
