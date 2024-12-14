@@ -7,7 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Trophy, TrendingUp, Users, Star } from "lucide-react";
+import {
+  CheckCircle,
+  Trophy,
+  TrendingUp,
+  Users,
+  Star,
+  Loader2,
+} from "lucide-react";
 import { use } from "react";
 
 type CapperProfile = {
@@ -68,8 +75,11 @@ export default function CapperProfilePage({
     return (
       <div className="min-h-screen bg-gray-900 text-gray-100 flex">
         <SideNav />
-        <main className="flex-1 p-8">
-          <p className="text-center">Loading profile...</p>
+        <main className="flex-1 p-8 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#4e43ff]" />
+            <p className="text-gray-400">Loading...</p>
+          </div>
         </main>
       </div>
     );
