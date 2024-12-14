@@ -31,12 +31,15 @@ export function Login() {
     e.preventDefault();
     setAlert(null);
     try {
+      console.log("Current cookies before login:", document.cookie);
+
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -58,6 +61,12 @@ export function Login() {
         return;
       }
 
+      setTimeout(() => {
+        console.log("Cookies after login:", document.cookie);
+        const hasToken = document.cookie.includes("token=");
+        console.log("Token cookie present:", hasToken);
+      }, 100);
+
       setAlert({
         type: "success",
         message: "Login successful",
@@ -68,7 +77,9 @@ export function Login() {
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);
 
-      router.push("/home");
+      setTimeout(() => {
+        router.push("/home");
+      }, 100);
     } catch (error) {
       console.error("Error during login:", error);
       setAlert({

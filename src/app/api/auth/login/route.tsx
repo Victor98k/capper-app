@@ -43,23 +43,34 @@ export async function POST(request: NextRequest) {
       userId: user.id,
     });
 
-    const response = NextResponse.json({
-      userId: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      isCapper: user.isCapper,
+    const response = new NextResponse(
+      JSON.stringify({
+        userId: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        isCapper: user.isCapper,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    response.cookies.set("token", token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24, // 1 day in seconds
+      path: "/",
     });
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" as const,
-      maxAge: 60 * 60 * 24, // 1 day
-      path: "/",
-    };
-
-    response.cookies.set("token", token, cookieOptions);
+    console.log("Setting token cookie:", {
+      token: token.substring(0, 20) + "...",
+      cookieString: response.headers.get("set-cookie"),
+    });
 
     return response;
   } catch (error: any) {
