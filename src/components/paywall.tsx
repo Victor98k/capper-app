@@ -124,5 +124,4 @@ export function PaywallComponent() {
     </div>
   );
 }
-
 export default PaywallComponent;

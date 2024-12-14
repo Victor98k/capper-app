@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { use } from "react";
+import { SubscribeButton } from "@/components/SubscribeButton";
 
 type CapperProfile = {
   id: string;
@@ -143,17 +144,10 @@ export default function CapperProfilePage({
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant={isSubscribed ? "secondary" : "default"}
-                    className={`w-full sm:w-auto px-8 ${
-                      isSubscribed
-                        ? "bg-gray-700 hover:bg-gray-600"
-                        : "bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
-                    }`}
-                    onClick={() => setIsSubscribed(!isSubscribed)}
-                  >
-                    {isSubscribed ? "Subscribed" : "Subscribe"}
-                  </Button>
+                  <SubscribeButton
+                    capperId={capper.id}
+                    initialIsSubscribed={isSubscribed}
+                  />
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {capper.tags.map((tag) => (

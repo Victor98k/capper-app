@@ -14,21 +14,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const normalizedEmail = body.email.toLowerCase();
-
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        email: normalizedEmail,
-      },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "User with this email already exists" },
-        { status: 400 }
-      );
-    }
-
     const hashedPassword = await hashPassword(body.password);
 
     const user = await prisma.user.create({
@@ -36,7 +21,7 @@ export async function POST(request: Request) {
         username: body.username,
         firstName: body.firstName,
         lastName: body.lastName,
-        email: normalizedEmail,
+        email: body.email,
         password: hashedPassword,
         isCapper: body.isCapper || false,
       },
@@ -46,47 +31,44 @@ export async function POST(request: Request) {
       await prisma.capper.create({
         data: {
           userId: user.id,
-          bio: "",
           tags: [],
+          subscriberIds: [],
         },
       });
     }
 
-    if (!user?.id) {
-      throw new Error("User creation failed - no ID generated");
-    }
-
-    const jwtPayload: JWTUserPayload = {
+    const token = await signJWT({
       userId: user.id,
-    };
+    });
 
-    const token = await signJWT(jwtPayload);
-
-    const response = NextResponse.json(
-      {
+    const response = new NextResponse(
+      JSON.stringify({
         userId: user.id,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-      },
-      { status: 201 }
+      }),
+      {
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
 
-    const cookieOptions = {
-      httpOnly: true,
+    response.cookies.set("token", token, {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" as const,
-      maxAge: 60 * 60 * 24, // 1 day
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24, // 1 day in seconds
       path: "/",
-    };
+    });
 
-    response.cookies.set("token", token, cookieOptions);
-    response.cookies.set(
-      "isCapper",
-      user.isCapper ? "true" : "false",
-      cookieOptions
-    );
+    console.log("Setting token cookie for new registration:", {
+      token: token.substring(0, 20) + "...",
+      cookieString: response.headers.get("set-cookie"),
+    });
 
     return response;
   } catch (error) {
