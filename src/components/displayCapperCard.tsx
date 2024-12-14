@@ -8,15 +8,15 @@ import { useRouter } from "next/navigation";
 
 interface CapperCardProps {
   userId: string;
-  imageUrl?: string;
   firstName: string;
   lastName: string;
   username: string;
   bio?: string;
   title?: string;
+  imageUrl?: string;
   tags: string[];
   subscriberIds: string[];
-  isVerified?: boolean;
+  isVerified: boolean;
 }
 
 function DisplayCapperCard({
