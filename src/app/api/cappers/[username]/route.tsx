@@ -6,7 +6,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { username: string } }
 ) {
-  const username = await params.username;
+  const username = params.username;
 
   try {
     const capper = await prisma.capper.findFirst({
