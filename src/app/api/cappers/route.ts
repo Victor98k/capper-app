@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { type NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get("email");
+
+    // Get all cappers with their associated user info
     const cappers = await prisma.capper.findMany({
       include: {
         user: {
@@ -11,19 +14,24 @@ export async function GET(request: NextRequest) {
             firstName: true,
             lastName: true,
             username: true,
+            email: true,
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
     });
 
+    // If email is provided, check if this user is a capper
+    if (email) {
+      const isCapper = cappers.some((capper) => capper.user.email === email);
+      return NextResponse.json({ isCapper });
+    }
+
+    // Otherwise return all cappers (existing functionality)
     return NextResponse.json(cappers);
   } catch (error) {
-    console.error("Error fetching cappers:", error);
+    console.error("Error in cappers route:", error);
     return NextResponse.json(
-      { error: "Failed to fetch cappers" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
