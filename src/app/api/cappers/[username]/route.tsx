@@ -4,9 +4,9 @@ import { type NextRequest } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { username: string } }
+  context: { params: { username: string } }
 ) {
-  const username = params.username;
+  const username = context.params.username;
 
   try {
     const capper = await prisma.capper.findFirst({
