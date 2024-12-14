@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import DisplayCapperCard from "./displayCapperCard";
+import { SideNav } from "./SideNavCappers";
 
 export function CapperDashboard() {
   const { user, loading } = useAuth();
@@ -179,285 +180,291 @@ export function CapperDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.firstName}
-          </h1>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <MessageSquare className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Button variant="destructive" onClick={handleLogout}>
-              Logout
-            </Button>
+    <div className="flex min-h-screen bg-gray-100">
+      <SideNav />
+
+      <div className="flex-1">
+        <header className="bg-white shadow pl-16 lg:pl-0">
+          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome back, {user?.firstName}
+            </h1>
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="icon">
+                <Bell className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <MessageSquare className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-5 w-5" />
+              </Button>
+              <Button variant="destructive" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Welcome back, {user?.firstName}!
-          </h2>
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+              Welcome back, {user?.firstName}!
+            </h2>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
+            {/* <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Total bets played</CardTitle>
+                  <CardDescription>Your bets played activity</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">28</div>
+                  <p className="text-sm text-muted-foreground">
+                    +2.5% from last month
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Revenue</CardTitle>
+                  <CardDescription>This month's earnings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">$4,320</div>
+                  <p className="text-sm text-muted-foreground">
+                    +10% from last month
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Active Subscriptions</CardTitle>
+                  <CardDescription>
+                    Currently active subscriptions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">12</div>
+                  <p className="text-sm text-muted-foreground">
+                    3 new this week
+                  </p>
+                </CardContent>
+              </Card>
+            </div> */}
+
+            <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Total bets played</CardTitle>
-                <CardDescription>Your bets played activity</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">28</div>
-                <p className="text-sm text-muted-foreground">
-                  +2.5% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue</CardTitle>
-                <CardDescription>This month's earnings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">$4,320</div>
-                <p className="text-sm text-muted-foreground">
-                  +10% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Subscriptions</CardTitle>
+                <CardTitle>Your Username</CardTitle>
                 <CardDescription>
-                  Currently active subscriptions
+                  This is your unique identifier on the platform
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">12</div>
-                <p className="text-sm text-muted-foreground">3 new this week</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Your Username</CardTitle>
-              <CardDescription>
-                This is your unique identifier on the platform
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isEditingUsername ? (
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full p-2 border-2 border-blue-500 rounded-md bg-blue-50"
-                    placeholder="Enter new username"
-                  />
-                  <div className="flex space-x-2">
-                    <Button onClick={handleUsernameUpdate}>
-                      Save Username
-                    </Button>
+                {isEditingUsername ? (
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full p-2 border-2 border-blue-500 rounded-md bg-blue-50"
+                      placeholder="Enter new username"
+                    />
+                    <div className="flex space-x-2">
+                      <Button onClick={handleUsernameUpdate}>
+                        Save Username
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditingUsername(true)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-blue-700 font-semibold">
+                      @{username}
+                    </p>
                     <Button
                       variant="outline"
                       onClick={() => setIsEditingUsername(true)}
                     >
-                      Cancel
+                      Edit Username
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-blue-700 font-semibold">
-                    @{username}
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditingUsername(true)}
-                  >
-                    Edit Username
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
 
-          <Card className="col-span-full mt-5">
-            <CardHeader>
-              <CardTitle>Your Bio</CardTitle>
-              <CardDescription>
-                Update your profile information visible to subscribers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isEditingBio ? (
-                <div className="space-y-4">
-                  <textarea
-                    placeholder="Write something about yourself..."
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="w-full min-h-[100px] p-2 border-2 border-blue-500 rounded-md bg-blue-50"
-                  />
-                  <div className="flex space-x-2">
-                    <Button onClick={handleBioUpdate}>Save Bio</Button>
+            <Card className="col-span-full mt-5">
+              <CardHeader>
+                <CardTitle>Your Bio</CardTitle>
+                <CardDescription>
+                  Update your profile information visible to subscribers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isEditingBio ? (
+                  <div className="space-y-4">
+                    <textarea
+                      placeholder="Write something about yourself..."
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      className="w-full min-h-[100px] p-2 border-2 border-blue-500 rounded-md bg-blue-50"
+                    />
+                    <div className="flex space-x-2">
+                      <Button onClick={handleBioUpdate}>Save Bio</Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditingBio(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-blue-700 font-semibold">
+                      {bio || "No bio set yet"}
+                    </p>
                     <Button
                       variant="outline"
-                      onClick={() => setIsEditingBio(false)}
+                      onClick={() => setIsEditingBio(true)}
                     >
-                      Cancel
+                      Edit Bio
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-blue-700 font-semibold">
-                    {bio || "No bio set yet"}
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsEditingBio(true)}
-                  >
-                    Edit Bio
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
 
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Your Tags</CardTitle>
-              <CardDescription>
-                Add tags to help users find your expertise
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <div
-                      key={tag}
-                      className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
-                    >
-                      <span className="text-[#4e43ff]">{tag}</span>
-                      <button
-                        onClick={() => handleRemoveTag(tag)}
-                        className="text-[#4e43ff]/70 hover:text-red-500"
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Your Tags</CardTitle>
+                <CardDescription>
+                  Add tags to help users find your expertise
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <div
+                        key={tag}
+                        className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
                       >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
-                    placeholder="Add a tag..."
-                    className="flex-1 p-2 border rounded-md"
-                  />
-                  <Button onClick={handleAddTag}>Add Tag</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Preview Your Profile Card</CardTitle>
-              <CardDescription>
-                This is how your profile appears to other users
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* now we display the firstname lastname and also the username, firstname and lastname are used for the avatar. */}
-              <DisplayCapperCard
-                userId={user?.id || ""}
-                firstName={user?.firstName || ""}
-                lastName={user?.lastName || ""}
-                username={username}
-                bio={bio}
-                tags={tags}
-                subscriberIds={[]}
-                isVerified={false}
-              />
-            </CardContent>
-          </Card>
-
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <Button className="w-full justify-start" variant="outline">
-                    <PieChart className="mr-2 h-4 w-4" />
-                    View Analytics
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Users className="mr-2 h-4 w-4" />
-                    Manage Subscriptions
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Customer Messages
-                  </Button>
+                        <span className="text-[#4e43ff]">{tag}</span>
+                        <button
+                          onClick={() => handleRemoveTag(tag)}
+                          className="text-[#4e43ff]/70 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
+                      placeholder="Add a tag..."
+                      className="flex-1 p-2 border rounded-md"
+                    />
+                    <Button onClick={handleAddTag}>Add Tag</Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle>Preview Your Profile Card</CardTitle>
+                <CardDescription>
+                  This is how your profile appears to other users
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-4">
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                    <span className="flex-grow">New subscriptions</span>
-                    <span className="text-sm text-muted-foreground">
-                      2h ago
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                    <span className="flex-grow">
-                      Updated bet: Chelsea vs Man Utd
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      5h ago
-                    </span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-                    <span className="flex-grow">
-                      New bet: Liverpool vs Man City
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      1d ago
-                    </span>
-                  </li>
-                </ul>
+                {/* now we display the firstname lastname and also the username, firstname and lastname are used for the avatar. */}
+                <DisplayCapperCard
+                  userId={user?.id || ""}
+                  firstName={user?.firstName || ""}
+                  lastName={user?.lastName || ""}
+                  username={username}
+                  bio={bio}
+                  tags={tags}
+                  subscriberIds={[]}
+                  isVerified={false}
+                />
               </CardContent>
             </Card>
+
+            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button className="w-full justify-start" variant="outline">
+                      <PieChart className="mr-2 h-4 w-4" />
+                      View Analytics
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <Users className="mr-2 h-4 w-4" />
+                      Manage Subscriptions
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Customer Messages
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card> */}
+
+              {/* <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-4">
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                      <span className="flex-grow">New subscriptions</span>
+                      <span className="text-sm text-muted-foreground">
+                        2h ago
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                      <span className="flex-grow">
+                        Updated bet: Chelsea vs Man Utd
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        5h ago
+                      </span>
+                    </li>
+                    <li className="flex items-center">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                      <span className="flex-grow">
+                        New bet: Liverpool vs Man City
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        1d ago
+                      </span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card> */}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
