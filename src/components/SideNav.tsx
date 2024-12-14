@@ -29,20 +29,16 @@ export function SideNav() {
   useEffect(() => {
     const checkCapperStatus = async () => {
       try {
-        const response = await fetch("/api/cappers");
-        if (!response.ok) throw new Error("Failed to fetch cappers");
-        const cappers = await response.json();
+        if (!user?.email) return;
 
-        // Add console.log for debugging
-        console.log("Cappers:", cappers);
-        console.log("Current user email:", user?.email);
-
-        const isUserCapper = cappers.some(
-          (capper: any) => capper.user?.email === user?.email
+        const response = await fetch(
+          `/api/cappers?email=${encodeURIComponent(user.email)}`
         );
+        if (!response.ok) throw new Error("Failed to check capper status");
+        const data = await response.json();
 
-        console.log("Is user capper:", isUserCapper);
-        setIsCapper(isUserCapper);
+        console.log("Capper status response:", data);
+        setIsCapper(data.isCapper);
       } catch (error) {
         console.error("Error checking capper status:", error);
         setIsCapper(false);
