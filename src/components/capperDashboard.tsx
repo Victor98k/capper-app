@@ -386,6 +386,7 @@ export function CapperDashboard() {
             <CardContent>
               {/* now we display the firstname lastname and also the username, firstname and lastname are used for the avatar. */}
               <DisplayCapperCard
+                userId={user?.id || ""}
                 firstName={user?.firstName || ""}
                 lastName={user?.lastName || ""}
                 username={username}
