@@ -34,6 +34,8 @@ export default function LandingPage() {
       tags: ["NFL", "NBA", "MLB"],
       subscribers: 1500,
       avatar: "https://via.placeholder.com/150",
+      userId: "user1",
+      subscriberIds: [],
     },
     {
       firstName: "Jane",
@@ -44,6 +46,8 @@ export default function LandingPage() {
       tags: ["NBA", "WNBA", "NCAA"],
       subscribers: 2300,
       avatar: "https://via.placeholder.com/150",
+      userId: "user2",
+      subscriberIds: [],
     },
     {
       firstName: "Mike",
@@ -54,6 +58,8 @@ export default function LandingPage() {
       tags: ["NFL", "NCAA Football"],
       subscribers: 800,
       avatar: "https://via.placeholder.com/150",
+      userId: "user3",
+      subscriberIds: [],
     },
   ];
 
