@@ -88,10 +88,10 @@ export function SideNav() {
         variant="ghost"
         className="w-full justify-start"
         size="lg"
-        onClick={() => router.push("/Explore")}
+        onClick={() => router.push("/New-post")}
       >
         <Compass className="h-5 w-5 mr-3" />
-        Profile Settings
+        Add new post
       </Button>
       <Button
         variant="ghost"
