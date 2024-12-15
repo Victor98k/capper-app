@@ -111,6 +111,11 @@ export function SubscribeButton({
       onClick={handleSubscription}
       disabled={isLoading}
       variant={isSubscribed ? "outline" : "default"}
+      className={
+        isSubscribed
+          ? "border-[#4e43ff] text-[#4e43ff] hover:bg-[#4e43ff]/10"
+          : "bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+      }
     >
       {isLoading ? "Loading..." : isSubscribed ? "Unsubscribe" : "Subscribe"}
     </Button>
