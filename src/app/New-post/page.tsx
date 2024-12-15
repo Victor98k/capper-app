@@ -200,21 +200,21 @@ function NewPostPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <PostPreview
-                  userId={user?.id || ""}
-                  firstName={user?.firstName || ""}
-                  lastName={user?.lastName || ""}
-                  username={user?.username || ""}
-                  title={title}
-                  content={content}
-                  tags={tags}
-                  prediction="Home Win"
-                  odds="1.95"
-                  confidence={85}
-                  sport="Football"
-                  match="Manchester United vs Liverpool"
-                  league="Premier League"
-                />
+                {/* <PostPreview
+                    //   userId={user?.id || ""}
+                    //   firstName={user?.firstName || ""}
+                    //   lastName={user?.lastName || ""}
+                    // //   username={user?.username || ""}
+                    //   title={title}
+                    // //   content={content}
+                    //   tags={tags}
+                    // //   prediction="Home Win"
+                    //   odds="1.95"
+                    //   confidence={85}
+                    //   sport="Football"
+                    //   match="Manchester United vs Liverpool"
+                    //   league="Premier League"
+                    /> */}
               </CardContent>
             </Card>
           </div>
