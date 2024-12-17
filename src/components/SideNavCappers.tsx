@@ -79,7 +79,7 @@ export function SideNav() {
         variant="ghost"
         className="w-full justify-start"
         size="lg"
-        onClick={() => router.push("/home")}
+        onClick={() => router.push("/home-capper")}
       >
         <Home className="h-5 w-5 mr-3" />
         Home

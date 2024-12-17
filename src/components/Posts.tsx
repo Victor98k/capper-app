@@ -20,15 +20,15 @@ interface CapperCardProps {
 }
 
 function Post({
-  userId,
+  userId = "test",
   imageUrl = "https://via.placeholder.com/150",
-  firstName,
-  lastName,
-  username,
-  bio = "",
-  title,
-  tags = [],
-  subscriberIds = [],
+  firstName = "John",
+  lastName = "Doe",
+  username = "johndoe",
+  bio = " ",
+  title = "This is a test title",
+  tags = ["tag1", "tag2", "tag3"],
+
   isVerified = false,
 }: CapperCardProps) {
   const router = useRouter();
@@ -67,9 +67,7 @@ function Post({
             </Badge>
           ))}
         </div>
-        <p className="mt-4 text-m font-semibold text-violet-400">
-          {subscriberIds.length.toLocaleString()} Capper Subscribers
-        </p>
+        <p className="mt-4 text-m font-semibold text-violet-400"></p>
         <Button
           className="w-full mt-4 bg-violet-600 hover:bg-violet-700 text-white border-0"
           variant="default"
