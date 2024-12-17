@@ -325,10 +325,10 @@ function NewPostPage() {
                   userId={user?.id || ""}
                   firstName={user?.firstName || ""}
                   lastName={user?.lastName || ""}
-                  username={user?.username || ""}
+                  // username={user?.username || ""}
                   tags={tags}
-                  isVerified={user?.isVerified || false}
                   subscriberIds={[]}
+                  isVerified={false}
                 />
               </CardContent>
             </Card>

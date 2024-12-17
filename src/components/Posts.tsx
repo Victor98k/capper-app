@@ -10,7 +10,7 @@ interface CapperCardProps {
   userId: string;
   firstName: string;
   lastName: string;
-  username: string;
+  // username: string;
   bio?: string;
   title?: string;
   imageUrl?: string;
@@ -24,7 +24,7 @@ function Post({
   imageUrl = "https://via.placeholder.com/150",
   firstName = "John",
   lastName = "Doe",
-  username = "johndoe",
+  // username = "johndoe",
   bio = " ",
   title = "This is a test title",
   tags = ["tag1", "tag2", "tag3"],
