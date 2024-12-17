@@ -46,7 +46,9 @@ model Capper {
 // TODO: Add right parameters for capper post 
 model CapperPost {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
   content   String
+  tags      String[]
   capperId  String   @db.ObjectId
   capper    Capper   @relation(fields: [capperId], references: [id])
   createdAt DateTime @default(now())

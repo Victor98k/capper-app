@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { SideNav } from "@/components/SideNavCappers";
 import { Bell, MessageSquare, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import DisplayCapperCard from "@/components/displayCapperCard";
-import PostPreview from "@/components/Posts";
+import Posts from "@/components/Posts";
 
 function NewPostPage() {
   const { user, loading } = useAuth();
@@ -23,6 +22,9 @@ function NewPostPage() {
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -45,19 +47,64 @@ function NewPostPage() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImage(null);
+    setImagePreview(null);
+  };
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
+  }, []);
+
   const handleSubmit = async () => {
     try {
+      const formData = new FormData();
+      formData.append("userId", user?.id || "");
+      formData.append("title", title);
+      formData.append("content", content);
+      formData.append("tags", JSON.stringify(tags));
+      if (image) {
+        formData.append("image", image);
+      }
+
       const response = await fetch("/api/posts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user?.id,
-          title,
-          content,
-          tags,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -146,6 +193,80 @@ function NewPostPage() {
                     />
                   </div>
 
+                  {/* Image Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Image
+                    </label>
+                    {!imagePreview ? (
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                          ${
+                            isDragging
+                              ? "border-[#4e43ff] bg-[#4e43ff]/10"
+                              : "border-gray-300 hover:border-[#4e43ff]"
+                          }`}
+                        onDragEnter={handleDragEnter}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() =>
+                          document.getElementById("imageInput")?.click()
+                        }
+                      >
+                        <div className="space-y-2">
+                          <div className="text-gray-600">
+                            <svg
+                              className="mx-auto h-12 w-12"
+                              stroke="currentColor"
+                              fill="none"
+                              viewBox="0 0 48 48"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex text-sm text-gray-600">
+                            <span className="relative cursor-pointer rounded-md font-medium text-[#4e43ff] focus-within:outline-none">
+                              Click to upload
+                            </span>
+                            <p className="pl-1">or drag and drop</p>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG, GIF up to 10MB
+                          </p>
+                        </div>
+                        <input
+                          id="imageInput"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                      </div>
+                    ) : (
+                      <div className="mt-2 relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="max-w-xs h-auto rounded-md"
+                        />
+                        <button
+                          onClick={handleRemoveImage}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                          type="button"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Tags Section */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -200,21 +321,15 @@ function NewPostPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* <PostPreview
-                    //   userId={user?.id || ""}
-                    //   firstName={user?.firstName || ""}
-                    //   lastName={user?.lastName || ""}
-                    // //   username={user?.username || ""}
-                    //   title={title}
-                    // //   content={content}
-                    //   tags={tags}
-                    // //   prediction="Home Win"
-                    //   odds="1.95"
-                    //   confidence={85}
-                    //   sport="Football"
-                    //   match="Manchester United vs Liverpool"
-                    //   league="Premier League"
-                    /> */}
+                <Posts
+                  userId={user?.id || ""}
+                  firstName={user?.firstName || ""}
+                  lastName={user?.lastName || ""}
+                  username={user?.username || ""}
+                  tags={tags}
+                  isVerified={user?.isVerified || false}
+                  subscriberIds={[]}
+                />
               </CardContent>
             </Card>
           </div>
