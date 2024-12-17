@@ -51,7 +51,6 @@ function Post({
                 <CheckCircle className="h-4 w-4 text-blue-400 ml-1" />
               )}
             </h3>
-            <p className="text-sm text-gray-400">@{username}</p>
             {title && <p className="text-sm text-gray-300">{title}</p>}
           </div>
         </div>
@@ -71,7 +70,7 @@ function Post({
         <Button
           className="w-full mt-4 bg-violet-600 hover:bg-violet-700 text-white border-0"
           variant="default"
-          onClick={() => router.push(`/cappers/${username}`)}
+          onClick={() => router.push(`/cappers/${firstName} ${lastName}`)}
         >
           View Profile
         </Button>
