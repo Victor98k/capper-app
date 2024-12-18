@@ -2,6 +2,7 @@
 
 import { SideNav } from "@/components/SideNav";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type Post = {
   _id: string;
@@ -71,12 +72,18 @@ function MyCappers() {
                 key={post._id}
                 className="bg-gray-800 p-6 rounded-lg shadow-lg"
               >
-                {post.imageUrl && (
-                  <img
+                {post.imageUrl ? (
+                  <Image
                     src={post.imageUrl}
                     alt={post.title}
+                    width={400}
+                    height={192}
                     className="w-full h-48 object-cover rounded-lg mb-4"
                   />
+                ) : (
+                  <div className="w-full h-48 bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
+                    <span className="text-gray-400">No image</span>
+                  </div>
                 )}
                 <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
                 <p className="text-gray-300 mb-3">{post.content}</p>
