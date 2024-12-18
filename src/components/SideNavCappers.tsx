@@ -82,7 +82,7 @@ export function SideNav() {
         onClick={() => router.push("/home-capper")}
       >
         <Home className="h-5 w-5 mr-3" />
-        Home
+        Home Dashboard
       </Button>
       <Button
         variant="ghost"
