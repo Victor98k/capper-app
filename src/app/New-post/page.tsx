@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Posts from "@/components/Posts";
+import { toast } from "sonner";
 
 function NewPostPage() {
   const { user, loading } = useAuth();
@@ -93,8 +94,12 @@ function NewPostPage() {
 
   const handleSubmit = async () => {
     try {
+      if (!title.trim() || !content.trim()) {
+        toast.error("Title and content are required");
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("userId", user?.id || "");
       formData.append("title", title);
       formData.append("content", content);
       formData.append("tags", JSON.stringify(tags));
@@ -107,15 +112,19 @@ function NewPostPage() {
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(data.error || "Failed to create post");
       }
 
-      const data = await response.json();
-      console.log("Post created successfully:", data);
-      router.push("/dashboard"); // or wherever you want to redirect after posting
+      toast.success("Post created successfully!");
+      router.push("/home-capper");
     } catch (error) {
       console.error("Failed to create post:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create post"
+      );
     }
   };
 

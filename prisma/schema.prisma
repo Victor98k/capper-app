@@ -48,6 +48,7 @@ model CapperPost {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   content   String
+  imageUrl  String?  // Optional field for storing image URL
   tags      String[]
   capperId  String   @db.ObjectId
   capper    Capper   @relation(fields: [capperId], references: [id])
