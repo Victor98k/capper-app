@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { SideNav } from "@/components/SideNavCappers";
 import { Bell, MessageSquare, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,10 @@ function NewPostPage() {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [bets, setBets] = useState<string[]>([]);
+  const [newBet, setNewBet] = useState("");
+  const [odds, setOdds] = useState<string[]>([]);
+  const [newOdd, setNewOdd] = useState("");
 
   const handleLogout = async () => {
     try {
@@ -91,31 +95,76 @@ function NewPostPage() {
     }
   }, []);
 
+  const handleAddBet = () => {
+    if (newBet.trim() && !bets.includes(newBet.trim())) {
+      setBets([...bets, newBet.trim()]);
+      setNewBet("");
+    }
+  };
+
+  const handleRemoveBet = (betToRemove: string) => {
+    setBets(bets.filter((bet) => bet !== betToRemove));
+  };
+
+  const handleAddOdd = () => {
+    if (newOdd.trim() && !odds.includes(newOdd.trim())) {
+      setOdds([...odds, newOdd.trim()]);
+      setNewOdd("");
+    }
+  };
+
+  const handleRemoveOdd = (oddToRemove: string) => {
+    setOdds(odds.filter((odd) => odd !== oddToRemove));
+  };
+
   const handleSubmit = async () => {
     try {
+      // Validate required fields
+      if (!title || !content) {
+        alert("Title and content are required");
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("userId", user?.id || "");
       formData.append("title", title);
       formData.append("content", content);
       formData.append("tags", JSON.stringify(tags));
+      formData.append("bets", JSON.stringify(bets));
+      formData.append("odds", JSON.stringify(odds));
+
       if (image) {
         formData.append("image", image);
       }
+
+      console.log("Submitting data:", {
+        title,
+        content,
+        tags,
+        bets,
+        odds,
+        hasImage: !!image,
+      });
 
       const response = await fetch("/api/posts", {
         method: "POST",
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
       console.log("Post created successfully:", data);
-      router.push("/dashboard"); // or wherever you want to redirect after posting
+      router.push("/home-capper");
     } catch (error) {
       console.error("Failed to create post:", error);
+      alert(
+        `Error creating post: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -192,6 +241,17 @@ function NewPostPage() {
                       placeholder="Write your post content..."
                     />
                   </div>
+                  {/* <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Content
+                    </label>
+                    <textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="mt-1 w-full min-h-[50px] p-1 border rounded-md"
+                      placeholder="Write your post content..."
+                    />
+                  </div> */}
 
                   {/* Image Input */}
                   <div>
@@ -301,6 +361,74 @@ function NewPostPage() {
                     </div>
                   </div>
 
+                  {/* Bets Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bets
+                    </label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {bets.map((bet) => (
+                        <div
+                          key={bet}
+                          className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
+                        >
+                          <span className="text-[#4e43ff]">{bet}</span>
+                          <button
+                            onClick={() => handleRemoveBet(bet)}
+                            className="text-[#4e43ff]/70 hover:text-red-500"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        type="text"
+                        value={newBet}
+                        onChange={(e) => setNewBet(e.target.value)}
+                        onKeyPress={(e) => e.key === "Enter" && handleAddBet()}
+                        placeholder="Add a bet..."
+                        className="flex-1 p-2 border rounded-md"
+                      />
+                      <Button onClick={handleAddBet}>Add Bet</Button>
+                    </div>
+                  </div>
+
+                  {/* Odds Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Odds
+                    </label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {odds.map((odd) => (
+                        <div
+                          key={odd}
+                          className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
+                        >
+                          <span className="text-[#4e43ff]">{odd}</span>
+                          <button
+                            onClick={() => handleRemoveOdd(odd)}
+                            className="text-[#4e43ff]/70 hover:text-red-500"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        type="text"
+                        value={newOdd}
+                        onChange={(e) => setNewOdd(e.target.value)}
+                        onKeyPress={(e) => e.key === "Enter" && handleAddOdd()}
+                        placeholder="Add odds (e.g., 1.75)..."
+                        className="flex-1 p-2 border rounded-md"
+                      />
+                      <Button onClick={handleAddOdd}>Add Odds</Button>
+                    </div>
+                  </div>
+
                   {/* Submit Button */}
                   <div className="flex justify-end space-x-2">
                     <Button variant="outline" onClick={() => router.back()}>
@@ -312,8 +440,8 @@ function NewPostPage() {
               </CardContent>
             </Card>
 
-            {/* Add the Preview Card */}
-            <Card className="mt-6">
+            {/* Preview Card */}
+            {/* <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Preview Your Post</CardTitle>
                 <CardDescription>
@@ -325,13 +453,17 @@ function NewPostPage() {
                   userId={user?.id || ""}
                   firstName={user?.firstName || ""}
                   lastName={user?.lastName || ""}
-                  // username={user?.username || ""}
+                  username={user?.username || ""}
+                  title={title}
+                  content={content}
                   tags={tags}
+                  bets={bets}
+                  odds={odds}
                   subscriberIds={[]}
                   isVerified={false}
                 />
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </main>
       </div>

@@ -31,8 +31,6 @@ export function Login() {
     e.preventDefault();
     setAlert(null);
     try {
-      console.log("Current cookies before login:", document.cookie);
-
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -45,27 +43,14 @@ export function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 504) {
-          setAlert({
-            type: "error",
-            message: "Server timeout",
-            description: "Please try again.",
-          });
-        } else {
-          setAlert({
-            type: "error",
-            message: data.error || "Login failed",
-            description: "Please check your email and password",
-          });
-        }
+        setAlert({
+          type: "error",
+          message: data.error || "Login failed",
+          description:
+            data.message || "Please check your credentials and try again",
+        });
         return;
       }
-
-      setTimeout(() => {
-        console.log("Cookies after login:", document.cookie);
-        const hasToken = document.cookie.includes("token=");
-        console.log("Token cookie present:", hasToken);
-      }, 100);
 
       setAlert({
         type: "success",
@@ -76,6 +61,7 @@ export function Login() {
       localStorage.setItem("userName", data.firstName);
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);
+      localStorage.setItem("username", data.username);
 
       setTimeout(() => {
         router.push("/home");
