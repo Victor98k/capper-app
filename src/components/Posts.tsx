@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useEffect } from "react";
 
 interface PostProps {
   _id: string;
@@ -40,6 +41,10 @@ function Post({
   capperInfo,
 }: PostProps) {
   const router = useRouter();
+
+  useEffect(() => {
+    // Any localStorage operations should go here
+  }, []);
 
   const renderPostImage = () => {
     if (!imageUrl) {
