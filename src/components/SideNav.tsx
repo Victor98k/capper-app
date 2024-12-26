@@ -24,6 +24,11 @@ export function SideNav() {
   const { user } = useAuth();
   const router = useRouter();
   const [isCapper, setIsCapper] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>("");
+
+  useEffect(() => {
+    setUsername(localStorage.getItem("username") || "");
+  }, []);
 
   // Fetch cappers to check status
   useEffect(() => {
@@ -49,8 +54,6 @@ export function SideNav() {
       checkCapperStatus();
     }
   }, [user?.email]);
-
-  const username = localStorage.getItem("username");
 
   // Handle the Logout
   const handleLogout = async () => {
