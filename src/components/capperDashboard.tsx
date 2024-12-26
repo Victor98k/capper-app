@@ -68,7 +68,9 @@ export function CapperDashboard() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      localStorage.clear(); // Clear any non-sensitive data
+      if (typeof window !== "undefined") {
+        localStorage.clear(); // Only clear localStorage in browser environment
+      }
       router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
