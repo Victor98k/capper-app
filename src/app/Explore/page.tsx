@@ -1,8 +1,11 @@
 "use client";
 
-import { SideNav } from "@/components/SideNav";
-import DisplayCapperCard from "@/components/displayCapperCard";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import DisplayCapperCard from "@/components/displayCapperCard";
+
+// Dynamically import SideNav with no SSR
+const SideNav = dynamic(() => import("@/components/SideNav"), { ssr: false });
 
 type Capper = {
   id: string;
@@ -22,8 +25,10 @@ type Capper = {
 export default function ExplorePage() {
   const [cappers, setCappers] = useState<Capper[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const fetchCappers = async () => {
       try {
         const response = await fetch("/api/cappers");
@@ -38,6 +43,11 @@ export default function ExplorePage() {
 
     fetchCappers();
   }, []);
+
+  // Don't render anything until mounted (client-side)
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex">
