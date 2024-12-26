@@ -50,6 +50,8 @@ export function SideNav() {
     }
   }, [user?.email]);
 
+  const username = localStorage.getItem("username");
+
   // Handle the Logout
   const handleLogout = async () => {
     try {
@@ -137,7 +139,7 @@ export function SideNav() {
             <AvatarFallback>UN</AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="text-sm font-medium">Profile</p>
+            <p className="text-sm font-medium">{username}</p>
           </div>
         </div>
 

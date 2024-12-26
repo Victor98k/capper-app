@@ -160,7 +160,7 @@ export default function CapperProfilePage({
                     </Badge>
                   ))}
                 </div>
-                <p className="text-gray-300">{capper.bio}</p>
+                <p className="text-gray-100">{capper.bio}</p>
               </div>
             </div>
 

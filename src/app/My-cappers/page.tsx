@@ -2,13 +2,15 @@
 
 import { SideNav } from "@/components/SideNav";
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import Post from "@/components/Posts";
 
 type Post = {
   _id: string;
   title: string;
   content: string;
   imageUrl: string;
+  odds: string[];
+  bets: string[];
   tags: string[];
   capperId: string;
   createdAt: string;
@@ -52,50 +54,6 @@ function MyCappers() {
     };
   }, []);
 
-  const renderPostImage = (post: Post) => {
-    if (!post.imageUrl) {
-      return (
-        <div className="w-full h-48 bg-gray-700 rounded-lg mb-4 flex items-center justify-center">
-          <span className="text-gray-400">No image</span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="relative w-full h-48 mb-4">
-        <Image
-          src={post.imageUrl}
-          alt={post.title}
-          fill
-          className="object-cover rounded-lg"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority
-        />
-      </div>
-    );
-  };
-
-  const renderPost = (post: Post) => (
-    <div key={post._id} className="bg-gray-800 p-6 rounded-lg shadow-lg">
-      {renderPostImage(post)}
-      <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
-      <p className="text-gray-300 mb-3">{post.content}</p>
-      <div className="flex flex-wrap gap-2 mb-3">
-        {post.tags?.map((tag) => (
-          <span
-            key={`${post._id}-${tag}`}
-            className="bg-gray-700 px-2 py-1 rounded-full text-sm"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-      <div className="text-sm text-gray-400">
-        Posted: {new Date(post.createdAt).toLocaleDateString()}
-      </div>
-    </div>
-  );
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-gray-100 flex">
@@ -121,11 +79,13 @@ function MyCappers() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex">
       <SideNav />
-      <main className="flex-1 p-8 lg:p-8">
+      <main className="flex-1 p-8 lg:p-12">
         <div className="lg:mt-0 mt-8">
-          <h2 className="text-2xl font-bold mb-4">My Cappers</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map(renderPost)}
+          <h2 className="text-3xl font-bold mb-8">My Cappers</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            {posts.map((post) => (
+              <Post key={post._id} {...post} />
+            ))}
           </div>
         </div>
       </main>

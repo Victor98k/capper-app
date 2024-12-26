@@ -50,6 +50,8 @@ model CapperPost {
   content   String
   imageUrl  String?  // Optional field for storing image URL
   tags      String[]
+  bets      String[]
+  odds      String[]
   capperId  String   @db.ObjectId
   capper    Capper   @relation(fields: [capperId], references: [id])
   createdAt DateTime @default(now())
