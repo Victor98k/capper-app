@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface PostProps {
   _id: string;
@@ -41,6 +41,7 @@ function Post({
   capperInfo,
 }: PostProps) {
   const router = useRouter();
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   useEffect(() => {
     // Any localStorage operations should go here
@@ -49,30 +50,54 @@ function Post({
   const renderPostImage = () => {
     if (!imageUrl) {
       return (
-        <div className="w-full h-48 bg-gray-700 rounded-t-lg flex items-center justify-center">
+        <div className="w-full h-64 bg-gray-700 rounded-t-lg flex items-center justify-center">
           <span className="text-gray-400">No image</span>
         </div>
       );
     }
 
     return (
-      <div className="relative w-full h-48">
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          className="object-cover rounded-t-lg"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority
-        />
-      </div>
+      <>
+        <div
+          className="relative w-full h-64 cursor-pointer"
+          onClick={() => setIsImageModalOpen(true)}
+        >
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            className="object-contain rounded-t-lg"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
+          />
+        </div>
+
+        {/* Image Modal */}
+        {isImageModalOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
+            onClick={() => setIsImageModalOpen(false)}
+          >
+            <div className="relative w-full max-w-4xl h-[80vh]">
+              <Image
+                src={imageUrl}
+                alt={title}
+                fill
+                className="object-contain"
+                sizes="100vw"
+                priority
+              />
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
   return (
-    <Card className="overflow-hidden bg-gray-800 border-gray-700 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/20">
+    <Card className="overflow-hidden bg-gray-800 border-gray-700 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/20 max-w-2xl">
       {renderPostImage()}
-      <CardContent className="p-6">
+      <CardContent className="p-8">
         {/* Capper Info Section */}
         {capperInfo && (
           <div className="flex items-center space-x-4 mb-4">
