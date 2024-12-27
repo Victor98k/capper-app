@@ -49,16 +49,34 @@ export async function GET(req: Request) {
       include: {
         capper: {
           include: {
-            user: true, // Include user information
+            user: true,
           },
         },
       },
     });
 
-    // Log the posts to verify the data
-    console.log("Fetched posts:", posts);
+    // Transform the posts to match the expected format
+    const transformedPosts = posts.map((post) => ({
+      _id: post.id,
+      title: post.title,
+      content: post.content,
+      imageUrl: post.imageUrl || "",
+      odds: post.odds,
+      bets: post.bets,
+      tags: post.tags,
+      capperId: post.capperId,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+      capperInfo: {
+        firstName: post.capper.user.firstName,
+        lastName: post.capper.user.lastName,
+        username: post.capper.user.username,
+        imageUrl: post.capper.user.imageUrl,
+        isVerified: post.capper.user.isVerified || false,
+      },
+    }));
 
-    return NextResponse.json(posts);
+    return NextResponse.json(transformedPosts);
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(
@@ -115,6 +133,34 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
 
+    // Get all form data including username
+    const title = formData.get("title");
+    const content = formData.get("content");
+    const tagsString = formData.get("tags");
+    const betsString = formData.get("bets");
+    const oddsString = formData.get("odds");
+    const username = formData.get("username"); // Get username from FormData
+
+    if (
+      !title ||
+      !content ||
+      !tagsString ||
+      !betsString ||
+      !oddsString ||
+      !username
+    ) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Log received formData
+    console.log("Received FormData entries:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
     // Add image handling
     const image = formData.get("image");
     let imageUrl = null;
@@ -147,20 +193,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Validate that all required fields are present
-    const title = formData.get("title");
-    const content = formData.get("content");
-    const tagsString = formData.get("tags");
-    const betsString = formData.get("bets");
-    const oddsString = formData.get("odds");
-
-    if (!title || !content || !tagsString || !betsString || !oddsString) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
     // Safe parsing of JSON strings
     let tags, bets, odds;
     try {
@@ -175,9 +207,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get the capper profile
-    const capperProfile = await prisma.capper.findUnique({
-      where: { userId: payload.userId },
+    // Get the capper profile with associated user data
+    const capperProfile = await prisma.capper.findFirst({
+      where: {
+        user: {
+          username: username as string,
+        },
+      },
+      include: {
+        user: true,
+      },
     });
 
     if (!capperProfile) {
@@ -187,7 +226,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create the post
+    // Create the post using the capper's information
     const post = await prisma.capperPost.create({
       data: {
         title: title as string,
@@ -198,9 +237,40 @@ export async function POST(req: Request) {
         capperId: capperProfile.id,
         imageUrl: imageUrl,
       },
+      include: {
+        capper: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json({ success: true, post }, { status: 201 });
+    // Transform the post to match the expected format
+    const transformedPost = {
+      _id: post.id,
+      title: post.title,
+      content: post.content,
+      imageUrl: post.imageUrl || "",
+      odds: post.odds,
+      bets: post.bets,
+      tags: post.tags,
+      capperId: post.capperId,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+      capperInfo: {
+        firstName: post.capper.user.firstName,
+        lastName: post.capper.user.lastName,
+        username: post.capper.user.username,
+        imageUrl: post.capper.user.imageUrl,
+        isVerified: post.capper.user.isVerified || false,
+      },
+    };
+
+    return NextResponse.json(
+      { success: true, post: transformedPost },
+      { status: 201 }
+    );
   } catch (error) {
     console.error(
       "Server error:",

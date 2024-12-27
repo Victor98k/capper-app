@@ -23,6 +23,7 @@ interface PostProps {
   capperInfo?: {
     firstName: string;
     lastName: string;
+    username: string;
     imageUrl?: string;
     isVerified?: boolean;
   };
@@ -118,9 +119,14 @@ function Post({
                   <CheckCircle className="h-4 w-4 text-blue-400 ml-1" />
                 )}
               </h3>
-              <div className="flex items-center text-sm text-gray-400">
-                <Calendar className="h-4 w-4 mr-1" />
-                {new Date(createdAt).toLocaleDateString()}
+              <div className="flex flex-col text-sm text-gray-400">
+                <span className="text-violet-400 font-medium text-base">
+                  @{capperInfo.username}
+                </span>
+                <span className="flex items-center mt-1">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  {new Date(createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>

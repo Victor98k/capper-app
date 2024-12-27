@@ -13,7 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Posts from "@/components/Posts";
+
+import Post from "@/components/Posts";
 
 function NewPostPage() {
   const { user, loading } = useAuth();
@@ -125,25 +126,20 @@ function NewPostPage() {
         return;
       }
 
+      // Get username from localStorage
+      const username = localStorage.getItem("userName") || "";
+
       const formData = new FormData();
       formData.append("title", title);
       formData.append("content", content);
       formData.append("tags", JSON.stringify(tags));
       formData.append("bets", JSON.stringify(bets));
       formData.append("odds", JSON.stringify(odds));
+      formData.append("username", username);
 
       if (image) {
         formData.append("image", image);
       }
-
-      console.log("Submitting data:", {
-        title,
-        content,
-        tags,
-        bets,
-        odds,
-        hasImage: !!image,
-      });
 
       const response = await fetch("/api/posts", {
         method: "POST",
@@ -441,7 +437,7 @@ function NewPostPage() {
             </Card>
 
             {/* Preview Card */}
-            {/* <Card className="mt-6">
+            <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Preview Your Post</CardTitle>
                 <CardDescription>
@@ -449,21 +445,27 @@ function NewPostPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Posts
-                  userId={user?.id || ""}
-                  firstName={user?.firstName || ""}
-                  lastName={user?.lastName || ""}
-                  username={user?.username || ""}
+                <Post
+                  _id="preview"
                   title={title}
                   content={content}
-                  tags={tags}
-                  bets={bets}
+                  imageUrl={imagePreview || ""}
                   odds={odds}
-                  subscriberIds={[]}
-                  isVerified={false}
+                  bets={bets}
+                  tags={tags}
+                  capperId="preview"
+                  createdAt={new Date().toISOString()}
+                  updatedAt={new Date().toISOString()}
+                  capperInfo={{
+                    firstName: user?.firstName || "",
+                    lastName: user?.lastName || "",
+                    username: localStorage.getItem("userName") || "",
+                    imageUrl: user?.imageUrl,
+                    isVerified: false,
+                  }}
                 />
               </CardContent>
-            </Card> */}
+            </Card>
           </div>
         </main>
       </div>
