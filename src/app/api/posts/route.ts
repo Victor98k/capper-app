@@ -263,7 +263,7 @@ export async function POST(req: Request) {
         lastName: post.capper.user.lastName,
         username: post.capper.user.username,
         imageUrl: post.capper.user.imageUrl,
-        isVerified: post.capper.user.isVerified || false,
+        // isVerified: post.capper.user.isVerified || false,
       },
     };
 
