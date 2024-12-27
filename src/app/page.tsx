@@ -163,68 +163,22 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Comment out the wave animation useLayoutEffect and update the SVG section
-  useLayoutEffect(() => {
-    // Create a timeline for smoother sequence of animations
-    /*
-    const tl = gsap.timeline({
-      repeat: -1,
-      defaults: {
-        ease: "power1.inOut",
-      },
-    });
-
-    // Animate both waves with different patterns
-    tl.to(".wave", {
-      scaleX: 1.1,
-      x: "+=10",
-      duration: 3,
-    })
-      .to(".wave", {
-        scaleX: 1,
-        x: "-=10",
-        duration: 2,
-      })
-      .to(
-        ".wave:nth-child(2)",
-        {
-          opacity: 0.7,
-          duration: 1,
-        },
-        "<"
-      )
-      .to(".wave:nth-child(2)", {
-        opacity: 0.3,
-        duration: 1,
-      });
-
-    // Add a continuous floating animation
-    gsap.to(".wave", {
-      y: "-=15",
-      duration: 2,
-      yoyo: true,
-      repeat: -1,
-      ease: "sine.inOut",
-      stagger: {
-        each: 0.5,
-        from: "start",
-      },
-    });
-    */
-  }, []);
-
+  // Function to create the floating dollar signs
   const createFloatingDollars = () => {
     const dollarSigns = [];
-    for (let i = 0; i < 8; i++) {
+    // Create 6 dollar signs (reduced from 8 for better performance)
+    for (let i = 0; i < 6; i++) {
       dollarSigns.push(
         <div
           key={i}
-          className={`floating-dollar absolute text-[#4e43ff] opacity-0 will-change-transform`}
+          // transform-gpu enables hardware acceleration for smoother animations
+          className={`floating-dollar absolute text-[#4e43ff] opacity-0 transform-gpu`}
           style={{
-            left: `${Math.random() * 100}%`,
-            bottom: "-20px",
-            fontSize: `${Math.random() * 20 + 20}px`,
-            filter: "blur(0.5px)",
+            left: `${Math.random() * 100}%`, // Random horizontal position
+            bottom: "-20px", // Start below the viewport
+            fontSize: `${Math.random() * 15 + 20}px`, // Random size between 20-35px
+            filter: "blur(0.5px) brightness(1.2)", // Slight glow effect
+            willChange: "transform", // Optimization hint for browsers
           }}
         >
           $
@@ -234,36 +188,40 @@ export default function LandingPage() {
     return dollarSigns;
   };
 
+  // Animation setup using GSAP
   useLayoutEffect(() => {
-    // Animate floating dollars with optimized settings
-    gsap.to(".floating-dollar", {
-      y: "-80vh", // Reduced travel distance
-      opacity: 0.8,
-      duration: "random(4, 8)", // Slower duration
-      stagger: {
-        each: 0.5, // Increased delay between each dollar
-        repeat: -1,
+    // Create a timeline for better performance and control
+    const tl = gsap.timeline({
+      defaults: {
+        ease: "none", // Linear movement for smoother animation
       },
-      ease: "power1.out",
+    });
+
+    // Main floating animation
+    gsap.to(".floating-dollar", {
+      y: "-70vh", // Float up 70% of viewport height
+      opacity: 0.8, // Fade in to 80% opacity
+      duration: 6, // Animation takes 6 seconds
+      stagger: {
+        each: 0.8, // 0.8 second delay between each dollar
+        repeat: -1, // Infinite repeat
+        repeatDelay: 0.5, // Half second delay before repeating
+      },
+      ease: "power1.out", // Slight easing for natural movement
       onComplete: function () {
+        // Reset position when animation completes
         gsap.set(this.targets(), {
           y: 0,
           opacity: 0,
-          left: `random(0, 100)%`,
+          left: `random(0, 100)%`, // New random horizontal position
         });
       },
     });
 
-    // Simplified glowing effect with less frequent updates
-    gsap.to(".floating-dollar", {
-      filter: "blur(2px) brightness(1.5)",
-      duration: 2, // Slower glow effect
-      repeat: -1,
-      yoyo: true,
-      stagger: {
-        each: 0.4,
-      },
-    });
+    // Cleanup function
+    return () => {
+      tl.kill(); // Stop animation when component unmounts
+    };
   }, []);
 
   const renderCarousel = () => (
@@ -464,7 +422,7 @@ export default function LandingPage() {
       <main className="flex-grow flex flex-col bg-gradient-to-br from-gray-900 to-black">
         {/* Hero Section - Full viewport */}
         <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
-          {/* Add the floating dollars container */}
+          {/* Container for floating dollars */}
           <div className="absolute inset-0 pointer-events-none">
             {createFloatingDollars()}
           </div>
