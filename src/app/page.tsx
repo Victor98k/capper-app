@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import {
   LogIn,
   UserPlus,
@@ -163,6 +163,109 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Comment out the wave animation useLayoutEffect and update the SVG section
+  useLayoutEffect(() => {
+    // Create a timeline for smoother sequence of animations
+    /*
+    const tl = gsap.timeline({
+      repeat: -1,
+      defaults: {
+        ease: "power1.inOut",
+      },
+    });
+
+    // Animate both waves with different patterns
+    tl.to(".wave", {
+      scaleX: 1.1,
+      x: "+=10",
+      duration: 3,
+    })
+      .to(".wave", {
+        scaleX: 1,
+        x: "-=10",
+        duration: 2,
+      })
+      .to(
+        ".wave:nth-child(2)",
+        {
+          opacity: 0.7,
+          duration: 1,
+        },
+        "<"
+      )
+      .to(".wave:nth-child(2)", {
+        opacity: 0.3,
+        duration: 1,
+      });
+
+    // Add a continuous floating animation
+    gsap.to(".wave", {
+      y: "-=15",
+      duration: 2,
+      yoyo: true,
+      repeat: -1,
+      ease: "sine.inOut",
+      stagger: {
+        each: 0.5,
+        from: "start",
+      },
+    });
+    */
+  }, []);
+
+  const createFloatingDollars = () => {
+    const dollarSigns = [];
+    for (let i = 0; i < 8; i++) {
+      dollarSigns.push(
+        <div
+          key={i}
+          className={`floating-dollar absolute text-[#4e43ff] opacity-0 will-change-transform`}
+          style={{
+            left: `${Math.random() * 100}%`,
+            bottom: "-20px",
+            fontSize: `${Math.random() * 20 + 20}px`,
+            filter: "blur(0.5px)",
+          }}
+        >
+          $
+        </div>
+      );
+    }
+    return dollarSigns;
+  };
+
+  useLayoutEffect(() => {
+    // Animate floating dollars with optimized settings
+    gsap.to(".floating-dollar", {
+      y: "-80vh", // Reduced travel distance
+      opacity: 0.8,
+      duration: "random(4, 8)", // Slower duration
+      stagger: {
+        each: 0.5, // Increased delay between each dollar
+        repeat: -1,
+      },
+      ease: "power1.out",
+      onComplete: function () {
+        gsap.set(this.targets(), {
+          y: 0,
+          opacity: 0,
+          left: `random(0, 100)%`,
+        });
+      },
+    });
+
+    // Simplified glowing effect with less frequent updates
+    gsap.to(".floating-dollar", {
+      filter: "blur(2px) brightness(1.5)",
+      duration: 2, // Slower glow effect
+      repeat: -1,
+      yoyo: true,
+      stagger: {
+        each: 0.4,
+      },
+    });
+  }, []);
+
   const renderCarousel = () => (
     <div className="w-full max-w-7xl mx-auto mt-12 px-4">
       <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8">
@@ -234,6 +337,28 @@ export default function LandingPage() {
       </div>
     </div>
   );
+
+  // Add this useLayoutEffect for the hero text animation
+  useLayoutEffect(() => {
+    // Create timeline for smoother sequence of animations
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+    // Animate only the main heading text and subtitle
+    tl.from(".hero-title .text-reveal", {
+      y: 100,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.2,
+    }).from(
+      ".hero-subtitle",
+      {
+        y: 20,
+        opacity: 0,
+        duration: 0.8,
+      },
+      "-=0.4"
+    );
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -338,8 +463,33 @@ export default function LandingPage() {
 
       <main className="flex-grow flex flex-col bg-gradient-to-br from-gray-900 to-black">
         {/* Hero Section - Full viewport */}
-        <section className="min-h-screen flex items-center justify-center">
-          <div className="text-center px-4 sm:px-6 lg:px-8">
+        <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
+          {/* Add the floating dollars container */}
+          <div className="absolute inset-0 pointer-events-none">
+            {createFloatingDollars()}
+          </div>
+
+          {/* Comment out the wave SVG background
+          <div className="absolute inset-0 z-0">
+            <svg
+              className="w-full h-full opacity-20"
+              viewBox="0 0 1440 320"
+              preserveAspectRatio="none"
+            >
+              <path
+                className="wave fill-[#4e43ff]"
+                d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+              />
+              <path
+                className="wave fill-[#4e43ff]/30"
+                d="M0,256L48,234.7C96,213,192,171,288,165.3C384,160,480,192,576,197.3C672,203,768,181,864,181.3C960,181,1056,203,1152,208C1248,213,1344,203,1392,197.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+              />
+            </svg>
+          </div>
+          */}
+
+          {/* Existing content with updated z-index */}
+          <div className="text-center px-4 sm:px-6 lg:px-8 relative z-10">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12">
               <span className="block sm:hidden">
                 <img
@@ -348,21 +498,40 @@ export default function LandingPage() {
                   className="h-16 w-auto mx-auto mb-4"
                 />
               </span>
-              <span className="hidden sm:block">
+              <span className="hidden sm:block hero-title">
                 <span className="text-white text-8xl">
-                  Want to start earning from{" "}
-                  <span className="text-[#4e43ff]">sports bets?</span>{" "}
+                  <span className="text-reveal inline-block">
+                    Want to start{" "}
+                  </span>
+                  <span className="text-reveal inline-block">
+                    earning from{" "}
+                  </span>
+                  <span className="text-reveal inline-block text-[#4e43ff]">
+                    sports bets?
+                  </span>
                 </span>
                 <br />
-                <span className="text-white text-4xl">Welcome to </span>
+                <span className="text-gray-300 text-4xl hero-subtitle">
+                  Start earning today with our community
+                </span>
                 <br />
-                <img
-                  src={CappersLogo.src}
-                  alt="Cappers Logo"
-                  className="h-32 w-auto mx-auto my-8"
-                />
               </span>
             </h1>
+            {/* Button container */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 hero-buttons">
+              <Link
+                href="/sign-up"
+                className="px-8 py-4 text-lg font-semibold rounded-full bg-[#4e43ff] text-white hover:bg-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50 w-64 sm:w-auto"
+              >
+                Get Started Free
+              </Link>
+              <Link
+                href="#cappers-section"
+                className="px-8 py-4 text-lg font-semibold rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff]/10 transform hover:scale-105 transition-all duration-200 w-64 sm:w-auto"
+              >
+                See Our Cappers
+              </Link>
+            </div>
           </div>
         </section>
 
