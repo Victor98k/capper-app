@@ -146,14 +146,24 @@ export function SideNav() {
         </div>
 
         {isCapper && (
-          <Button
-            variant="secondary"
-            onClick={() => router.push("/home-capper")}
-            className="w-full mb-2"
-          >
-            <LineChart className="h-5 w-5 mr-2" />
-            Capper Dashboard
-          </Button>
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => router.push("/home-capper")}
+              className="w-full mb-2"
+            >
+              <LineChart className="h-5 w-5 mr-2" />
+              Capper Dashboard
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => router.push("/home")}
+              className="w-full mb-2"
+            >
+              <Home className="h-5 w-5 mr-2" />
+              Main Home
+            </Button>
+          </>
         )}
 
         <Button variant="destructive" onClick={handleLogout} className="w-full">

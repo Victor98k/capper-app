@@ -20,6 +20,7 @@ model User {
   subscriptions Capper[]   @relation("UserSubscriptions", fields: [subscribedToIds], references: [id])
   subscribedToIds String[] @db.ObjectId
   capperProfile Capper?
+  imageUrl      String?
 }
 
 
