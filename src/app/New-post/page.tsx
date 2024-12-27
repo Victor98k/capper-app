@@ -460,7 +460,7 @@ function NewPostPage() {
                     firstName: user?.firstName || "",
                     lastName: user?.lastName || "",
                     username: localStorage.getItem("userName") || "",
-                    imageUrl: user?.imageUrl,
+                    // imageUrl: user?.imageUrl || "",
                     isVerified: false,
                   }}
                 />
