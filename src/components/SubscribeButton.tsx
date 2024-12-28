@@ -44,66 +44,50 @@ export function SubscribeButton({
   }, [capperId]);
 
   const handleSubscription = async () => {
-    setIsLoading(true);
-    try {
-      // Get all cookies
-      const cookies = document.cookie;
-      console.log("All client-side cookies:", cookies);
+    // If user is already subscribed, handle unsubscribe logic
+    if (isSubscribed) {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/subscriptions", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ capperId }),
+          credentials: "include",
+        });
 
-      // Parse cookies into an object
-      const cookieObj = cookies.split(";").reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split("=");
-        acc[key.trim()] = value;
-        return acc;
-      }, {} as Record<string, string>);
-
-      console.log("Parsed cookies:", cookieObj);
-
-      // Check specifically for the token cookie
-      if (!cookieObj.token) {
-        console.log("No token cookie found - redirecting to login");
-        toast.error("Please login to subscribe");
-        router.push("/login");
-        return;
+        if (response.ok) {
+          setIsSubscribed(false);
+          toast.success("Unsubscribed successfully");
+          router.refresh();
+        }
+      } catch (error) {
+        console.error("Unsubscribe error:", error);
+        toast.error("Failed to unsubscribe");
+      } finally {
+        setIsLoading(false);
       }
-
-      const response = await fetch("/api/subscriptions", {
-        method: isSubscribed ? "DELETE" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ capperId }),
-        credentials: "include",
-      });
-
-      console.log("Response status:", response.status);
-      const data = await response.json();
-      console.log("Response data:", data);
-
-      if (response.status === 401) {
-        console.log("Unauthorized - redirecting to login");
-        toast.error("Session expired. Please login again");
-        router.push("/login");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || "Subscription failed");
-      }
-
-      setIsSubscribed(!isSubscribed);
-      toast.success(
-        isSubscribed ? "Unsubscribed successfully" : "Subscribed successfully"
-      );
-      router.refresh();
-    } catch (error) {
-      console.error("Subscription error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update subscription"
-      );
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    // If user is not subscribed, redirect to paywall
+    const cookies = document.cookie;
+    const cookieObj = cookies.split(";").reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split("=");
+      acc[key.trim()] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Check if user is logged in
+    if (!cookieObj.token) {
+      toast.error("Please login to subscribe");
+      router.push("/login");
+      return;
+    }
+
+    // Redirect to paywall
+    router.push("/paywall");
   };
 
   return (
