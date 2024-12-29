@@ -49,12 +49,27 @@ export async function signJWT(payload: JWTUserPayload): Promise<string> {
 //
 export async function verifyJWT(token: string): Promise<JWTUserPayload | null> {
   try {
-    const { payload } = await Jose.jwtVerify(token, encodedSecret);
-    console.log("Verified JWT payload:", payload); // Debug line
+    console.log("Verifying token:", token);
 
-    return payload as JWTUserPayload;
+    if (!token) {
+      console.error("No token provided");
+      return null;
+    }
+
+    const { payload } = await Jose.jwtVerify(token, encodedSecret);
+
+    // Add validation for the payload
+    if (!payload || typeof payload.userId !== "string") {
+      console.error("Invalid payload structure:", payload);
+      return null;
+    }
+
+    return {
+      userId: payload.userId,
+      ...payload,
+    } as JWTUserPayload;
   } catch (error) {
-    console.error("JWT verification failed:", error);
+    console.error("JWT verification error:", error);
     return null;
   }
 }

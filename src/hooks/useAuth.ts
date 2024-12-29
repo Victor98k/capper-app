@@ -8,6 +8,7 @@ interface User {
   lastName: string;
   email: string;
   isCapper: boolean;
+  stripeConnectOnboarded: boolean;
 }
 
 export function useAuth() {
