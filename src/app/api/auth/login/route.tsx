@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         username: user.username,
         isCapper: user.isCapper,
+        token,
       }),
       {
         status: 200,

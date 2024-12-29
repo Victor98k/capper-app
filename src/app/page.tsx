@@ -232,7 +232,7 @@ export default function LandingPage() {
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
             Win more <span className="text-[#4e43ff]">together</span>
           </h2>
-          <p className="text-gray-300 text-2xl mb-8">
+          <p className="text-gray-300 text-2xl mb-4">
             Join our community of successful sports bettors and get access to
             expert picks and analysis. Start making smarter betting decisions
             today.
@@ -420,8 +420,8 @@ export default function LandingPage() {
       )}
 
       <main className="flex-grow flex flex-col bg-gradient-to-br from-gray-900 to-black">
-        {/* Hero Section - Full viewport */}
-        <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        {/* Hero Section - Reduced height on larger screens */}
+        <section className="min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center relative overflow-hidden">
           {/* Container for floating dollars */}
           <div className="absolute inset-0 pointer-events-none">
             {createFloatingDollars()}
@@ -493,8 +493,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Carousel Section - Full viewport */}
-        <section className="min-h-screen flex items-center justify-center">
+        {/* Carousel Section - Removed full height requirement */}
+        <section className="flex items-center justify-center py-20">
           {renderCarousel()}
         </section>
 

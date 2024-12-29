@@ -21,6 +21,10 @@ model User {
   subscribedToIds String[] @db.ObjectId
   capperProfile Capper?
   imageUrl      String?
+  stripeConnectId        String?   // For Cappers' Stripe Connect accounts
+  stripeConnectOnboarded Boolean   @default(false)
+  payoutEnabled         Boolean   @default(false)
+  stripeConnectCountry  String?   // Add this field
 }
 
 
