@@ -35,14 +35,14 @@ export async function GET(request: Request) {
         stripeAccount: user.stripeConnectId,
         type: "service", // Only fetch service type products
         limit: 3, // Increase limit if needed
-      });
+      } as any);
 
       // Remove the product_catalog parameter since we want all products
       const prices = await stripe.prices.list({
         active: true,
         stripeAccount: user.stripeConnectId,
         type: "recurring", // Only fetch subscription prices
-      });
+      } as any);
 
       const formattedProducts = await Promise.all(
         products.data.map(async (product) => {
