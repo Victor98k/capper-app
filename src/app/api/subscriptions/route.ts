@@ -91,6 +91,13 @@ export async function POST(req: Request) {
           capperId: capperId,
           status: "active",
           subscribedAt: new Date(),
+          productId: "",
+          priceId: "",
+          capper: {
+            connect: {
+              id: capperId,
+            },
+          },
         },
       });
       console.log("Created subscription:", subscription);
