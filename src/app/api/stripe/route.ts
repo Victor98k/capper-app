@@ -66,6 +66,10 @@ export async function POST(req: Request) {
       );
     }
 
+    // Ensure we have the base URL
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
+
     // Create Stripe checkout session with the connected account
     const session = await stripe.checkout.sessions.create(
       {
@@ -77,8 +81,8 @@ export async function POST(req: Request) {
           },
         ],
         mode: "subscription",
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
+        success_url: `${baseUrl}/cappers/${capper.user.username}`,
+        cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
         metadata: {
           userId: payload.userId,
           capperId: capperId,
@@ -93,6 +97,7 @@ export async function POST(req: Request) {
     console.log("Created checkout session:", {
       id: session.id,
       metadata: session.metadata,
+      success_url: `${baseUrl}/cappers/${capper.user.username}`, // Log the URL for debugging
     });
 
     return NextResponse.json({
