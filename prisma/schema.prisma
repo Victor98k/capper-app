@@ -64,15 +64,19 @@ model CapperPost {
 }
 
 model Subscription {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  capperId    String   @db.ObjectId
-  status      String   @default("active")
-  subscribedAt DateTime @default(now())
-  cancelledAt DateTime?
-  capper      Capper   @relation(fields: [capperId], references: [id])
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String    @db.ObjectId
+  capperId      String    @db.ObjectId
+  productId     String    // Add this for Stripe product ID
+  priceId       String    // Add this for Stripe price ID
+  status        String    @default("active")
+  subscribedAt  DateTime  @default(now())
+  cancelledAt   DateTime?
+  capper        Capper    @relation(fields: [capperId], references: [id])
+  stripeSubscriptionId String?  // Add this for Stripe subscription ID
 
   @@index([userId])
   @@index([capperId])
+  @@index([productId])
 }
   

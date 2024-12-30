@@ -71,42 +71,24 @@ export async function GET(req: Request) {
   try {
     const token = req.headers.get("authorization")?.split(" ")[1];
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
     const payload = await verifyJWT(token);
-    if (!payload) {
+    if (!payload || !payload.userId) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: payload.id },
-    });
-
-    if (!user?.stripeConnectId) {
-      return NextResponse.json(
-        { error: "No Connect account" },
-        { status: 404 }
-      );
-    }
-
-    const account = await stripe.accounts.retrieve(user.stripeConnectId);
-
-    // Update user's onboarding status
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        stripeConnectOnboarded: account.details_submitted,
-        payoutEnabled: account.payouts_enabled,
-      },
+      where: { id: payload.userId },
     });
 
     return NextResponse.json({
-      onboarded: account.details_submitted,
-      payoutsEnabled: account.payouts_enabled,
+      onboarded: user?.stripeConnectOnboarded || false,
+      payoutsEnabled: user?.payoutEnabled || false,
     });
   } catch (error) {
-    console.error("Stripe Connect status error:", error);
+    console.error("Stripe status error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

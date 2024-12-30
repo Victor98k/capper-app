@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CheckCircle, ExternalLink } from "lucide-react";
 
 export default function StripeConnectOnboarding({
   isOnboarded = false,
@@ -49,14 +50,31 @@ export default function StripeConnectOnboarding({
 
   if (isOnboarded) {
     return (
-      <div className="p-4 bg-green-100 text-green-700 rounded-md">
-        Your Stripe account is connected and ready to receive payments.
+      <div className="p-6 bg-gray-800/50 rounded-xl border border-green-500/20">
+        <div className="flex items-center gap-3 mb-4">
+          <CheckCircle className="h-6 w-6 text-green-500" />
+          <h3 className="text-xl font-semibold text-white">
+            Stripe Account Connected
+          </h3>
+        </div>
+        <p className="text-gray-300 mb-6">
+          Your Stripe account is connected and ready to receive payments. You
+          can now start accepting subscriptions from users.
+        </p>
+        <Button
+          onClick={() => window.open("https://dashboard.stripe.com", "_blank")}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <ExternalLink className="h-4 w-4" />
+          View Stripe Dashboard
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-gray-800/50 rounded-xl">
+    <div className="p-6 bg-gray-800/50 rounded-xl border border-[#4e43ff]/20">
       <h3 className="text-xl font-semibold mb-4 text-white">
         Connect Your Stripe Account
       </h3>
@@ -67,7 +85,7 @@ export default function StripeConnectOnboarding({
       <Button
         onClick={startOnboarding}
         disabled={loading}
-        className="bg-[#4e43ff] hover:bg-blue-600"
+        className="bg-[#4e43ff] hover:bg-blue-600 w-full sm:w-auto"
       >
         {loading ? "Setting up..." : "Connect Stripe Account"}
       </Button>
