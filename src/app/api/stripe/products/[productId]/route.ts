@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  context: { params: { productId: string } }
+  { params }: { params: { productId: string } }
 ) {
-  // Your handler code here
+  const { productId } = params;
+
   return NextResponse.json({
-    /* your response */
+    productId,
   });
 }
 
