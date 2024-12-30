@@ -91,11 +91,40 @@ export async function GET(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
+      select: {
+        stripeConnectId: true,
+        stripeConnectOnboarded: true,
+        payoutEnabled: true,
+      },
     });
 
+    if (!user?.stripeConnectId) {
+      return NextResponse.json({
+        onboarded: false,
+        payoutsEnabled: false,
+      });
+    }
+
+    // Fetch latest account status from Stripe
+    const account = await stripe.accounts.retrieve(user.stripeConnectId);
+
+    // Update user status in database if it has changed
+    if (
+      account.details_submitted !== user.stripeConnectOnboarded ||
+      account.payouts_enabled !== user.payoutEnabled
+    ) {
+      await prisma.user.update({
+        where: { id: payload.userId },
+        data: {
+          stripeConnectOnboarded: account.details_submitted,
+          payoutEnabled: account.payouts_enabled,
+        },
+      });
+    }
+
     return NextResponse.json({
-      onboarded: user?.stripeConnectOnboarded || false,
-      payoutsEnabled: user?.payoutEnabled || false,
+      onboarded: account.details_submitted,
+      payoutsEnabled: account.payouts_enabled,
     });
   } catch (error) {
     console.error("Stripe status error:", error);

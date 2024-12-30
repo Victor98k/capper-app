@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import DisplayCapperCard from "./displayCapperCard";
 import { SideNav } from "./SideNavCappers";
@@ -45,6 +45,53 @@ export function CapperDashboard() {
     isLoading: true,
   });
 
+  // Add searchParams to check for success parameter
+  const searchParams = useSearchParams();
+  const success = searchParams.get("success");
+
+  // Modify the checkStripeStatus function to be reusable
+  const checkStripeStatus = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/stripe/connect", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      setStripeStatus({
+        isOnboarded: data.onboarded || false,
+        isLoading: false,
+      });
+
+      console.log("Stripe status check:", data); // Debug log
+    } catch (error) {
+      console.error("Failed to fetch Stripe status:", error);
+      setStripeStatus({
+        isOnboarded: false,
+        isLoading: false,
+      });
+    }
+  };
+
+  // Check Stripe status on initial load
+  useEffect(() => {
+    if (user?.isCapper) {
+      checkStripeStatus();
+    }
+  }, [user]);
+
+  // Add another useEffect to handle the success parameter
+  useEffect(() => {
+    if (success === "true" && user?.isCapper) {
+      console.log(
+        "Detected successful Stripe onboarding, rechecking status..."
+      );
+      checkStripeStatus();
+    }
+  }, [success, user]);
+
   // Update useEffect to fetch tags as well
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -66,36 +113,6 @@ export function CapperDashboard() {
 
     fetchCapperProfile();
   }, [user?.id]);
-
-  // Add this useEffect to fetch Stripe status
-  useEffect(() => {
-    const checkStripeStatus = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("/api/stripe/connect", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await response.json();
-        setStripeStatus({
-          isOnboarded: data.onboarded || false,
-          isLoading: false,
-        });
-      } catch (error) {
-        console.error("Failed to fetch Stripe status:", error);
-        setStripeStatus({
-          isOnboarded: false,
-          isLoading: false,
-        });
-      }
-    };
-
-    if (user?.isCapper) {
-      checkStripeStatus();
-    }
-  }, [user]);
 
   // Show loading state
   if (loading) {
