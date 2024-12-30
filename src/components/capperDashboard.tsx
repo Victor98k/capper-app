@@ -22,6 +22,14 @@ import { useAuth } from "@/hooks/useAuth";
 import DisplayCapperCard from "./displayCapperCard";
 import { SideNav } from "./SideNavCappers";
 import StripeConnectOnboarding from "./StripeConnectOnboarding";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import StripeProductDisplay from "./StripeProductDisplay";
 
 export function CapperDashboard() {
   const { user, loading } = useAuth();
@@ -32,6 +40,10 @@ export function CapperDashboard() {
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [username, setUsername] = useState("");
+  const [stripeStatus, setStripeStatus] = useState({
+    isOnboarded: false,
+    isLoading: true,
+  });
 
   // Update useEffect to fetch tags as well
   useEffect(() => {
@@ -54,6 +66,36 @@ export function CapperDashboard() {
 
     fetchCapperProfile();
   }, [user?.id]);
+
+  // Add this useEffect to fetch Stripe status
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/stripe/connect", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        setStripeStatus({
+          isOnboarded: data.onboarded || false,
+          isLoading: false,
+        });
+      } catch (error) {
+        console.error("Failed to fetch Stripe status:", error);
+        setStripeStatus({
+          isOnboarded: false,
+          isLoading: false,
+        });
+      }
+    };
+
+    if (user?.isCapper) {
+      checkStripeStatus();
+    }
+  }, [user]);
 
   // Show loading state
   if (loading) {
@@ -214,8 +256,14 @@ export function CapperDashboard() {
             {user?.isCapper && (
               <div className="mb-6">
                 <StripeConnectOnboarding
-                  isOnboarded={user.stripeConnectOnboarded}
+                  isOnboarded={stripeStatus.isOnboarded}
                 />
+              </div>
+            )}
+
+            {user?.isCapper && stripeStatus.isOnboarded && (
+              <div className="mb-6">
+                <StripeProductDisplay />
               </div>
             )}
 
@@ -395,23 +443,32 @@ export function CapperDashboard() {
 
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Preview Your Profile Card</CardTitle>
+                <CardTitle>Profile Preview</CardTitle>
                 <CardDescription>
-                  This is how your profile appears to other users
+                  See how your profile appears to other users
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* now we display the firstname lastname and also the username, firstname and lastname are used for the avatar. */}
-                <DisplayCapperCard
-                  userId={user?.id || ""}
-                  firstName={user?.firstName || ""}
-                  lastName={user?.lastName || ""}
-                  username={username}
-                  bio={bio}
-                  tags={tags}
-                  subscriberIds={[]}
-                  isVerified={false}
-                />
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">Preview Profile Card</Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Profile Preview</DialogTitle>
+                    </DialogHeader>
+                    <DisplayCapperCard
+                      userId={user?.id || ""}
+                      firstName={user?.firstName || ""}
+                      lastName={user?.lastName || ""}
+                      username={username}
+                      bio={bio}
+                      tags={tags}
+                      subscriberIds={[]}
+                      isVerified={false}
+                    />
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
 

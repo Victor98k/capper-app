@@ -1,41 +1,108 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { verifyJWT } from "@/utils/jwt";
+import { PrismaClient } from "@prisma/client";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not set in environment variables");
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-12-18.acacia" as const,
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-12-18.acacia",
 });
 
+const prisma = new PrismaClient();
+
 export async function POST(req: Request) {
-  console.log("STRIPE_SECRET_KEY exists:", !!process.env.STRIPE_SECRET_KEY);
-  console.log("NEXT_PUBLIC_BASE_URL:", process.env.NEXT_PUBLIC_BASE_URL);
-
   try {
-    const body = await req.json();
-    const { priceId } = body;
+    // Get token from cookies
+    const cookies = req.headers.get("cookie");
+    const cookiesArray =
+      cookies?.split(";").map((cookie) => cookie.trim()) || [];
+    const tokenCookie = cookiesArray.find((cookie) =>
+      cookie.startsWith("token=")
+    );
+    const token = tokenCookie?.split("=")[1];
 
-    // Create Stripe session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price: priceId, // Use the price ID directly
-          quantity: 1,
+    if (!token) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Verify token and get userId
+    const payload = await verifyJWT(token);
+    if (!payload?.userId) {
+      return NextResponse.json(
+        { error: "Invalid authentication" },
+        { status: 401 }
+      );
+    }
+
+    const { priceId, capperId, productId } = await req.json();
+    console.log("Stripe checkout request:", { priceId, capperId, productId });
+
+    if (!priceId || !capperId || !productId) {
+      return NextResponse.json(
+        { error: "Missing required parameters" },
+        { status: 400 }
+      );
+    }
+
+    // Get the capper's Stripe Connect ID and username
+    const capper = await prisma.capper.findUnique({
+      where: { id: capperId },
+      include: {
+        user: {
+          select: {
+            stripeConnectId: true,
+            username: true,
+          },
         },
-      ],
-      mode: "subscription",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/paywall`,
+      },
     });
 
-    return NextResponse.json({ sessionId: session.id });
+    if (!capper?.user?.stripeConnectId) {
+      return NextResponse.json(
+        { error: "Capper Stripe account not found" },
+        { status: 400 }
+      );
+    }
+
+    // Create Stripe checkout session with the connected account
+    const session = await stripe.checkout.sessions.create(
+      {
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
+        metadata: {
+          userId: payload.userId,
+          capperId: capperId,
+          productId: productId,
+        },
+      },
+      {
+        stripeAccount: capper.user.stripeConnectId,
+      }
+    );
+
+    console.log("Created checkout session:", {
+      id: session.id,
+      metadata: session.metadata,
+    });
+
+    return NextResponse.json({
+      sessionId: session.id,
+      accountId: capper.user.stripeConnectId,
+    });
   } catch (error) {
-    console.error("Error creating stripe session:", error);
+    console.error("Stripe API error:", error);
     return NextResponse.json(
-      { error: "Error creating stripe session" },
+      { error: "Failed to create checkout session" },
       { status: 500 }
     );
   }

@@ -6,7 +6,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   CheckCircle,
   Trophy,
@@ -14,6 +21,8 @@ import {
   Users,
   Star,
   Loader2,
+  Check,
+  Shield,
 } from "lucide-react";
 import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
@@ -25,6 +34,7 @@ type CapperProfile = {
     firstName: string;
     lastName: string;
     username: string;
+    stripeConnectId: string;
   };
   bio?: string;
   title?: string;
@@ -32,6 +42,15 @@ type CapperProfile = {
   tags: string[];
   subscriberIds: string[];
   socialLinks?: Record<string, string>;
+  products: {
+    id: string;
+    name: string;
+    description: string | null;
+    default_price: string;
+    unit_amount: number;
+    currency: string;
+    features: string[];
+  }[];
 };
 
 type Pick = {
@@ -52,6 +71,7 @@ export default function CapperProfilePage({
   const [capper, setCapper] = useState<CapperProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -82,6 +102,31 @@ export default function CapperProfilePage({
 
     fetchCapperProfile();
   }, [resolvedParams.username]);
+
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/subscriptions/check?capperId=${capper?.id}`,
+          {
+            credentials: "include",
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setIsSubscribed(data.isSubscribed);
+          setSubscriptionDetails(data.subscriptionDetails);
+        }
+      } catch (error) {
+        console.error("Error checking subscription status:", error);
+      }
+    };
+
+    if (capper?.id) {
+      checkSubscriptionStatus();
+    }
+  }, [capper?.id]);
 
   if (loading) {
     return (
@@ -144,10 +189,12 @@ export default function CapperProfilePage({
                       </p>
                     )}
                   </div>
-                  <SubscribeButton
-                    capperId={capper.id}
-                    initialIsSubscribed={isSubscribed}
-                  />
+                  {isSubscribed && (
+                    <div className="flex items-center gap-2 bg-green-500/10 text-green-500 px-3 py-1.5 rounded-full text-sm font-medium">
+                      <Check className="h-4 w-4" />
+                      Subscribed Member
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {capper.tags.map((tag) => (
@@ -177,9 +224,89 @@ export default function CapperProfilePage({
             </div>
           </div>
 
-          {/* Tabbed Content */}
+          {/* Subscription Packages - Moved above tabs */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-white mb-6">
+              Subscription Plans
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {capper.products.length > 0 ? (
+                capper.products.map((product) => {
+                  console.log("Product data:", {
+                    id: product.id,
+                    name: product.name,
+                    default_price: product.default_price,
+                    unit_amount: product.unit_amount,
+                  });
+
+                  return (
+                    <Card
+                      key={product.id}
+                      className="bg-gray-800 border-gray-700 flex flex-col"
+                    >
+                      <CardHeader>
+                        <CardTitle className="text-2xl font-semibold text-white">
+                          {product.name}
+                        </CardTitle>
+                        <CardDescription className="text-gray-300">
+                          {product.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-grow">
+                        <div className="text-center">
+                          {product.unit_amount ? (
+                            <>
+                              <span className="text-5xl font-extrabold text-white">
+                                ${(product.unit_amount / 100).toFixed(2)}
+                              </span>
+                              <span className="text-xl font-medium text-gray-300">
+                                /month
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xl font-medium text-gray-300">
+                              Price not set
+                            </span>
+                          )}
+                        </div>
+                        <ul className="mt-8 space-y-4">
+                          {product.features.map((feature) => (
+                            <li key={feature} className="flex items-start">
+                              <div className="flex-shrink-0">
+                                <Check className="h-6 w-6 text-green-400" />
+                              </div>
+                              <p className="ml-3 text-base text-gray-300">
+                                {feature}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                      <CardFooter className="mt-auto pt-6">
+                        <SubscribeButton
+                          capperId={capper.id}
+                          productId={product.id}
+                          priceId={product.default_price}
+                          stripeAccountId={capper.user.stripeConnectId}
+                          className="w-full bg-violet-500 hover:bg-violet-600"
+                        />
+                      </CardFooter>
+                    </Card>
+                  );
+                })
+              ) : (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-400">
+                    This capper hasn't created any subscription plans yet.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Tabs - Remove the products tab and its content */}
           <Tabs defaultValue="picks" className="w-full">
-            <TabsList className="w-full justify-start text-[#4e43ff]   bg-gray-800 p-1 m-1 overflow-x-auto flex-nowrap">
+            <TabsList className="w-full justify-start text-[#4e43ff] bg-gray-800 p-1 m-1 overflow-x-auto flex-nowrap">
               <TabsTrigger className="" value="picks">
                 Recent Picks
               </TabsTrigger>

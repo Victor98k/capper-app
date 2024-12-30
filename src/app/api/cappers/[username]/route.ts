@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { type NextRequest } from "next/server";
+import { stripe } from "@/lib/stripe";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
             firstName: true,
             lastName: true,
             username: true,
+            stripeConnectId: true,
           },
         },
       },
@@ -19,7 +21,67 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(cappers);
+    const cappersWithProducts = await Promise.all(
+      cappers.map(async (capper) => {
+        if (capper.user.stripeConnectId) {
+          try {
+            const products = await stripe.products.list(
+              {
+                expand: ["data.default_price"],
+                limit: 100,
+                active: true,
+                type: "service",
+              },
+              {
+                stripeAccount: capper.user.stripeConnectId,
+              }
+            );
+
+            const formattedProducts = products.data.map((product) => {
+              const price = product.default_price as any;
+
+              console.log("Product price data:", {
+                productId: product.id,
+                price: price,
+              });
+
+              return {
+                id: product.id,
+                name: product.name,
+                description: product.description,
+                default_price: price?.id,
+                unit_amount: price?.unit_amount || 0,
+                currency: price?.currency || "usd",
+                features:
+                  product.marketing_features?.map(
+                    (feature: any) => feature.name
+                  ) || [],
+              };
+            });
+
+            return {
+              ...capper,
+              products: formattedProducts,
+            };
+          } catch (error) {
+            console.error(
+              `Error fetching products for capper ${capper.user.username}:`,
+              error
+            );
+            return {
+              ...capper,
+              products: [],
+            };
+          }
+        }
+        return {
+          ...capper,
+          products: [],
+        };
+      })
+    );
+
+    return NextResponse.json(cappersWithProducts);
   } catch (error) {
     console.error("Error fetching cappers:", error);
     return NextResponse.json(
