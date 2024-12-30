@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     // Create a Stripe Connect account
     const account = await stripe.accounts.create({
       type: "express",
-      country: "SE", // Sweden's country code
+      country: "SE",
       email: user.email,
       capabilities: {
         card_payments: { requested: true },
@@ -48,12 +48,22 @@ export async function POST(req: Request) {
       data: { stripeConnectId: account.id },
     });
 
+    // Ensure we have the base URL
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
+    console.log("Using base URL:", baseUrl); // Debug log
+
     // Create account link for onboarding
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL}/home-capper?refresh=true`,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/home-capper?success=true`,
+      refresh_url: `${baseUrl}/home-capper?refresh=true`,
+      return_url: `${baseUrl}/home-capper?success=true`,
       type: "account_onboarding",
+    });
+
+    console.log("Created account link:", {
+      refreshUrl: `${baseUrl}/home-capper?refresh=true`,
+      returnUrl: `${baseUrl}/home-capper?success=true`,
     });
 
     return NextResponse.json({ url: accountLink.url });
