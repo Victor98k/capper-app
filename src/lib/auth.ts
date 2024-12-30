@@ -49,3 +49,5 @@ export const authOptions: NextAuthConfig = {
     },
   },
 };
+
+export { getServerSession as auth } from "next-auth";
