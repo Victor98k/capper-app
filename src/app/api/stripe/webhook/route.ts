@@ -52,8 +52,10 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ received: true }));
   } catch (err) {
     console.error("Webhook Error:", err);
+    const errorMessage =
+      err instanceof Error ? err.message : "Unknown error occurred";
     return new Response(
-      JSON.stringify({ error: `Webhook Error: ${err.message}` }),
+      JSON.stringify({ error: `Webhook Error: ${errorMessage}` }),
       { status: 400 }
     );
   }
