@@ -254,14 +254,20 @@ export default function CapperProfilePage({
                       </CardHeader>
                       <CardContent className="flex-grow">
                         <div className="text-center">
-                          {product.unit_amount ? (
+                          {product.unit_amount !== undefined ? (
                             <>
                               <span className="text-5xl font-extrabold text-white">
-                                ${(product.unit_amount / 100).toFixed(2)}
+                                {product.unit_amount === 0
+                                  ? "Free"
+                                  : `$${(product.unit_amount / 100).toFixed(
+                                      2
+                                    )}`}
                               </span>
-                              <span className="text-xl font-medium text-gray-300">
-                                /month
-                              </span>
+                              {product.unit_amount > 0 && (
+                                <span className="text-xl font-medium text-gray-300">
+                                  /month
+                                </span>
+                              )}
                             </>
                           ) : (
                             <span className="text-xl font-medium text-gray-300">
