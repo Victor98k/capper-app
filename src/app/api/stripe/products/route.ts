@@ -28,7 +28,6 @@ export async function GET(request: Request) {
     }
 
     try {
-      // Match the format used in the capper profile route
       const products = await stripe.products.list(
         {
           active: true,
@@ -37,7 +36,7 @@ export async function GET(request: Request) {
           type: "service",
         },
         {
-          stripeAccount: user.stripeConnectId, // Pass as option instead of parameter
+          stripeAccount: user.stripeConnectId,
         }
       );
 
@@ -47,38 +46,71 @@ export async function GET(request: Request) {
         {
           active: true,
           type: "recurring",
+          expand: ["data.product"],
         },
         {
           stripeAccount: user.stripeConnectId,
         }
       );
 
+      console.log("Prices found:", prices.data.length);
+
       const formattedProducts = await Promise.all(
         products.data.map(async (product) => {
-          const productPrice = prices.data.find(
+          const productPrices = prices.data.filter(
             (price) =>
-              price.id === product.default_price && price.type === "recurring"
+              price.product === product.id && price.type === "recurring"
           );
+
+          console.log("Product prices:", {
+            productId: product.id,
+            name: product.name,
+            pricesFound: productPrices.length,
+            prices: productPrices.map((p) => ({
+              id: p.id,
+              unitAmount: p.unit_amount,
+              type: p.type,
+            })),
+          });
+
+          // Use the first active price if available
+          const productPrice = productPrices[0];
 
           return {
             id: product.id,
             name: product.name,
             description: product.description,
-            default_price: product.default_price,
-            unit_amount: productPrice?.unit_amount || 0,
+            default_price: productPrice?.id || product.default_price,
+            unit_amount: productPrice?.unit_amount || 0, // Return 0 if no price
             currency: productPrice?.currency || "usd",
             features: product.marketing_features
               ? product.marketing_features.map((feature: any) => feature.name)
               : [],
+            prices: productPrices.map((p) => ({
+              id: p.id,
+              unit_amount: p.unit_amount,
+              currency: p.currency,
+            })),
           };
         })
       );
 
-      const subscriptionProducts = formattedProducts.filter(
-        (product) => product.unit_amount > 0
-      );
+      // Remove the filter - return all products regardless of price
+      // const subscriptionProducts = formattedProducts.filter(
+      //   (product) => product.prices && product.prices.length > 0
+      // );
 
-      return NextResponse.json(subscriptionProducts);
+      console.log("Final products:", {
+        total: formattedProducts.length,
+        products: formattedProducts.map((p) => ({
+          id: p.id,
+          name: p.name,
+          hasPrice: p.unit_amount > 0,
+        })),
+      });
+
+      // Return all products, not just ones with prices
+      return NextResponse.json(formattedProducts);
     } catch (stripeError: any) {
       console.error("Stripe error:", stripeError);
       return NextResponse.json(
