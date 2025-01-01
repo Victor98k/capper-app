@@ -1,13 +1,17 @@
 "use client";
 
-import { CheckCircle, Calendar, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import {
+  Heart,
+  MessageCircle,
+  Send,
+  Bookmark,
+  MoreHorizontal,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 
 interface PostProps {
   _id: string;
@@ -20,6 +24,8 @@ interface PostProps {
   capperId: string;
   createdAt: string;
   updatedAt: string;
+  likes?: number;
+  comments?: number;
   capperInfo?: {
     firstName: string;
     lastName: string;
@@ -29,7 +35,7 @@ interface PostProps {
   };
 }
 
-function Post({
+function InstagramPost({
   _id,
   title,
   content,
@@ -39,151 +45,122 @@ function Post({
   tags,
   capperId,
   createdAt,
-  capperInfo,
+  likes = 0,
+  comments = 0,
+  capperInfo = {
+    firstName: "Anonymous",
+    lastName: "User",
+    username: "anonymous",
+    imageUrl: "",
+    isVerified: false,
+  },
 }: PostProps) {
-  const router = useRouter();
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(likes);
 
-  useEffect(() => {
-    // Any localStorage operations should go here
-  }, []);
-
-  const renderPostImage = () => {
-    if (!imageUrl) {
-      return (
-        <div className="w-full h-64 bg-gray-700 rounded-t-lg flex items-center justify-center">
-          <span className="text-gray-400">No image</span>
-        </div>
-      );
+  const handleLike = () => {
+    if (isLiked) {
+      setLikeCount(likeCount - 1);
+    } else {
+      setLikeCount(likeCount + 1);
     }
-
-    return (
-      <>
-        <div
-          className="relative w-full h-64 cursor-pointer"
-          onClick={() => setIsImageModalOpen(true)}
-        >
-          <Image
-            src={imageUrl}
-            alt={title}
-            fill
-            className="object-contain rounded-t-lg"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority
-          />
-        </div>
-
-        {/* Image Modal */}
-        {isImageModalOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
-            onClick={() => setIsImageModalOpen(false)}
-          >
-            <div className="relative w-full max-w-4xl h-[80vh]">
-              <Image
-                src={imageUrl}
-                alt={title}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                priority
-              />
-            </div>
-          </div>
-        )}
-      </>
-    );
+    setIsLiked(!isLiked);
   };
 
   return (
-    <Card className="overflow-hidden bg-gray-800 border-gray-700 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/20 max-w-2xl">
-      {renderPostImage()}
-      <CardContent className="p-8">
-        {/* Capper Info Section */}
-        {capperInfo && (
-          <div className="flex items-center space-x-4 mb-4">
-            <Avatar className="h-12 w-12 border-2 border-violet-500">
-              <AvatarImage
-                src={capperInfo.imageUrl}
-                alt={`${capperInfo.firstName} ${capperInfo.lastName}`}
-              />
-              <AvatarFallback className="bg-violet-600 text-white">
-                {capperInfo.firstName?.charAt(0)}
-                {capperInfo.lastName?.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="text-lg font-semibold flex items-center text-white">
-                {capperInfo.firstName} {capperInfo.lastName}
-                {capperInfo.isVerified && (
-                  <CheckCircle className="h-4 w-4 text-blue-400 ml-1" />
-                )}
-              </h3>
-              <div className="flex flex-col text-sm text-gray-400">
-                <span className="text-violet-400 font-medium text-base">
-                  @{capperInfo.username}
-                </span>
-                <span className="flex items-center mt-1">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {new Date(createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
+    <Card className="w-full max-w-md bg-gray-900 border-gray-800 flex flex-col mx-auto">
+      {/* Header - made more compact */}
+      <div className="flex items-center justify-between p-2 border-b border-gray-800">
+        <div className="flex items-center space-x-2">
+          <Avatar className="h-6 w-6 border border-gray-700">
+            <AvatarImage src={capperInfo.imageUrl} alt={capperInfo.username} />
+            <AvatarFallback className="bg-violet-600 text-white text-xs">
+              {capperInfo.firstName[0]}
+              {capperInfo.lastName[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-semibold text-xs text-gray-100">
+              {capperInfo.username}
+            </p>
           </div>
-        )}
-
-        {/* Post Content */}
-        <h3 className="text-2xl font-bold mb-3 text-white">{title}</h3>
-        <p className="text-gray-300 mb-4 line-clamp-3">{content}</p>
-
-        {/* Odds and Bets Section */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {odds?.map((odd, index) => (
-            <Badge
-              key={`${_id}-odd-${index}`}
-              variant="secondary"
-              className="bg-blue-600 text-white"
-            >
-              {odd}
-            </Badge>
-          ))}
-          {bets?.map((bet, index) => (
-            <Badge
-              key={`${_id}-bet-${index}`}
-              variant="secondary"
-              className="bg-green-600 text-white"
-            >
-              {bet}
-            </Badge>
-          ))}
         </div>
-
-        {/* Tags Section */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {tags?.map((tag) => (
-            <Badge
-              key={`${_id}-${tag}`}
-              variant="outline"
-              className="text-violet-400 border-violet-400"
-            >
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-
-      <CardFooter className="bg-gray-900 p-4">
-        <Button
-          className="w-full bg-violet-600 hover:bg-violet-700 text-white border-0 transition-all duration-300 group"
-          variant="default"
-          onClick={() => router.push(`/posts/${_id}`)}
-        >
-          View Details
-          <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4 text-gray-300" />
         </Button>
-      </CardFooter>
+      </div>
+
+      {/* Image container - adjust height and maintain aspect ratio */}
+      <div className="relative w-full aspect-[4/3] border-b border-gray-800">
+        <Image
+          src={imageUrl || "/placeholder-image.jpg"}
+          alt={title || "Post image"}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority
+        />
+      </div>
+
+      {/* Bottom section - made more compact */}
+      <div className="p-2 space-y-2">
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center">
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLike}
+              className="h-8 w-8"
+            >
+              <Heart
+                className={`h-4 w-4 ${
+                  isLiked ? "text-red-500 fill-red-500" : "text-gray-300"
+                }`}
+              />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MessageCircle className="h-4 w-4 text-gray-300" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Send className="h-4 w-4 text-gray-300" />
+            </Button>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Bookmark className="h-4 w-4 text-gray-300" />
+          </Button>
+        </div>
+
+        {/* Likes and Caption */}
+        <div className="space-y-1">
+          <p className="font-semibold text-xs text-gray-100">
+            {likeCount} likes
+          </p>
+          <p className="text-xs text-gray-200">
+            <span className="font-semibold mr-1">{capperInfo.username}</span>
+            {content}
+          </p>
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1">
+          {tags.map((tag) => (
+            <span key={tag} className="text-xs text-blue-400">
+              #{tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Timestamp */}
+        <p className="text-[10px] text-gray-400 uppercase">
+          {new Date(createdAt).toLocaleDateString(undefined, {
+            month: "long",
+            day: "numeric",
+          })}
+        </p>
+      </div>
     </Card>
   );
 }
 
-export default Post;
+export default InstagramPost;
