@@ -28,34 +28,37 @@ export async function GET(request: Request) {
     }
 
     try {
-      // Fetch all products for the connected account
-      const products = await stripe.products.list({
-        active: true,
-        expand: ["data.default_price"],
-        stripeAccount: user.stripeConnectId,
-        type: "service", // Only fetch service type products
-        limit: 3, // Increase limit if needed
-      } as any);
+      // Match the format used in the capper profile route
+      const products = await stripe.products.list(
+        {
+          active: true,
+          expand: ["data.default_price"],
+          limit: 100,
+          type: "service",
+        },
+        {
+          stripeAccount: user.stripeConnectId, // Pass as option instead of parameter
+        }
+      );
 
-      // Remove the product_catalog parameter since we want all products
-      const prices = await stripe.prices.list({
-        active: true,
-        stripeAccount: user.stripeConnectId,
-        type: "recurring", // Only fetch subscription prices
-      } as any);
+      console.log("Products found:", products.data.length);
+
+      const prices = await stripe.prices.list(
+        {
+          active: true,
+          type: "recurring",
+        },
+        {
+          stripeAccount: user.stripeConnectId,
+        }
+      );
 
       const formattedProducts = await Promise.all(
         products.data.map(async (product) => {
-          // Find the recurring price for this product
           const productPrice = prices.data.find(
             (price) =>
               price.id === product.default_price && price.type === "recurring"
           );
-
-          // Extract features from marketing_features
-          const features = product.marketing_features
-            ? product.marketing_features.map((feature) => feature.name)
-            : [];
 
           return {
             id: product.id,
@@ -64,17 +67,17 @@ export async function GET(request: Request) {
             default_price: product.default_price,
             unit_amount: productPrice?.unit_amount || 0,
             currency: productPrice?.currency || "usd",
-            features: features,
+            features: product.marketing_features
+              ? product.marketing_features.map((feature: any) => feature.name)
+              : [],
           };
         })
       );
 
-      // Only return products that have recurring prices
       const subscriptionProducts = formattedProducts.filter(
         (product) => product.unit_amount > 0
       );
 
-      console.log("Subscription products found:", subscriptionProducts.length);
       return NextResponse.json(subscriptionProducts);
     } catch (stripeError: any) {
       console.error("Stripe error:", stripeError);
