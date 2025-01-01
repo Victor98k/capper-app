@@ -61,10 +61,10 @@ export async function POST(req: Request) {
       type: "account_onboarding",
     });
 
-    console.log("Created account link:", {
-      refreshUrl: `${baseUrl}/home-capper?refresh=true`,
-      returnUrl: `${baseUrl}/home-capper?success=true`,
-    });
+    // console.log("Created account link:", {
+    //   refreshUrl: `${baseUrl}/home-capper?refresh=true`,
+    //   returnUrl: `${baseUrl}/home-capper?success=true`,
+    // });
 
     return NextResponse.json({ url: accountLink.url });
   } catch (error) {
