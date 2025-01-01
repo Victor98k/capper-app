@@ -33,15 +33,27 @@ export default function StripeProductDisplay() {
     const fetchProducts = async () => {
       try {
         const token = localStorage.getItem("token");
+        console.log(
+          "Fetching products with token:",
+          token ? "Present" : "Missing"
+        );
+
         const response = await fetch("/api/stripe/products", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
         const data = await response.json();
+
         if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch products");
+          console.error("Products fetch error:", data);
+          throw new Error(
+            data.details || data.error || "Failed to fetch products"
+          );
         }
+
+        console.log("Products fetched:", data);
         setProducts(data);
         setError(null);
       } catch (error) {
