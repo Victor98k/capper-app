@@ -46,6 +46,9 @@ export default function StripeProductDisplay() {
 
         const data = await response.json();
 
+        console.log("Raw products data:", data);
+        console.log("Products array length:", data.length);
+
         if (!response.ok) {
           console.error("Products fetch error:", data);
           throw new Error(
@@ -53,7 +56,6 @@ export default function StripeProductDisplay() {
           );
         }
 
-        console.log("Products fetched:", data);
         setProducts(data);
         setError(null);
       } catch (error) {
@@ -69,6 +71,8 @@ export default function StripeProductDisplay() {
     fetchProducts();
   }, []);
 
+  console.log("Current products state:", products);
+
   if (loading) {
     return (
       <Card className="bg-gray-800 border-gray-700">
@@ -79,7 +83,13 @@ export default function StripeProductDisplay() {
     );
   }
 
-  if (error || !products || products.length === 0) {
+  const shouldShowEmptyState = !products || products.length === 0;
+  console.log("Showing empty state:", shouldShowEmptyState, {
+    productsExists: !!products,
+    productsLength: products?.length,
+  });
+
+  if (shouldShowEmptyState) {
     return (
       <Card className="bg-gray-800 border-gray-700 border-dashed">
         <CardContent className="flex flex-col items-center justify-center h-[400px] space-y-6">
@@ -161,11 +171,8 @@ export default function StripeProductDisplay() {
             className="bg-gray-800 border-gray-700 flex flex-col"
           >
             <CardHeader>
-              <CardTitle className="text-2xl font-semibold text-white">
+              <CardTitle className="text-2xl font-semibold text-white flex justify-between items-center">
                 {product.name}
-                <span className="ml-2 inline-block px-2 py-0.5 text-sm bg-violet-500 text-white rounded-full">
-                  Active
-                </span>
               </CardTitle>
               <CardDescription className="text-gray-300">
                 {product.description}
@@ -173,20 +180,12 @@ export default function StripeProductDisplay() {
             </CardHeader>
             <CardContent className="flex-grow">
               <div className="text-center">
-                {product.unit_amount ? (
-                  <>
-                    <span className="text-5xl font-extrabold text-white">
-                      ${(product.unit_amount / 100).toFixed(2)}
-                    </span>
-                    <span className="text-xl font-medium text-gray-300">
-                      /month
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-xl font-medium text-gray-300">
-                    Price not set
-                  </span>
-                )}
+                <span className="text-5xl font-extrabold text-white">
+                  ${(product.unit_amount / 100).toFixed(2)}
+                </span>
+                <span className="text-xl font-medium text-gray-300">
+                  /month
+                </span>
               </div>
               <ul className="mt-8 space-y-4">
                 {product.features.length > 0 ? (
