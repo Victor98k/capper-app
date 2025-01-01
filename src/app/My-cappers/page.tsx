@@ -58,39 +58,29 @@ function MyCappers() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex">
-        <SideNav />
-        <main className="flex-1 p-8 lg:p-8">
-          <div>Loading...</div>
-        </main>
+      <div className="flex justify-center items-center h-full">
+        <div>Loading...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex">
-        <SideNav />
-        <main className="flex-1 p-8 lg:p-8">
-          <div className="text-red-500">{error}</div>
-        </main>
+      <div className="flex justify-center items-center h-full">
+        <div className="text-red-500">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex">
-      <SideNav />
-      <main className="flex-1 p-8 lg:p-12">
-        <div className="lg:mt-0 mt-8">
-          <h2 className="text-3xl font-bold mb-8">My Cappers</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-            {posts.map((post) => (
-              <Post key={post._id} {...post} />
-            ))}
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="space-y-6 py-6">
+        {posts.map((post) => (
+          <div key={post._id} className="flex justify-center">
+            <Post {...post} />
           </div>
-        </div>
-      </main>
+        ))}
+      </div>
     </div>
   );
 }

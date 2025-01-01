@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import logo from "@/images/Cappers Logga.png";
 import {
   Home,
   Heart,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import Image from "next/image";
 
 export function SideNav() {
   const { user } = useAuth();
@@ -69,11 +71,11 @@ export function SideNav() {
   const NavLinks = () => (
     <nav className="space-y-4">
       <div className="mb-8">
-        <Input
+        {/* <Input
           type="search"
           placeholder="Search"
-          className="w-full bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-        />
+          className="w-full bg-gray-900 border-gray-600 text-gray-100 placeholder-gray-400"
+        /> */}
       </div>
 
       <Button
@@ -179,16 +181,32 @@ export function SideNav() {
             side="left"
             className="w-64 p-6 bg-gray-800 border-gray-700"
           >
-            <h1 className="text-2xl font-bold text-blue-600 mb-8">CAPPERS</h1>
+            <div className="mb-8">
+              <Image
+                src={logo}
+                alt="Cappers Logo"
+                width={150}
+                height={50}
+                priority
+              />
+            </div>
             <NavLinks />
           </SheetContent>
         </Sheet>
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-64 bg-gray-800 border-r border-gray-700 h-screen sticky top-0">
+      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden md:block h-screen">
         <div className="p-6">
-          <h1 className="text-2xl font-bold text-blue-600 mb-8">CAPPERS</h1>
+          <div className="mb-8">
+            <Image
+              src={logo}
+              alt="Cappers Logo"
+              width={150}
+              height={50}
+              priority
+            />
+          </div>
           <NavLinks />
         </div>
       </aside>
