@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ExternalLink } from "lucide-react";
+import { CheckCircle, ExternalLink, AlertCircle } from "lucide-react";
 
 export default function StripeConnectOnboarding({
   isOnboarded = false,
@@ -50,21 +50,22 @@ export default function StripeConnectOnboarding({
 
   if (isOnboarded) {
     return (
-      <div className="p-6 bg-gray-800/50 rounded-xl border border-green-500/20">
+      <div className="p-6 bg-gray-900/50 rounded-xl border border-green-500/20">
         <div className="flex items-center gap-3 mb-4">
-          <CheckCircle className="h-6 w-6 text-green-500" />
-          <h3 className="text-xl font-semibold text-white">
+          <CheckCircle className="h-8 w-8 text-green-500" />
+          <h3 className="text-2xl font-semibold text-white">
             Stripe Account Connected
           </h3>
         </div>
-        <p className="text-gray-300 mb-6">
+
+        <p className="text-lg text-gray-300 mb-6">
           Your Stripe account is connected and ready to receive payments. You
           can now start accepting subscriptions from users.
         </p>
         <Button
           onClick={() => window.open("https://dashboard.stripe.com", "_blank")}
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-lg"
         >
           <ExternalLink className="h-4 w-4" />
           View Stripe Dashboard
@@ -74,18 +75,21 @@ export default function StripeConnectOnboarding({
   }
 
   return (
-    <div className="p-6 bg-gray-800/50 rounded-xl border border-[#4e43ff]/20">
-      <h3 className="text-xl font-semibold mb-4 text-white">
-        Connect Your Stripe Account
-      </h3>
-      <p className="text-gray-300 mb-6">
+    <div className="p-6 bg-gray-900/50 rounded-xl border border-red-500/20">
+      <div className="flex items-center gap-3 mb-4">
+        <AlertCircle className="h-8 w-8 text-red-500" />
+        <h3 className="text-2xl font-semibold text-white">
+          Connect Your Stripe Account
+        </h3>
+      </div>
+      <p className="text-lg text-gray-300 mb-6">
         To receive payments as a Capper, you need to connect your Stripe
         account. This will allow you to receive payouts from your subscribers.
       </p>
       <Button
         onClick={startOnboarding}
         disabled={loading}
-        className="bg-[#4e43ff] hover:bg-blue-600 w-full sm:w-auto"
+        className="bg-[#4e43ff] hover:bg-blue-600 w-full sm:w-auto text-lg"
       >
         {loading ? "Setting up..." : "Connect Stripe Account"}
       </Button>
