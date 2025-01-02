@@ -198,8 +198,8 @@ export async function POST(req: Request) {
     const bets = JSON.parse(betsString as string);
     const odds = JSON.parse(oddsString as string);
 
-    // Get the capper profile
-    const capperProfile = await prisma.capper.findFirst({
+    // Change const to let since we need to reassign it later
+    let capperProfile = await prisma.capper.findFirst({
       where: {
         user: {
           username: username as string,
