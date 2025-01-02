@@ -133,13 +133,13 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
 
-    // Get all form data including username
+    // Get all form data
     const title = formData.get("title");
     const content = formData.get("content");
     const tagsString = formData.get("tags");
     const betsString = formData.get("bets");
     const oddsString = formData.get("odds");
-    const username = formData.get("username"); // Get username from FormData
+    const username = formData.get("username");
 
     if (
       !title ||
@@ -193,21 +193,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // Safe parsing of JSON strings
-    let tags, bets, odds;
-    try {
-      tags = JSON.parse(tagsString as string);
-      bets = JSON.parse(betsString as string);
-      odds = JSON.parse(oddsString as string);
-    } catch (parseError) {
-      console.error("JSON Parse error:", parseError);
-      return NextResponse.json(
-        { error: "Invalid JSON in form data" },
-        { status: 400 }
-      );
-    }
+    // Parse JSON strings
+    const tags = JSON.parse(tagsString as string);
+    const bets = JSON.parse(betsString as string);
+    const odds = JSON.parse(oddsString as string);
 
-    // Get the capper profile with associated user data
+    // Get the capper profile
     const capperProfile = await prisma.capper.findFirst({
       where: {
         user: {
@@ -219,23 +210,55 @@ export async function POST(req: Request) {
       },
     });
 
+    // Add debug logging
+    console.log("Looking for capper with username:", username);
+    console.log("Found capper profile:", capperProfile);
+
     if (!capperProfile) {
-      return NextResponse.json(
-        { error: "Capper profile not found" },
-        { status: 404 }
-      );
+      // Try to find the user first to debug the issue
+      const user = await prisma.user.findFirst({
+        where: {
+          username: username as string,
+        },
+      });
+
+      console.log("Found user:", user);
+
+      // If user exists but no capper profile, create one
+      if (user) {
+        const newCapperProfile = await prisma.capper.create({
+          data: {
+            userId: user.id,
+            tags: [],
+            subscriberIds: [],
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        console.log("Created new capper profile:", newCapperProfile);
+        capperProfile = newCapperProfile;
+      } else {
+        return NextResponse.json(
+          { error: "Capper profile not found and user does not exist" },
+          { status: 404 }
+        );
+      }
     }
 
-    // Create the post using the capper's information
+    // Create the post using CapperPost model
     const post = await prisma.capperPost.create({
       data: {
         title: title as string,
         content: content as string,
+        imageUrl: imageUrl,
         tags,
         bets,
         odds,
         capperId: capperProfile.id,
-        imageUrl: imageUrl,
+        likes: 0,
+        comments: 0,
       },
       include: {
         capper: {
@@ -258,12 +281,13 @@ export async function POST(req: Request) {
       capperId: post.capperId,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
+      likes: post.likes,
+      comments: post.comments,
       capperInfo: {
         firstName: post.capper.user.firstName,
         lastName: post.capper.user.lastName,
         username: post.capper.user.username,
         imageUrl: post.capper.user.imageUrl,
-        // isVerified: post.capper.user.isVerified || false,
       },
     };
 

@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Heart,
-  MessageCircle,
-  Send,
-  Bookmark,
-  MoreHorizontal,
-} from "lucide-react";
+import { Heart, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import Image from "next/image";
 
 interface PostProps {
@@ -34,6 +35,18 @@ interface PostProps {
     isVerified?: boolean;
   };
 }
+
+const sportEmojiMap: { [key: string]: string } = {
+  Football: "⚽",
+  Basketball: "🏀",
+  Tennis: "🎾",
+  "American Football": "🏈",
+  Baseball: "⚾",
+  Badminton: "🏸",
+  Rugby: "🏉",
+  Swimming: "🏊‍♂️",
+  Running: "🏃‍♂️",
+};
 
 function InstagramPost({
   _id,
@@ -90,68 +103,131 @@ function InstagramPost({
         </Button>
       </div>
 
-      {/* Image container - adjust height and maintain aspect ratio */}
+      {/* Image container - adjusted for better mobile responsiveness */}
       <div className="relative w-full aspect-[4/3] border-b border-gray-800">
         <Image
           src={imageUrl || "/placeholder-image.jpg"}
           alt={title || "Post image"}
           fill
           className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 468px) 100vw, (max-width: 768px) 75vw, 33vw"
           priority
         />
       </div>
 
-      {/* Bottom section - made more compact */}
+      {/* Bottom section - reorganized for mobile */}
       <div className="p-2 space-y-2">
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLike}
-              className="h-8 w-8"
-            >
-              <Heart
-                className={`h-4 w-4 ${
-                  isLiked ? "text-red-500 fill-red-500" : "text-gray-300"
-                }`}
-              />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MessageCircle className="h-4 w-4 text-gray-300" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Send className="h-4 w-4 text-gray-300" />
-            </Button>
-          </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <Bookmark className="h-4 w-4 text-gray-300" />
+        {/* Action Buttons - simplified to only like button */}
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLike}
+            className="h-8 w-8"
+          >
+            <Heart
+              className={`h-4 w-4 ${
+                isLiked ? "text-red-500 fill-red-500" : "text-gray-300"
+              }`}
+            />
           </Button>
         </div>
 
-        {/* Likes and Caption */}
+        {/* Content section with responsive layout */}
+        <div className="flex flex-col md:flex-row md:justify-between gap-4">
+          {/* Left side: Title, Content, and Bet Button */}
+          <div className="flex-1">
+            <h3 className="font-bold text-sm md:text-m text-gray-100 mb-1">
+              {title}
+            </h3>
+            <p className="text-xs text-gray-200 mb-2">
+              <span className="font-semibold mr-1">{capperInfo.username}</span>
+              {content}
+            </p>
+
+            {/* Bets Modal - adjusted button for mobile */}
+            {bets.length > 0 && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full md:w-auto mt-2 text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 md:px-6 py-2 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                  >
+                    See Bet 🎯
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg font-bold mb-4">
+                      Bet Details
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2">
+                    {bets.map((bet, index) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-gray-800/50 rounded-lg text-sm"
+                      >
+                        {bet}
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+
+          {/* Right side: Odds and Tags - adjusted for mobile */}
+          <div className="space-y-2 md:space-y-3 w-full md:min-w-[140px] md:w-auto">
+            {/* Odds section */}
+            {odds.length > 0 && (
+              <div className="w-full text-center md:text-right bg-[#4e43ff] p-2 md:p-3 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                <div className="flex items-center justify-center md:justify-end gap-2">
+                  <p className="text-xs font-semibold text-white">ODDS</p>
+                  <div className="flex justify-end">
+                    {odds.map((odd, index) => (
+                      <span
+                        key={index}
+                        className="text-xl md:text-2xl font-bold text-white px-2"
+                      >
+                        {odd}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tags section */}
+            <div className="w-full text-center md:text-right">
+              <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
+                <p className="text-xs font-semibold text-white bg-[#4e43ff] px-3 py-1 rounded-full shadow-lg shadow-[#4e43ff]/20">
+                  SPORT
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center md:justify-end">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-lg md:text-xl bg-[#4e43ff] text-white px-3 md:px-4 py-1 md:py-2 rounded-full shadow-lg shadow-[#4e43ff]/20"
+                      title={tag}
+                    >
+                      {sportEmojiMap[tag] || tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Likes count remains the same */}
         <div className="space-y-1">
           <p className="font-semibold text-xs text-gray-100">
             {likeCount} likes
           </p>
-          <p className="text-xs text-gray-200">
-            <span className="font-semibold mr-1">{capperInfo.username}</span>
-            {content}
-          </p>
         </div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1">
-          {tags.map((tag) => (
-            <span key={tag} className="text-xs text-blue-400">
-              #{tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Timestamp */}
+        {/* Timestamp remains the same */}
         <p className="text-[10px] text-gray-400 uppercase">
           {new Date(createdAt).toLocaleDateString(undefined, {
             month: "long",

@@ -50,17 +50,21 @@ model Capper {
 
 // TODO: Add right parameters for capper post 
 model CapperPost {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  content   String
-  imageUrl  String?  // Optional field for storing image URL
-  tags      String[]
-  bets      String[]
-  odds      String[]
-  capperId  String   @db.ObjectId
-  capper    Capper   @relation(fields: [capperId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  content       String
+  imageUrl      String?
+  tags          String[]
+  bets          String[]
+  odds          String[]
+  capperId      String   @db.ObjectId
+  capper        Capper   @relation(fields: [capperId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  likes         Int      @default(0)
+  comments      Int      @default(0)
+
+  @@index([capperId])
 }
 
 model Subscription {

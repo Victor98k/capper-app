@@ -127,7 +127,7 @@ function NewPostPage() {
       }
 
       // Get username from localStorage
-      const username = localStorage.getItem("userName") || "";
+      const username = localStorage.getItem("username") || "";
 
       const formData = new FormData();
       formData.append("title", title);
@@ -163,6 +163,18 @@ function NewPostPage() {
       );
     }
   };
+
+  const sportEmojis = [
+    { emoji: "⚽", sport: "Football" },
+    { emoji: "🏀", sport: "Basketball" },
+    { emoji: "🎾", sport: "Tennis" },
+    { emoji: "🏈", sport: "American Football" },
+    { emoji: "⚾", sport: "Baseball" },
+    { emoji: "🏸", sport: "Badminton" },
+    { emoji: "🏉", sport: "Rugby" },
+    { emoji: "🏊‍♂️", sport: "Swimming" },
+    { emoji: "🏃‍♂️", sport: "Running" },
+  ];
 
   if (loading) {
     return <div>Loading...</div>;
@@ -328,32 +340,23 @@ function NewPostPage() {
                     <label className="block text-sm font-medium text-gray-700">
                       Tags
                     </label>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {tags.map((tag) => (
-                        <div
-                          key={tag}
-                          className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <p className="w-full text-sm text-gray-500">
+                        Select sport type:
+                      </p>
+                      {sportEmojis.map((item) => (
+                        <button
+                          key={item.sport}
+                          type="button"
+                          onClick={() => setTags([item.sport])}
+                          className={`p-2 rounded-full text-xl hover:bg-gray-100 ${
+                            tags.includes(item.sport) ? "bg-blue-100" : ""
+                          }`}
+                          title={item.sport}
                         >
-                          <span className="text-[#4e43ff]">{tag}</span>
-                          <button
-                            onClick={() => handleRemoveTag(tag)}
-                            className="text-[#4e43ff]/70 hover:text-red-500"
-                          >
-                            ×
-                          </button>
-                        </div>
+                          {item.emoji}
+                        </button>
                       ))}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <input
-                        type="text"
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
-                        placeholder="Add a tag..."
-                        className="flex-1 p-2 border rounded-md"
-                      />
-                      <Button onClick={handleAddTag}>Add Tag</Button>
                     </div>
                   </div>
 
