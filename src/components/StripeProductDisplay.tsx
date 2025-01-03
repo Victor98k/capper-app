@@ -10,7 +10,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -73,6 +74,42 @@ export default function StripeProductDisplay() {
 
   console.log("Current products state:", products);
 
+  const openStripeDashboard = async (path: string = "") => {
+    try {
+      const response = await fetch("/api/stripe/dashboard");
+      const data = await response.json();
+
+      if (data.url) {
+        // For Express accounts, we need to use a different URL structure
+        // Instead of appending /products/create, we should go to the main dashboard
+        // as Express accounts have a simplified interface
+        window.location.href = data.url;
+      } else {
+        // Handle different error cases
+        switch (data.code) {
+          case "NO_STRIPE_ACCOUNT":
+            toast.error("You need to connect your Stripe account first");
+            break;
+          case "ONBOARDING_INCOMPLETE":
+            toast.error("Please complete your Stripe account setup first");
+            break;
+          case "ACCOUNT_INVALID":
+            toast.error(
+              "Your Stripe account needs attention. Please check your email for instructions."
+            );
+            break;
+          default:
+            toast.error(
+              "Unable to access Stripe dashboard. Please try again later."
+            );
+        }
+      }
+    } catch (error) {
+      console.error("Error opening Stripe dashboard:", error);
+      toast.error("Failed to open Stripe dashboard");
+    }
+  };
+
   if (loading) {
     return (
       <Card className="bg-gray-800 border-gray-700">
@@ -109,12 +146,7 @@ export default function StripeProductDisplay() {
               {products.length < MAX_PRODUCTS ? (
                 <Button
                   className="w-full bg-violet-500 hover:bg-violet-600"
-                  onClick={() =>
-                    window.open(
-                      "https://dashboard.stripe.com/test/products/create",
-                      "_blank"
-                    )
-                  }
+                  onClick={() => openStripeDashboard("/products/create")}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Create First Product
@@ -151,12 +183,7 @@ export default function StripeProductDisplay() {
           <Button
             size="sm"
             className="bg-violet-500 hover:bg-violet-600"
-            onClick={() =>
-              window.open(
-                "https://dashboard.stripe.com/test/products/create",
-                "_blank"
-              )
-            }
+            onClick={() => openStripeDashboard("/products/create")}
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Product
@@ -207,12 +234,7 @@ export default function StripeProductDisplay() {
             <CardFooter className="mt-auto pt-6">
               <Button
                 className="w-full bg-violet-500 hover:bg-violet-600"
-                onClick={() =>
-                  window.open(
-                    `https://dashboard.stripe.com/test/products/${product.id}`,
-                    "_blank"
-                  )
-                }
+                onClick={() => openStripeDashboard(`/products/${product.id}`)}
               >
                 Manage Product
               </Button>
