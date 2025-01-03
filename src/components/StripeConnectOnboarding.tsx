@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ExternalLink, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function StripeConnectOnboarding({
   isOnboarded = false,
@@ -48,6 +49,42 @@ export default function StripeConnectOnboarding({
     }
   };
 
+  const openStripeDashboard = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/stripe/dashboard");
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        switch (data.code) {
+          case "NO_STRIPE_ACCOUNT":
+            toast.error("You need to connect your Stripe account first");
+            break;
+          case "ONBOARDING_INCOMPLETE":
+            toast.error("Please complete your Stripe account setup first");
+            startOnboarding();
+            break;
+          case "ACCOUNT_INVALID":
+            toast.error(
+              "Your Stripe account needs attention. Please check your email for instructions."
+            );
+            break;
+          default:
+            toast.error(
+              "Unable to access Stripe dashboard. Please try again later."
+            );
+        }
+      }
+    } catch (error) {
+      console.error("Error opening Stripe dashboard:", error);
+      toast.error("Failed to open Stripe dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (isOnboarded) {
     return (
       <div className="p-6 bg-gray-900/50 rounded-xl border border-green-500/20">
@@ -63,12 +100,19 @@ export default function StripeConnectOnboarding({
           can now start accepting subscriptions from users.
         </p>
         <Button
-          onClick={() => window.open("https://dashboard.stripe.com", "_blank")}
+          onClick={openStripeDashboard}
           variant="outline"
           className="flex items-center gap-2 text-lg"
+          disabled={loading}
         >
-          <ExternalLink className="h-4 w-4" />
-          View Stripe Dashboard
+          {loading ? (
+            "Opening dashboard..."
+          ) : (
+            <>
+              <ExternalLink className="h-4 w-4" />
+              View Stripe Dashboard
+            </>
+          )}
         </Button>
       </div>
     );
