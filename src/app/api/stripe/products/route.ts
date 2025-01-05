@@ -33,8 +33,7 @@ export async function GET(request: Request) {
         {
           active: true,
           expand: ["data.default_price"],
-          limit: 100,
-          type: "service",
+          limit: 3,
         },
         {
           stripeAccount: user.stripeConnectId,

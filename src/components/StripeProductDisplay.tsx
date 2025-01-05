@@ -42,9 +42,8 @@ export default function StripeProductDisplay() {
         });
 
         const data = await response.json();
-        // console.log("Raw data from API:", data);
-
-        setProducts(data);
+        // Take only the first 3 products if somehow more are returned
+        setProducts(data.slice(0, MAX_PRODUCTS));
         setError(null);
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -67,28 +66,14 @@ export default function StripeProductDisplay() {
       const data = await response.json();
 
       if (data.url) {
-        // For Express accounts, we need to use a different URL structure
-        // Instead of appending /products/create, we should go to the main dashboard
-        // as Express accounts have a simplified interface
-        window.location.href = data.url;
+        // Open in new tab using window.open()
+        window.open(data.url, "_blank", "noopener,noreferrer");
       } else {
-        // Handle different error cases
-        switch (data.code) {
-          case "NO_STRIPE_ACCOUNT":
-            toast.error("You need to connect your Stripe account first");
-            break;
-          case "ONBOARDING_INCOMPLETE":
-            toast.error("Please complete your Stripe account setup first");
-            break;
-          case "ACCOUNT_INVALID":
-            toast.error(
-              "Your Stripe account needs attention. Please check your email for instructions."
-            );
-            break;
-          default:
-            toast.error(
-              "Unable to access Stripe dashboard. Please try again later."
-            );
+        // Handle errors with toast notifications
+        if (data.error) {
+          toast.error(data.error);
+        } else {
+          toast.error("Unable to access Stripe dashboard");
         }
       }
     } catch (error) {
@@ -165,7 +150,7 @@ export default function StripeProductDisplay() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">Your Products</h2>
+        <h2 className="text-xl font-semibold text-black">Your Products</h2>
         {products.length < MAX_PRODUCTS && (
           <Button
             size="sm"
