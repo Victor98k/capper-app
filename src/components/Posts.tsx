@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -11,8 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "./ui/dialog";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface PostProps {
   _id: string;
@@ -23,6 +26,7 @@ interface PostProps {
   bets: string[];
   tags: string[];
   capperId: string;
+  productId: string;
   createdAt: string;
   updatedAt: string;
   likes?: number;
@@ -58,6 +62,7 @@ function InstagramPost({
   bets,
   tags,
   capperId,
+  productId,
   createdAt,
   likes = 0,
   comments = 0,
@@ -69,8 +74,11 @@ function InstagramPost({
     isVerified: false,
   },
 }: PostProps) {
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLike = () => {
     if (isLiked) {
@@ -80,6 +88,35 @@ function InstagramPost({
     }
     setIsLiked(!isLiked);
   };
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        console.log("Checking subscription for capperId:", capperId);
+        const response = await fetch(
+          `/api/subscriptions/check?capperId=${capperId}&productId=${productId}`,
+          {
+            credentials: "include",
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Subscription check response:", data);
+          setIsSubscribed(data.isSubscribed);
+        } else {
+          console.error("Subscription check failed:", await response.text());
+        }
+      } catch (error) {
+        console.error("Error checking subscription:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (capperId) {
+      checkSubscription();
+    }
+  }, [capperId, productId]);
 
   return (
     <Card className="w-full max-w-md bg-gray-900 border-gray-800 flex flex-col mx-auto">
@@ -149,7 +186,7 @@ function InstagramPost({
               {content}
             </p>
 
-            {/* Bets Modal - adjusted button for mobile */}
+            {/* Bets Modal - with subscription check */}
             {bets.length > 0 && (
               <Dialog>
                 <DialogTrigger asChild>
@@ -161,21 +198,49 @@ function InstagramPost({
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-lg font-bold mb-4">
-                      Bet Details
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-2">
-                    {bets.map((bet, index) => (
-                      <div
-                        key={index}
-                        className="p-3 bg-gray-800/50 rounded-lg text-sm"
-                      >
-                        {bet}
+                  {isSubscribed ? (
+                    // Show bets if subscribed
+                    <>
+                      <DialogHeader>
+                        <DialogTitle className="text-lg font-bold mb-4">
+                          Bet Details
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-2">
+                        {bets.map((bet, index) => (
+                          <div
+                            key={index}
+                            className="p-3 bg-gray-800/50 rounded-lg text-sm"
+                          >
+                            {bet}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  ) : (
+                    // Show subscription prompt if not subscribed
+                    <>
+                      <DialogHeader>
+                        <DialogTitle className="text-lg font-bold mb-4">
+                          Subscribe to View Bets
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                          Subscribe to {capperInfo.username}'s picks to view
+                          their betting details and more exclusive content.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button
+                          onClick={() =>
+                            router.push(`/cappers/${capperInfo.username}`)
+                          }
+                          className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
+                        >
+                          View Subscription Plans
+                        </Button>
+                      </DialogFooter>
+                    </>
+                  )}
                 </DialogContent>
               </Dialog>
             )}
