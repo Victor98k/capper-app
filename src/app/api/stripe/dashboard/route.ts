@@ -53,25 +53,26 @@ export async function GET(req: Request) {
     }
 
     try {
-      // Generate a login link for the connected account
-      const loginLink = await stripe.accounts.createLoginLink(
-        user.stripeConnectId
-      );
-      return NextResponse.json({ url: loginLink.url });
-    } catch (stripeError) {
-      if (stripeError instanceof Stripe.errors.StripeError) {
-        // Handle specific Stripe errors
-        if (stripeError.code === "account_invalid") {
-          return NextResponse.json(
-            {
-              error: "Your Stripe account needs attention",
-              code: "ACCOUNT_INVALID",
-            },
-            { status: 400 }
-          );
-        }
+      // For Standard accounts, redirect to the main Stripe dashboard
+      const account = await stripe.accounts.retrieve(user.stripeConnectId);
+
+      if (account.type === "standard") {
+        return NextResponse.json({
+          url: "https://dashboard.stripe.com/products",
+        });
+      } else {
+        // For Express accounts (fallback)
+        const loginLink = await stripe.accounts.createLoginLink(
+          user.stripeConnectId
+        );
+        return NextResponse.json({ url: loginLink.url });
       }
-      throw stripeError; // Re-throw other Stripe errors
+    } catch (stripeError) {
+      console.error("Stripe error:", stripeError);
+      return NextResponse.json(
+        { error: "Unable to access Stripe dashboard" },
+        { status: 400 }
+      );
     }
   } catch (error) {
     console.error("Error generating dashboard link:", error);
