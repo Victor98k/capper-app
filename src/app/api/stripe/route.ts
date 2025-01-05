@@ -87,6 +87,7 @@ export async function POST(req: Request) {
           userId: payload.userId,
           capperId: capperId,
           productId: productId,
+          priceId: priceId,
         },
       },
       {

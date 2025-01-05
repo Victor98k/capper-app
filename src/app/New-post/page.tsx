@@ -13,8 +13,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import Post from "@/components/Posts";
+
+// Add type for product
+interface Product {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 function NewPostPage() {
   const { user, loading } = useAuth();
@@ -30,6 +45,8 @@ function NewPostPage() {
   const [newBet, setNewBet] = useState("");
   const [odds, setOdds] = useState<string[]>([]);
   const [newOdd, setNewOdd] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
 
   const handleLogout = async () => {
     try {
@@ -176,6 +193,21 @@ function NewPostPage() {
     { emoji: "🏃‍♂️", sport: "Running" },
   ];
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("/api/stripe/products");
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -223,6 +255,26 @@ function NewPostPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>Select Bundle</Label>
+                    <Select
+                      value={selectedProduct}
+                      onValueChange={setSelectedProduct}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a bundle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map((product) => (
+                          <SelectItem key={product.id} value={product.id}>
+                            {product.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Title Input */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -457,13 +509,13 @@ function NewPostPage() {
                   bets={bets}
                   tags={tags}
                   capperId="preview"
+                  productId={selectedProduct}
                   createdAt={new Date().toISOString()}
                   updatedAt={new Date().toISOString()}
                   capperInfo={{
                     firstName: user?.firstName || "",
                     lastName: user?.lastName || "",
                     username: localStorage.getItem("userName") || "",
-                    // imageUrl: user?.imageUrl || "",
                     isVerified: false,
                   }}
                 />
