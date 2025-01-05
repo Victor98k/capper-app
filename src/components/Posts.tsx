@@ -42,10 +42,11 @@ const sportEmojiMap: { [key: string]: string } = {
   Tennis: "🎾",
   "American Football": "🏈",
   Baseball: "⚾",
-  Badminton: "🏸",
-  Rugby: "🏉",
-  Swimming: "🏊‍♂️",
-  Running: "🏃‍♂️",
+  Soccer: "⚽",
+  Hockey: "🏒",
+  Golf: "🏌️‍♂️",
+  MMA: "🥊",
+  Boxing: "🥊",
 };
 
 function InstagramPost({
@@ -98,9 +99,12 @@ function InstagramPost({
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <MoreHorizontal className="h-4 w-4 text-gray-300" />
-        </Button>
+        <p className="text-[10px] text-gray-400 uppercase">
+          {new Date(createdAt).toLocaleDateString(undefined, {
+            month: "long",
+            day: "numeric",
+          })}
+        </p>
       </div>
 
       {/* Image container - adjusted for better mobile responsiveness */}
@@ -181,14 +185,14 @@ function InstagramPost({
           <div className="space-y-2 md:space-y-3 w-full md:min-w-[140px] md:w-auto">
             {/* Odds section */}
             {odds.length > 0 && (
-              <div className="w-full text-center md:text-right bg-[#4e43ff] p-2 md:p-3 rounded-lg shadow-lg shadow-[#4e43ff]/20">
-                <div className="flex items-center justify-center md:justify-end gap-2">
-                  <p className="text-xs font-semibold text-white">ODDS</p>
-                  <div className="flex justify-end">
+              <div className="flex flex-col items-center md:items-end mr-2">
+                <p className="text-xs font-semibold text-white mb-1">ODDS</p>
+                <div className="bg-[#4e43ff] p-1 md:p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                  <div className="flex justify-center md:justify-end">
                     {odds.map((odd, index) => (
                       <span
                         key={index}
-                        className="text-xl md:text-2xl font-bold text-white px-2"
+                        className="text-xl md:text-2xl font-bold text-white px-1"
                       >
                         {odd}
                       </span>
@@ -199,22 +203,18 @@ function InstagramPost({
             )}
 
             {/* Tags section */}
-            <div className="w-full text-center md:text-right">
-              <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
-                <p className="text-xs font-semibold text-white bg-[#4e43ff] px-3 py-1 rounded-full shadow-lg shadow-[#4e43ff]/20">
-                  SPORT
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center md:justify-end">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-lg md:text-xl bg-[#4e43ff] text-white px-3 md:px-4 py-1 md:py-2 rounded-full shadow-lg shadow-[#4e43ff]/20"
-                      title={tag}
-                    >
-                      {sportEmojiMap[tag] || tag}
-                    </span>
-                  ))}
-                </div>
+            <div className="flex flex-col items-center md:items-end mr-2">
+              <p className="text-xs font-semibold text-white mb-1">SPORT</p>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-end">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-lg md:text-xl bg-[#4e43ff] text-white px-3 md:px-4 py-1 md:py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
+                    title={tag}
+                  >
+                    {sportEmojiMap[tag] || tag}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -226,14 +226,6 @@ function InstagramPost({
             {likeCount} likes
           </p>
         </div>
-
-        {/* Timestamp remains the same */}
-        <p className="text-[10px] text-gray-400 uppercase">
-          {new Date(createdAt).toLocaleDateString(undefined, {
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
       </div>
     </Card>
   );
