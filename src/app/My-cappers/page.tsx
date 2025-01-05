@@ -15,6 +15,7 @@ type Post = {
   capperId: string;
   createdAt: string;
   updatedAt: string;
+  productId: string;
 };
 
 function MyCappers() {

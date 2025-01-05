@@ -67,6 +67,7 @@ export async function GET(req: Request) {
       capperId: post.capperId,
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
+      productId: post.productId,
       capperInfo: {
         firstName: post.capper.user.firstName,
         lastName: post.capper.user.lastName,
@@ -259,6 +260,7 @@ export async function POST(req: Request) {
         capperId: capperProfile.id,
         likes: 0,
         comments: 0,
+        productId: "default_product_id",
       },
       include: {
         capper: {
@@ -283,6 +285,7 @@ export async function POST(req: Request) {
       updatedAt: post.updatedAt.toISOString(),
       likes: post.likes,
       comments: post.comments,
+      productId: post.productId,
       capperInfo: {
         firstName: post.capper.user.firstName,
         lastName: post.capper.user.lastName,
