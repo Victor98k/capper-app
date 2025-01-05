@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     console.error("Stripe Connect error:", error);
 
     // Improved error handling
-    if (error.type === "StripeInvalidRequestError") {
+    if (error instanceof Error) {
       return NextResponse.json(
         { error: error.message || "Invalid request to Stripe" },
         { status: 400 }
