@@ -4,8 +4,6 @@ import { SideNav } from "@/components/SideNav";
 import { useEffect, useState } from "react";
 import Post from "@/components/Posts";
 
-// push deploy.
-
 type Post = {
   _id: string;
   title: string;

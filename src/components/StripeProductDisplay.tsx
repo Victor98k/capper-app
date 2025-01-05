@@ -18,9 +18,10 @@ interface Product {
   name: string;
   description: string | null;
   default_price: string;
-  unit_amount: number;
+  unit_amount: number | null;
   currency: string;
   features: string[];
+  marketing_features?: Array<{ name: string }>;
 }
 
 const MAX_PRODUCTS = 3;
@@ -34,11 +35,6 @@ export default function StripeProductDisplay() {
     const fetchProducts = async () => {
       try {
         const token = localStorage.getItem("token");
-        console.log(
-          "Fetching products with token:",
-          token ? "Present" : "Missing"
-        );
-
         const response = await fetch("/api/stripe/products", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -46,16 +42,7 @@ export default function StripeProductDisplay() {
         });
 
         const data = await response.json();
-
-        console.log("Raw products data:", data);
-        console.log("Products array length:", data.length);
-
-        if (!response.ok) {
-          console.error("Products fetch error:", data);
-          throw new Error(
-            data.details || data.error || "Failed to fetch products"
-          );
-        }
+        // console.log("Raw data from API:", data);
 
         setProducts(data);
         setError(null);
@@ -72,7 +59,7 @@ export default function StripeProductDisplay() {
     fetchProducts();
   }, []);
 
-  console.log("Current products state:", products);
+  // console.log("Current products state:", products);
 
   const openStripeDashboard = async (path: string = "") => {
     try {
@@ -192,55 +179,68 @@ export default function StripeProductDisplay() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <Card
-            key={product.id}
-            className="bg-gray-800 border-gray-700 flex flex-col"
-          >
-            <CardHeader>
-              <CardTitle className="text-2xl font-semibold text-white flex justify-between items-center">
-                {product.name}
-              </CardTitle>
-              <CardDescription className="text-gray-300">
-                {product.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="text-center">
-                <span className="text-5xl font-extrabold text-white">
-                  ${(product.unit_amount / 100).toFixed(2)}
-                </span>
-                <span className="text-xl font-medium text-gray-300">
-                  /month
-                </span>
-              </div>
-              <ul className="mt-8 space-y-4">
-                {product.features.length > 0 ? (
-                  product.features.map((feature) => (
-                    <li key={feature} className="flex items-start">
-                      <div className="flex-shrink-0">
-                        <Check className="h-6 w-6 text-green-400" />
-                      </div>
-                      <p className="ml-3 text-base text-gray-300">{feature}</p>
+        {products.map((product) => {
+          console.log("Rendering product:", product);
+          return (
+            <Card
+              key={product.id}
+              className="bg-gray-800 border-gray-700 flex flex-col"
+            >
+              <CardHeader>
+                <CardTitle className="text-2xl font-semibold text-white flex justify-between items-center">
+                  {product.name}
+                </CardTitle>
+                <CardDescription className="text-gray-300">
+                  {product.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <div className="text-center">
+                  {product.unit_amount !== null ? (
+                    <>
+                      <span className="text-5xl font-extrabold text-white">
+                        ${(product.unit_amount / 100).toFixed(2)}
+                      </span>
+                      <span className="text-xl font-medium text-gray-300">
+                        /month
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xl font-medium text-gray-300">
+                      Price not available
+                    </span>
+                  )}
+                </div>
+                <ul className="mt-8 space-y-4">
+                  {product.features && product.features.length > 0 ? (
+                    product.features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <Check className="h-6 w-6 text-green-400" />
+                        </div>
+                        <p className="ml-3 text-base text-gray-300">
+                          {feature}
+                        </p>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-gray-400 text-center">
+                      No features listed. Add features in your Stripe dashboard.
                     </li>
-                  ))
-                ) : (
-                  <li className="text-gray-400 text-center">
-                    No features listed
-                  </li>
-                )}
-              </ul>
-            </CardContent>
-            <CardFooter className="mt-auto pt-6">
-              <Button
-                className="w-full bg-violet-500 hover:bg-violet-600"
-                onClick={() => openStripeDashboard(`/products/${product.id}`)}
-              >
-                Manage Product
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+                  )}
+                </ul>
+              </CardContent>
+              <CardFooter className="mt-auto pt-6">
+                <Button
+                  className="w-full bg-violet-500 hover:bg-violet-600"
+                  onClick={() => openStripeDashboard(`/products/${product.id}`)}
+                >
+                  Manage Product
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

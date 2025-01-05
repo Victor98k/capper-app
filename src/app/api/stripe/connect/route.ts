@@ -31,14 +31,38 @@ export async function POST(req: Request) {
       details_submitted: platform.details_submitted,
     });
 
+    // Ensure we have the base URL with proper format
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
+    const websiteUrl = baseUrl.startsWith("http")
+      ? baseUrl
+      : `https://${baseUrl}`;
+
+    console.log("Using base URL:", websiteUrl); // Debug log
+
     // Create a Stripe Connect account
     const account = await stripe.accounts.create({
-      type: "express",
+      type: "standard",
       country: "SE",
       email: user.email,
       capabilities: {
         card_payments: { requested: true },
         transfers: { requested: true },
+      },
+      settings: {
+        payments: {
+          statement_descriptor: "CAPPERS CLUB",
+        },
+      },
+      business_type: "individual",
+      business_profile: {
+        name: "Cappers Club",
+        product_description: "Sports betting tips and predictions",
+        mcc: "7999", // Merchant Category Code for Recreation Services
+        // Only include URL if not localhost
+        ...(process.env.NODE_ENV === "production" && {
+          url: websiteUrl,
+        }),
       },
     });
 
@@ -48,27 +72,27 @@ export async function POST(req: Request) {
       data: { stripeConnectId: account.id },
     });
 
-    // Ensure we have the base URL
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
-    console.log("Using base URL:", baseUrl); // Debug log
-
-    // Create account link for onboarding
+    // Create initial onboarding link
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${baseUrl}/home-capper?refresh=true`,
-      return_url: `${baseUrl}/home-capper?success=true`,
+      refresh_url: `${websiteUrl}/home-capper?refresh=true`, // Use the properly formatted URL
+      return_url: `${websiteUrl}/home-capper?success=true`,
       type: "account_onboarding",
+      collect: "eventually_due",
     });
-
-    // console.log("Created account link:", {
-    //   refreshUrl: `${baseUrl}/home-capper?refresh=true`,
-    //   returnUrl: `${baseUrl}/home-capper?success=true`,
-    // });
 
     return NextResponse.json({ url: accountLink.url });
   } catch (error) {
     console.error("Stripe Connect error:", error);
+
+    // Improved error handling
+    if (error.type === "StripeInvalidRequestError") {
+      return NextResponse.json(
+        { error: error.message || "Invalid request to Stripe" },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -108,6 +132,9 @@ export async function GET(req: Request) {
     // Fetch latest account status from Stripe
     const account = await stripe.accounts.retrieve(user.stripeConnectId);
 
+    // For Standard accounts, we return the Stripe dashboard URL directly
+    const dashboardUrl = `https://dashboard.stripe.com/${account.id}`;
+
     // Update user status in database if it has changed
     if (
       account.details_submitted !== user.stripeConnectOnboarded ||
@@ -125,6 +152,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       onboarded: account.details_submitted,
       payoutsEnabled: account.payouts_enabled,
+      url: dashboardUrl, // Direct Stripe dashboard URL
     });
   } catch (error) {
     console.error("Stripe status error:", error);

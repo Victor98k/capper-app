@@ -52,11 +52,23 @@ export default function StripeConnectOnboarding({
   const openStripeDashboard = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/stripe/dashboard");
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+
+      const response = await fetch("/api/stripe/connect", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
 
       if (data.url) {
-        window.location.href = data.url;
+        // Open Stripe dashboard in a new tab
+        window.open(data.url, "_blank");
       } else {
         switch (data.code) {
           case "NO_STRIPE_ACCOUNT":
