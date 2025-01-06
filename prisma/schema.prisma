@@ -58,7 +58,7 @@ model CapperPost {
   bets          String[]
   odds          String[]
   capperId      String   @db.ObjectId
-  productId     String   // Add this field to link post to a specific product
+  productId     String?   // Add this field to link post to a specific product
   // productId     String   @default("default_product")
   capper        Capper   @relation(fields: [capperId], references: [id])
   createdAt     DateTime @default(now())
