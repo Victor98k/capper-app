@@ -295,5 +295,4 @@ function InstagramPost({
     </Card>
   );
 }
-
 export default InstagramPost;
