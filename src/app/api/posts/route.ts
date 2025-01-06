@@ -20,37 +20,67 @@ const PostSchema = z.object({
   odds: z.array(z.string()),
 });
 
-// At the start of the file, add this debug function
-const debugLog = (message: string, data?: any) => {
-  console.log(`[DEBUG] ${message}`, data ? JSON.stringify(data, null, 2) : "");
-};
-
 // Add GET handler
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // Authentication checks
+    const cookies = req.headers.get("cookie");
+    const cookiesArray =
+      cookies?.split(";").map((cookie) => cookie.trim()) || [];
+    const tokenCookie = cookiesArray.find((cookie) =>
+      cookie.startsWith("token=")
+    );
+    const token = tokenCookie?.split("=")[1];
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = await verifyJWT(token);
+    if (!payload?.userId) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    // Get all posts with capper information
     const posts = await prisma.capperPost.findMany({
-      include: {
-        capper: {
-          include: {
-            user: {
-              select: {
-                username: true,
-                imageUrl: true,
-              },
-            },
-          },
-        },
-      },
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        capper: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(posts);
+    // Transform the posts to match the expected format
+    const transformedPosts = posts.map((post) => ({
+      _id: post.id,
+      title: post.title,
+      content: post.content,
+      imageUrl: post.imageUrl || "",
+      odds: post.odds,
+      bets: post.bets,
+      tags: post.tags,
+      capperId: post.capperId,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+      capperInfo: {
+        firstName: post.capper.user.firstName,
+        lastName: post.capper.user.lastName,
+        username: post.capper.user.username,
+        imageUrl: post.capper.user.imageUrl,
+        // isVerified: post.capper.user.isVerified || false,
+      },
+    }));
+
+    return NextResponse.json(transformedPosts);
   } catch (error) {
     console.error("Error fetching posts:", error);
     return NextResponse.json(
-      { error: "Failed to fetch posts" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -227,9 +257,9 @@ export async function POST(req: Request) {
         bets,
         odds,
         capperId: capperProfile.id,
+        productId: "default",
         likes: 0,
         comments: 0,
-        productId: "default_product_id",
       },
       include: {
         capper: {
@@ -254,7 +284,6 @@ export async function POST(req: Request) {
       updatedAt: post.updatedAt.toISOString(),
       likes: post.likes,
       comments: post.comments,
-      productId: post.productId,
       capperInfo: {
         firstName: post.capper.user.firstName,
         lastName: post.capper.user.lastName,
