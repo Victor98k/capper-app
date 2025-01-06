@@ -29,21 +29,26 @@ const debugLog = (message: string, data?: any) => {
 export async function GET() {
   try {
     const posts = await prisma.capperPost.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
       include: {
         capper: {
           include: {
-            user: true,
+            user: {
+              select: {
+                username: true,
+                imageUrl: true,
+              },
+            },
           },
         },
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 
     return NextResponse.json(posts);
   } catch (error) {
-    console.error("Database error:", error);
+    console.error("Error fetching posts:", error);
     return NextResponse.json(
       { error: "Failed to fetch posts" },
       { status: 500 }
