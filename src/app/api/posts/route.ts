@@ -20,11 +20,20 @@ const PostSchema = z.object({
   odds: z.array(z.string()),
 });
 
+// At the start of the file, add this debug function
+const debugLog = (message: string, data?: any) => {
+  console.log(`[DEBUG] ${message}`, data ? JSON.stringify(data, null, 2) : "");
+};
+
 // Add GET handler
 export async function GET(req: Request) {
   try {
+    debugLog("Starting GET request");
+
     // Authentication checks
     const cookies = req.headers.get("cookie");
+    debugLog("Cookies received:", cookies);
+
     const cookiesArray =
       cookies?.split(";").map((cookie) => cookie.trim()) || [];
     const tokenCookie = cookiesArray.find((cookie) =>
@@ -33,14 +42,18 @@ export async function GET(req: Request) {
     const token = tokenCookie?.split("=")[1];
 
     if (!token) {
+      debugLog("No token found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    debugLog("Verifying JWT token");
     const payload = await verifyJWT(token);
     if (!payload?.userId) {
+      debugLog("Invalid token payload");
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
+    debugLog("Fetching posts from database");
     // Get all posts with capper information
     const posts = await prisma.capperPost.findMany({
       orderBy: {
@@ -79,9 +92,28 @@ export async function GET(req: Request) {
 
     return NextResponse.json(transformedPosts);
   } catch (error) {
-    console.error("Error fetching posts:", error);
+    // Enhanced error logging
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : "";
+
+    console.error("Detailed error in GET /api/posts:");
+    console.error("Message:", errorMessage);
+    console.error("Stack:", errorStack);
+    console.error("Full error object:", error);
+
+    // Check if it's a Prisma error
+    if (error.code) {
+      console.error("Database error code:", error.code);
+    }
+
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        details: errorMessage,
+        // Only include stack trace in development
+        stack: process.env.NODE_ENV === "development" ? errorStack : undefined,
+      },
       { status: 500 }
     );
   }
