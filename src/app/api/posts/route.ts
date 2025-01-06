@@ -102,9 +102,9 @@ export async function GET(req: Request) {
     console.error("Stack:", errorStack);
     console.error("Full error object:", error);
 
-    // Check if it's a Prisma error
-    if (error.code) {
-      console.error("Database error code:", error.code);
+    // Check if it's a Prisma error (type checking the error object)
+    if (error && typeof error === "object" && "code" in error) {
+      console.error("Database error code:", (error as { code: unknown }).code);
     }
 
     return NextResponse.json(
