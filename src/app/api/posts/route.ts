@@ -52,6 +52,7 @@ export async function GET(req: Request) {
       debugLog("Invalid token payload");
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
+    // deploy err commit
 
     debugLog("Fetching posts from database");
     // Get all posts with capper information
