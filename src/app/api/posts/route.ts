@@ -26,36 +26,8 @@ const debugLog = (message: string, data?: any) => {
 };
 
 // Add GET handler
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    debugLog("Starting GET request");
-
-    // Authentication checks
-    const cookies = req.headers.get("cookie");
-    debugLog("Cookies received:", cookies);
-
-    const cookiesArray =
-      cookies?.split(";").map((cookie) => cookie.trim()) || [];
-    const tokenCookie = cookiesArray.find((cookie) =>
-      cookie.startsWith("token=")
-    );
-    const token = tokenCookie?.split("=")[1];
-
-    if (!token) {
-      debugLog("No token found");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    debugLog("Verifying JWT token");
-    const payload = await verifyJWT(token);
-    if (!payload?.userId) {
-      debugLog("Invalid token payload");
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-    // deploy err commit
-
-    debugLog("Fetching posts from database");
-    // Get all posts with capper information
     const posts = await prisma.capperPost.findMany({
       orderBy: {
         createdAt: "desc",
@@ -69,52 +41,11 @@ export async function GET(req: Request) {
       },
     });
 
-    // Transform the posts to match the expected format
-    const transformedPosts = posts.map((post) => ({
-      _id: post.id,
-      title: post.title,
-      content: post.content,
-      imageUrl: post.imageUrl || "",
-      odds: post.odds,
-      bets: post.bets,
-      tags: post.tags,
-      capperId: post.capperId,
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
-      productId: post.productId,
-      capperInfo: {
-        firstName: post.capper.user.firstName,
-        lastName: post.capper.user.lastName,
-        username: post.capper.user.username,
-        imageUrl: post.capper.user.imageUrl,
-        // isVerified: post.capper.user.isVerified || false,
-      },
-    }));
-
-    return NextResponse.json(transformedPosts);
+    return NextResponse.json(posts);
   } catch (error) {
-    // Enhanced error logging
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    const errorStack = error instanceof Error ? error.stack : "";
-
-    console.error("Detailed error in GET /api/posts:");
-    console.error("Message:", errorMessage);
-    console.error("Stack:", errorStack);
-    console.error("Full error object:", error);
-
-    // Check if it's a Prisma error (type checking the error object)
-    if (error && typeof error === "object" && "code" in error) {
-      console.error("Database error code:", (error as { code: unknown }).code);
-    }
-
+    console.error("Database error:", error);
     return NextResponse.json(
-      {
-        error: "Internal server error",
-        details: errorMessage,
-        // Only include stack trace in development
-        stack: process.env.NODE_ENV === "development" ? errorStack : undefined,
-      },
+      { error: "Failed to fetch posts" },
       { status: 500 }
     );
   }
