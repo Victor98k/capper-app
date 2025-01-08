@@ -43,12 +43,12 @@ export async function GET(req: Request) {
 
     // Get all posts with capper information
     const posts = await prisma.capperPost.findMany({
-      where: {
-        productId: {
-          isSet: true,
-          not: null,
-        },
-      },
+      // where: {
+      //   productId: {
+      //     isSet: true,
+      //     not: null,
+      //   },
+      // },
       orderBy: {
         createdAt: "desc",
       },
