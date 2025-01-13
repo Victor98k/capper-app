@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
+import InstagramPost from "@/components/Posts";
 
 type CapperProfile = {
   id: string;
@@ -62,6 +63,29 @@ type Pick = {
   odds: number;
 };
 
+type Post = {
+  _id: string;
+  title: string;
+  content: string;
+  imageUrl: string;
+  odds: string[];
+  bets: string[];
+  tags: string[];
+  capperId: string;
+  productId: string;
+  createdAt: string;
+  updatedAt: string;
+  likes?: number;
+  comments?: number;
+  capperInfo?: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    imageUrl?: string;
+    isVerified?: boolean;
+  };
+};
+
 export default function CapperProfilePage({
   params,
 }: {
@@ -72,6 +96,7 @@ export default function CapperProfilePage({
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -127,6 +152,23 @@ export default function CapperProfilePage({
       checkSubscriptionStatus();
     }
   }, [capper?.id]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (!capper?.userId) return;
+
+      try {
+        const response = await fetch(`/api/posts?userId=${capper.userId}`);
+        if (!response.ok) throw new Error("Failed to fetch posts");
+        const data = await response.json();
+        setPosts(data);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, [capper?.userId]);
 
   if (loading) {
     return (
@@ -328,16 +370,46 @@ export default function CapperProfilePage({
             </TabsList>
 
             <TabsContent value="picks" className="mt-6">
-              <div className="grid gap-4">
-                <PickCard
-                  id="example-1"
-                  sport="NBA"
-                  prediction="Lakers -5.5"
-                  result="win"
-                  date="2024-03-15"
-                  odds={-110}
-                />
-                {/* Add more pick cards */}
+              <div className="mb-6 text-center">
+                <h2 className="text-2xl font-bold text-white">
+                  {capper.user.username}'s Posts
+                </h2>
+                <p className="text-gray-400 mt-2">
+                  Latest picks and predictions from {capper.user.firstName}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-[1200px] mx-auto">
+                {posts.length > 0 ? (
+                  posts.map((post) => (
+                    <InstagramPost
+                      key={post._id}
+                      _id={post._id}
+                      title={post.title}
+                      content={post.content}
+                      imageUrl={post.imageUrl}
+                      odds={post.odds}
+                      bets={post.bets}
+                      tags={post.tags}
+                      capperId={capper.id}
+                      productId={capper.products[0]?.id || ""}
+                      createdAt={post.createdAt}
+                      updatedAt={post.updatedAt}
+                      likes={post.likes}
+                      comments={post.comments}
+                      capperInfo={{
+                        firstName: capper.user.firstName,
+                        lastName: capper.user.lastName,
+                        username: capper.user.username,
+                        imageUrl: capper.imageUrl,
+                        isVerified: true,
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-gray-400">No posts available yet.</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
