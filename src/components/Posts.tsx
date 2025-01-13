@@ -251,8 +251,10 @@ function InstagramPost({
             {/* Odds section */}
             {odds.length > 0 && (
               <div className="flex flex-col items-center md:items-end mr-2">
-                <p className="text-xs font-semibold text-white mb-1">ODDS</p>
-                <div className="bg-[#4e43ff] p-1 md:p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                <p className="text-xs font-semibold text-white mb-1 pr-4">
+                  ODDS
+                </p>
+                <div className="bg-[#24b657] p-1 md:p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
                   <div className="flex justify-center md:justify-end">
                     {odds.map((odd, index) => (
                       <span
@@ -268,8 +270,10 @@ function InstagramPost({
             )}
 
             {/* Tags section */}
-            <div className="flex flex-col items-center md:items-end mr-2">
-              <p className="text-xs font-semibold text-white mb-1">SPORT</p>
+            <div className="flex flex-col items-center md:items-end mr-2 pr-2">
+              <p className="text-xs font-semibold text-white mb-1 pr-2">
+                SPORT
+              </p>
               <div className="flex flex-wrap gap-2 justify-center md:justify-end">
                 {tags.map((tag) => (
                   <span
