@@ -145,6 +145,7 @@ export function FooterComponent() {
       </div>
     </footer>
     // Fresh commit
+    //Fresh fresh fresh
   );
 }
 export default FooterComponent;
