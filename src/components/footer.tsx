@@ -144,6 +144,7 @@ export function FooterComponent() {
         </div>
       </div>
     </footer>
+    // test test
   );
 }
 export default FooterComponent;
