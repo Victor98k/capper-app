@@ -103,21 +103,25 @@ export default function CapperProfilePage({
       try {
         const response = await fetch(`/api/cappers/${resolvedParams.username}`);
         if (!response.ok) {
-          throw new Error("Capper not found");
-        }
-        const cappers = await response.json();
-        // Find the capper that matches the username
-        const matchingCapper = cappers.find(
-          (capper: CapperProfile) =>
-            capper.user.username === resolvedParams.username
-        );
-
-        if (!matchingCapper) {
-          throw new Error("Capper not found");
+          throw new Error("Failed to fetch capper profile");
         }
 
-        console.log("Matched capper:", matchingCapper);
-        setCapper(matchingCapper);
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        console.log("Received capper data:", {
+          id: data.id,
+          username: data.user.username,
+          products: data.products.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            features: p.features,
+          })),
+        });
+
+        setCapper(data);
       } catch (error: unknown) {
         console.error(
           "Error fetching capper profile:",
@@ -277,11 +281,10 @@ export default function CapperProfilePage({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {capper.products.length > 0 ? (
                 capper.products.map((product) => {
-                  console.log("Product data:", {
+                  console.log("Rendering product:", {
                     id: product.id,
                     name: product.name,
-                    default_price: product.default_price,
-                    unit_amount: product.unit_amount,
+                    features: product.features,
                   });
 
                   return (
@@ -321,16 +324,34 @@ export default function CapperProfilePage({
                           )}
                         </div>
                         <ul className="mt-8 space-y-4">
-                          {product.features.map((feature) => (
-                            <li key={feature} className="flex items-start">
+                          {Array.isArray(product.features) &&
+                          product.features.length > 0 ? (
+                            product.features.map((feature, index) => {
+                              console.log("Rendering feature:", feature);
+
+                              return (
+                                <li key={index} className="flex items-start">
+                                  <div className="flex-shrink-0">
+                                    <Check className="h-6 w-6 text-green-400" />
+                                  </div>
+                                  <p className="ml-3 text-base text-gray-300">
+                                    {typeof feature === "string"
+                                      ? feature
+                                      : JSON.stringify(feature)}
+                                  </p>
+                                </li>
+                              );
+                            })
+                          ) : (
+                            <li className="flex items-start">
                               <div className="flex-shrink-0">
                                 <Check className="h-6 w-6 text-green-400" />
                               </div>
                               <p className="ml-3 text-base text-gray-300">
-                                {feature}
+                                No features specified
                               </p>
                             </li>
-                          ))}
+                          )}
                         </ul>
                       </CardContent>
                       <CardFooter className="mt-auto pt-6">

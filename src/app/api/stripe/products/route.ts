@@ -53,12 +53,12 @@ export async function GET(request: Request) {
             )
           : [];
 
-        console.log("Transforming product:", {
-          id: product.id,
-          name: product.name,
-          marketing_features: product.marketing_features,
-          extractedFeatures: features,
-        });
+        // console.log("Transforming product:", {
+        //   id: product.id,
+        //   name: product.name,
+        //   marketing_features: product.marketing_features,
+        //   extractedFeatures: features,
+        // });
 
         return {
           id: product.id,

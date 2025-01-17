@@ -3,9 +3,18 @@ import { NextResponse } from "next/server";
 import { type NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { username: string } }
+) {
   try {
-    const cappers = await prisma.capper.findMany({
+    // Find the capper by username through the User relation
+    const capper = await prisma.capper.findFirst({
+      where: {
+        user: {
+          username: params.username,
+        },
+      },
       include: {
         user: {
           select: {
@@ -16,76 +25,95 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
     });
 
-    const cappersWithProducts = await Promise.all(
-      cappers.map(async (capper) => {
-        if (capper.user.stripeConnectId) {
+    if (!capper) {
+      return NextResponse.json({ error: "Capper not found" }, { status: 404 });
+    }
+
+    // Fetch Stripe products if the capper has a connected account
+    let products: any[] = [];
+    if (capper.user.stripeConnectId) {
+      const stripeProducts = await stripe.products.list(
+        {
+          expand: ["data.default_price"],
+          limit: 100,
+          active: true,
+          type: "service",
+        },
+        {
+          stripeAccount: capper.user.stripeConnectId,
+        }
+      );
+
+      products = stripeProducts.data.map((product) => {
+        const price = product.default_price as any;
+        let features = [];
+
+        // Log the raw product data
+        // console.log("Raw Stripe product data:", {
+        //   id: product.id,
+        //   name: product.name,
+        //   metadata: product.metadata,
+        //   marketing_features: (product as any).features,
+        // });
+
+        // First try to get marketing_features
+        if (Array.isArray((product as any).features)) {
+          features = (product as any).features.map(
+            (feature: any) => feature.name
+          );
+        }
+        // Then try metadata features as fallback
+        else if (product.metadata?.features) {
           try {
-            const products = await stripe.products.list(
-              {
-                expand: ["data.default_price"],
-                limit: 100,
-                active: true,
-                type: "service",
-              },
-              {
-                stripeAccount: capper.user.stripeConnectId,
-              }
-            );
-
-            const formattedProducts = products.data.map((product) => {
-              const price = product.default_price as any;
-
-              console.log("Product price data:", {
-                productId: product.id,
-                price: price,
-              });
-
-              return {
-                id: product.id,
-                name: product.name,
-                description: product.description,
-                default_price: price?.id,
-                unit_amount: price?.unit_amount || 0,
-                currency: price?.currency || "usd",
-                features:
-                  product.marketing_features?.map(
-                    (feature: any) => feature.name
-                  ) || [],
-              };
-            });
-
-            return {
-              ...capper,
-              products: formattedProducts,
-            };
+            features = JSON.parse(product.metadata.features);
           } catch (error) {
             console.error(
-              `Error fetching products for capper ${capper.user.username}:`,
+              `Error parsing features for product ${product.id}:`,
               error
             );
-            return {
-              ...capper,
-              products: [],
-            };
           }
         }
-        return {
-          ...capper,
-          products: [],
-        };
-      })
-    );
 
-    return NextResponse.json(cappersWithProducts);
+        // Add fallback features if none exist
+        if (!features || features.length === 0) {
+          features = [
+            `Access to all ${product.name} picks`,
+            "Daily expert predictions",
+            "Performance tracking",
+            "Real-time updates",
+            "Expert analysis",
+          ];
+        }
+
+        const mappedProduct = {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          default_price: price?.id,
+          unit_amount: price?.unit_amount || 0,
+          currency: price?.currency || "usd",
+          features: features,
+        };
+
+        // Log the final mapped product
+        console.log("Mapped product:", mappedProduct);
+
+        return mappedProduct;
+      });
+    }
+
+    const capperWithProducts = {
+      ...capper,
+      products,
+    };
+
+    return NextResponse.json(capperWithProducts);
   } catch (error) {
-    console.error("Error fetching cappers:", error);
+    console.error("Error fetching capper:", error);
     return NextResponse.json(
-      { error: "Failed to fetch cappers" },
+      { error: "Failed to fetch capper" },
       { status: 500 }
     );
   }
