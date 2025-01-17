@@ -162,7 +162,7 @@ export function SideNav() {
               <p className="text-sm font-medium">{username}</p>
             </div>
           </div>
-
+          {/* Push to capper dashboard if isCapper is true */}
           {isCapper && (
             <Button
               variant="secondary"
