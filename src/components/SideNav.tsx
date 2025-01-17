@@ -80,105 +80,116 @@ export function SideNav() {
   };
 
   // NavLinks component
-  const NavLinks = () => (
-    <nav className="space-y-4">
-      <div className="mb-8">
-        {/* <Input
-          type="search"
-          placeholder="Search"
-          className="w-full bg-gray-900 border-gray-600 text-gray-100 placeholder-gray-400"
-        /> */}
-      </div>
+  const NavLinks = () => {
+    console.log("isCapper state:", isCapper);
 
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/home")}
-      >
-        <Home className="h-5 w-5 mr-3" />
-        Home
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/Explore")}
-      >
-        <Compass className="h-5 w-5 mr-3" />
-        Explore
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/My-cappers")}
-      >
-        <Heart className="h-5 w-5 mr-3" />
-        My Cappers
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/My-bets")}
-      >
-        <TicketIcon className="h-5 w-5 mr-3" />
-        My Bets
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/Analytics")}
-      >
-        <BarChart3 className="h-5 w-5 mr-3" />
-        Analytics
-      </Button>
-
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/Settings")}
-      >
-        <Settings className="h-5 w-5 mr-3" />
-        Settings
-      </Button>
-
-      <div className="pt-4 border-t border-gray-700">
-        <div className="flex items-center space-x-3 mb-4">
-          <Avatar>
-            <AvatarImage
-              src="/placeholder.svg?height=32&width=32"
-              alt="@username"
-            />
-            <AvatarFallback>UN</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="text-sm font-medium">{username}</p>
-          </div>
+    return (
+      <nav className="space-y-4">
+        <div className="mb-8">
+          {/* <Input
+            type="search"
+            placeholder="Search"
+            className="w-full bg-gray-900 border-gray-600 text-gray-100 placeholder-gray-400"
+          /> */}
         </div>
 
-        <>{console.log("isCapper state:", isCapper)}</>
-        {isCapper && (
-          <Button
-            variant="secondary"
-            onClick={() => router.push("/home-capper")}
-            className="w-full mb-2"
-          >
-            <LineChart className="h-5 w-5 mr-2" />
-            Capper Dashboard
-          </Button>
-        )}
-
-        <Button variant="destructive" onClick={handleLogout} className="w-full">
-          <LogOut className="h-5 w-5 mr-2" />
-          Logout
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/home")}
+        >
+          <Home className="h-5 w-5 mr-3" />
+          Home
         </Button>
-      </div>
-    </nav>
-  );
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/Explore")}
+        >
+          <Compass className="h-5 w-5 mr-3" />
+          Explore
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/My-cappers")}
+        >
+          <Heart className="h-5 w-5 mr-3" />
+          My Cappers
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/My-bets")}
+        >
+          <TicketIcon className="h-5 w-5 mr-3" />
+          My Bets
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/Analytics")}
+        >
+          <BarChart3 className="h-5 w-5 mr-3" />
+          Analytics
+        </Button>
+
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/Settings")}
+        >
+          <Settings className="h-5 w-5 mr-3" />
+          Settings
+        </Button>
+
+        <div className="pt-4 border-t border-gray-700">
+          <div className="flex items-center space-x-3 mb-4">
+            <Avatar>
+              <AvatarImage
+                src="/placeholder.svg?height=32&width=32"
+                alt="@username"
+              />
+              <AvatarFallback>UN</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <p className="text-sm font-medium">{username}</p>
+            </div>
+          </div>
+
+          {isCapper && (
+            <Button
+              variant="secondary"
+              onClick={() => router.push("/home-capper")}
+              className="w-full mb-2"
+            >
+              <LineChart className="h-5 w-5 mr-2" />
+              Capper Dashboard
+            </Button>
+          )}
+
+          <Button
+            variant="destructive"
+            onClick={handleLogout}
+            className="w-full"
+          >
+            <LogOut className="h-5 w-5 mr-2" />
+            Logout
+          </Button>
+        </div>
+      </nav>
+    );
+  };
+
+  useEffect(() => {
+    console.log("isCapper state updated:", isCapper);
+  }, [isCapper]);
 
   return (
     <>
