@@ -5,14 +5,14 @@ import { stripe } from "@/lib/stripe";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { username: string } }
+  context: { params: { username: string } }
 ) {
   try {
     // Find the capper by username through the User relation
     const capper = await prisma.capper.findFirst({
       where: {
         user: {
-          username: params.username,
+          username: context.params.username,
         },
       },
       include: {
