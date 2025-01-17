@@ -139,26 +139,29 @@ export function CapperDashboard() {
 
   const handleBioUpdate = async () => {
     try {
-      const response = await fetch("/api/cappers", {
+      if (!user?.id) return;
+
+      const response = await fetch(`/api/cappers/${user.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: user?.id,
           bio: bio,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update bio");
       }
 
       const data = await response.json();
-      console.log("Profile updated successfully:", data);
+      console.log("Bio updated successfully:", data);
       setIsEditingBio(false);
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      console.error("Failed to update bio:", error);
+      // Optionally add user feedback here
     }
   };
 

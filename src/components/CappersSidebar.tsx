@@ -18,15 +18,49 @@ type Capper = {
 export function CappersSidebar() {
   const [cappers, setCappers] = useState<Capper[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCappers = async () => {
       try {
-        const response = await fetch("/api/cappers");
-        const data = await response.json();
-        setCappers(data.slice(0, 5));
+        const response = await fetch("/api/cappers", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const text = await response.text();
+        console.log("Raw response:", text); // Debug log
+
+        if (!text) {
+          setCappers([]);
+          return;
+        }
+
+        try {
+          const data = JSON.parse(text);
+          if (!Array.isArray(data)) {
+            console.error("Expected array but got:", typeof data);
+            setCappers([]);
+            setError("Invalid data format received");
+            return;
+          }
+          setCappers(data.slice(0, 5));
+        } catch (parseError) {
+          console.error("Parse error:", parseError);
+          setError("Failed to parse server response");
+          setCappers([]);
+        }
       } catch (error) {
-        console.error("Error fetching cappers:", error);
+        console.error("Fetch error:", error);
+        setError(
+          error instanceof Error ? error.message : "Failed to fetch cappers"
+        );
       } finally {
         setLoading(false);
       }
@@ -40,7 +74,9 @@ export function CappersSidebar() {
       <h2 className="text-l font-bold mb-4">Popular Cappers</h2>
       {loading ? (
         <p className="text-gray-400">Loading cappers...</p>
-      ) : (
+      ) : error ? (
+        <p className="text-red-400">{error}</p>
+      ) : cappers.length > 0 ? (
         <div className="space-y-2">
           {cappers.map((capper) => (
             <SimplifiedCapperCard
@@ -51,6 +87,8 @@ export function CappersSidebar() {
             />
           ))}
         </div>
+      ) : (
+        <p className="text-gray-400">No cappers found</p>
       )}
     </div>
   );

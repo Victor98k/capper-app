@@ -38,14 +38,26 @@ export function SideNav() {
       try {
         if (!user?.email) return;
 
-        const response = await fetch(
-          `/api/cappers?email=${encodeURIComponent(user.email)}`
-        );
-        if (!response.ok) throw new Error("Failed to check capper status");
-        const data = await response.json();
+        console.log("Checking capper status for email:", user.email);
 
-        console.log("Capper status response:", data);
-        setIsCapper(data.isCapper);
+        const response = await fetch(
+          `/api/cappers?email=${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("Raw API response:", data);
+
+        if (typeof data.isCapper !== "boolean") {
+          console.warn("Unexpected API response structure:", data);
+        }
+
+        setIsCapper(Boolean(data.isCapper));
       } catch (error) {
         console.error("Error checking capper status:", error);
         setIsCapper(false);
@@ -148,6 +160,7 @@ export function SideNav() {
           </div>
         </div>
 
+        <>{console.log("isCapper state:", isCapper)}</>
         {isCapper && (
           <Button
             variant="secondary"

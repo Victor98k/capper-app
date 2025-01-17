@@ -17,7 +17,7 @@ interface DisplayCapperCardProps {
   title?: string;
   imageUrl?: string;
   tags: string[];
-  subscriberIds: string[];
+  subscriberIds?: string[];
   isVerified: boolean;
 }
 
@@ -30,7 +30,7 @@ export function DisplayCapperCard({
   title,
   imageUrl,
   tags,
-  subscriberIds,
+  subscriberIds = [],
   isVerified,
 }: DisplayCapperCardProps) {
   const router = useRouter();
@@ -95,7 +95,7 @@ export function DisplayCapperCard({
           </div>
           <div className="flex items-center text-sm text-gray-400">
             <Users className="h-4 w-4 mr-1" />
-            {subscriberIds.length}
+            {subscriberIds?.length || 0}
           </div>
         </div>
 

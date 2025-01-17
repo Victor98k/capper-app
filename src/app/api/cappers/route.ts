@@ -3,8 +3,22 @@ import { NextResponse, NextRequest } from "next/server";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get("email");
+    const url = new URL(request.url);
+    const email = url.searchParams.get("email");
+
+    // If email is provided, check if user is a capper
+    if (email) {
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: {
+          isCapper: true,
+        },
+      });
+
+      return NextResponse.json({
+        isCapper: Boolean(user?.isCapper),
+      });
+    }
 
     // Get all cappers with their associated user info
     const cappers = await prisma.capper.findMany({
@@ -18,16 +32,30 @@ export async function GET(request: Request) {
           },
         },
       },
+      take: 10, // Limit to 10 cappers for performance
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    // If email is provided, check if this user is a capper
-    if (email) {
-      const isCapper = cappers.some((capper) => capper.user.email === email);
-      return NextResponse.json({ isCapper });
+    if (!cappers) {
+      return NextResponse.json([]);
     }
 
-    // Otherwise return all cappers (existing functionality)
-    return NextResponse.json(cappers);
+    // Map the data to match the expected Capper type in the frontend
+    const formattedCappers = cappers.map((capper) => ({
+      id: capper.id,
+      userId: capper.userId,
+      user: {
+        firstName: capper.user.firstName,
+        lastName: capper.user.lastName,
+        username: capper.user.username,
+      },
+      imageUrl: capper.imageUrl || undefined,
+      tags: capper.tags || [],
+    }));
+
+    return NextResponse.json(formattedCappers);
   } catch (error) {
     console.error("Error in cappers route:", error);
     return NextResponse.json(

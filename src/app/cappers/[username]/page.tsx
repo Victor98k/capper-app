@@ -118,8 +118,11 @@ export default function CapperProfilePage({
 
         console.log("Matched capper:", matchingCapper);
         setCapper(matchingCapper);
-      } catch (error) {
-        console.error("Error fetching capper profile:", error);
+      } catch (error: unknown) {
+        console.error(
+          "Error fetching capper profile:",
+          error instanceof Error ? error.message : "Unknown error"
+        );
       } finally {
         setLoading(false);
       }
