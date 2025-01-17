@@ -7,8 +7,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { username: string } }
 ): Promise<NextResponse> {
-  // Await the params to access username
-  const username = params.username;
+  // Await the params before accessing username
+  const { username } = await params;
 
   try {
     // Find the capper by username through the User relation
