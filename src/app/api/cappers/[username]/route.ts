@@ -3,17 +3,11 @@ import { NextResponse } from "next/server";
 import { type NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
 
-interface RequestContext {
-  params: {
-    username: string;
-  };
-}
-
 export async function GET(
   request: NextRequest,
-  context: RequestContext
+  { params }: { params: { username: string } }
 ): Promise<NextResponse> {
-  const { username } = context.params;
+  const { username } = params;
 
   try {
     // Find the capper by username through the User relation
