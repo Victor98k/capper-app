@@ -10,15 +10,17 @@ interface RequestContext {
 }
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   context: RequestContext
-): Promise<Response> {
+): Promise<NextResponse> {
+  const { username } = context.params;
+
   try {
     // Find the capper by username through the User relation
     const capper = await prisma.capper.findFirst({
       where: {
         user: {
-          username: context.params.username,
+          username: username,
         },
       },
       include: {
@@ -56,22 +58,11 @@ export async function GET(
         const price = product.default_price as any;
         let features = [];
 
-        // Log the raw product data
-        // console.log("Raw Stripe product data:", {
-        //   id: product.id,
-        //   name: product.name,
-        //   metadata: product.metadata,
-        //   marketing_features: (product as any).features,
-        // });
-
-        // First try to get marketing_features
         if (Array.isArray((product as any).features)) {
           features = (product as any).features.map(
             (feature: any) => feature.name
           );
-        }
-        // Then try metadata features as fallback
-        else if (product.metadata?.features) {
+        } else if (product.metadata?.features) {
           try {
             features = JSON.parse(product.metadata.features);
           } catch (error) {
@@ -82,7 +73,6 @@ export async function GET(
           }
         }
 
-        // Add fallback features if none exist
         if (!features || features.length === 0) {
           features = [
             `Access to all ${product.name} picks`,
@@ -93,7 +83,7 @@ export async function GET(
           ];
         }
 
-        const mappedProduct = {
+        return {
           id: product.id,
           name: product.name,
           description: product.description,
@@ -102,11 +92,6 @@ export async function GET(
           currency: price?.currency || "usd",
           features: features,
         };
-
-        // Log the final mapped product
-        console.log("Mapped product:", mappedProduct);
-
-        return mappedProduct;
       });
     }
 
