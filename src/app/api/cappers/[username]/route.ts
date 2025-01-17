@@ -3,16 +3,22 @@ import { NextResponse } from "next/server";
 import { type NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
 
+interface RequestContext {
+  params: {
+    username: string;
+  };
+}
+
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { username: string } }
-): Promise<NextResponse> {
+  request: Request,
+  context: RequestContext
+): Promise<Response> {
   try {
     // Find the capper by username through the User relation
     const capper = await prisma.capper.findFirst({
       where: {
         user: {
-          username: params.username,
+          username: context.params.username,
         },
       },
       include: {
