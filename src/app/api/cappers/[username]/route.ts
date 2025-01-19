@@ -3,9 +3,9 @@ import { NextResponse, NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
 
 export async function GET(
-  request: NextRequest,
-  context: { params: Record<string, string> } // Fix the type here
-): Promise<NextResponse> {
+  _request: NextRequest,
+  context: { params: { username: string } }
+) {
   const username = context.params.username;
 
   try {
