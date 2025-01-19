@@ -2,6 +2,33 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
 
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { userId, bio } = body;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const updatedCapper = await prisma.capper.update({
+      where: { userId: userId },
+      data: { bio },
+    });
+
+    return NextResponse.json(updatedCapper);
+  } catch (error) {
+    console.error("Error updating capper profile:", error);
+    return NextResponse.json(
+      { error: "Failed to update profile" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(
   req: Request,
   context: { params: { username: string } }
@@ -10,9 +37,9 @@ export async function GET(
   const cookies = req.headers.get("cookie");
 
   // Basic auth check similar to your working endpoint
-  if (!cookies) {
-    return NextResponse.json({ error: "No authentication" }, { status: 401 });
-  }
+  // if (!cookies) {
+  //   return NextResponse.json({ error: "No authentication" }, { status: 401 });
+  // }
 
   try {
     // Find the capper by username through the User relation
@@ -104,33 +131,6 @@ export async function GET(
     console.error("Error fetching capper:", error);
     return NextResponse.json(
       { error: "Failed to fetch capper" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { userId, bio } = body;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const updatedCapper = await prisma.capper.update({
-      where: { userId: userId },
-      data: { bio },
-    });
-
-    return NextResponse.json(updatedCapper);
-  } catch (error) {
-    console.error("Error updating capper profile:", error);
-    return NextResponse.json(
-      { error: "Failed to update profile" },
       { status: 500 }
     );
   }
