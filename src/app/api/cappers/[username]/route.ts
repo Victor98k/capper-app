@@ -85,25 +85,18 @@ export async function GET(
 
       products = stripeProducts.data.map((product) => {
         const price = product.default_price as any;
-        let features = [];
+        let marketing_features = [];
 
-        if (Array.isArray((product as any).features)) {
-          features = (product as any).features.map(
+        // Extract marketing features from the product
+        if (Array.isArray(product.marketing_features)) {
+          marketing_features = product.marketing_features.map(
             (feature: any) => feature.name
           );
-        } else if (product.metadata?.features) {
-          try {
-            features = JSON.parse(product.metadata.features);
-          } catch (error) {
-            console.error(
-              `Error parsing features for product ${product.id}:`,
-              error
-            );
-          }
         }
 
-        if (!features || features.length === 0) {
-          features = [
+        // Fallback if no marketing features are found
+        if (!marketing_features || marketing_features.length === 0) {
+          marketing_features = [
             `Access to all ${product.name} picks`,
             "Daily expert predictions",
             "Performance tracking",
@@ -119,7 +112,7 @@ export async function GET(
           default_price: price?.id,
           unit_amount: price?.unit_amount || 0,
           currency: price?.currency || "usd",
-          features: features,
+          marketing_features: marketing_features,
         };
       });
     }

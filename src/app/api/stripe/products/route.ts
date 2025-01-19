@@ -44,30 +44,35 @@ export async function GET(request: Request) {
 
       // Transform the products to include price information
       const transformedProducts = products.data.map((product) => {
-        const price = product.default_price as Stripe.Price;
+        const price = product.default_price as any;
+        let marketing_features = [];
 
-        // Extract features from marketing_features array
-        const features = product.marketing_features
-          ? product.marketing_features.map(
-              (feature: Stripe.Product.MarketingFeature) => feature.name
-            )
-          : [];
+        // Extract marketing features from the product
+        if (Array.isArray(product.marketing_features)) {
+          marketing_features = product.marketing_features.map(
+            (feature: any) => feature.name
+          );
+        }
 
-        // console.log("Transforming product:", {
-        //   id: product.id,
-        //   name: product.name,
-        //   marketing_features: product.marketing_features,
-        //   extractedFeatures: features,
-        // });
+        // Fallback if no marketing features are found
+        if (!marketing_features || marketing_features.length === 0) {
+          marketing_features = [
+            `Access to all ${product.name} picks`,
+            "Daily expert predictions",
+            "Performance tracking",
+            "Real-time updates",
+            "Expert analysis",
+          ];
+        }
 
         return {
           id: product.id,
           name: product.name,
           description: product.description,
-          default_price: price?.id || null,
-          unit_amount: price?.unit_amount || null,
+          default_price: price?.id,
+          unit_amount: price?.unit_amount || 0,
           currency: price?.currency || "usd",
-          features: features,
+          marketing_features: marketing_features,
         };
       });
 

@@ -50,7 +50,7 @@ type CapperProfile = {
     default_price: string;
     unit_amount: number;
     currency: string;
-    features: string[];
+    marketing_features: string[];
   }[];
 };
 
@@ -117,7 +117,7 @@ export default function CapperProfilePage({
           products: data.products.map((p: any) => ({
             id: p.id,
             name: p.name,
-            features: p.features,
+            features: p.marketing_features,
           })),
         });
 
@@ -284,7 +284,7 @@ export default function CapperProfilePage({
                   console.log("Rendering product:", {
                     id: product.id,
                     name: product.name,
-                    features: product.features,
+                    marketing_features: product.marketing_features,
                   });
 
                   return (
@@ -324,24 +324,18 @@ export default function CapperProfilePage({
                           )}
                         </div>
                         <ul className="mt-8 space-y-4">
-                          {Array.isArray(product.features) &&
-                          product.features.length > 0 ? (
-                            product.features.map((feature, index) => {
-                              console.log("Rendering feature:", feature);
-
-                              return (
-                                <li key={index} className="flex items-start">
-                                  <div className="flex-shrink-0">
-                                    <Check className="h-6 w-6 text-green-400" />
-                                  </div>
-                                  <p className="ml-3 text-base text-gray-300">
-                                    {typeof feature === "string"
-                                      ? feature
-                                      : JSON.stringify(feature)}
-                                  </p>
-                                </li>
-                              );
-                            })
+                          {Array.isArray(product.marketing_features) &&
+                          product.marketing_features.length > 0 ? (
+                            product.marketing_features.map((feature, index) => (
+                              <li key={index} className="flex items-start">
+                                <div className="flex-shrink-0">
+                                  <Check className="h-6 w-6 text-green-400" />
+                                </div>
+                                <p className="ml-3 text-base text-gray-300">
+                                  {feature}
+                                </p>
+                              </li>
+                            ))
                           ) : (
                             <li className="flex items-start">
                               <div className="flex-shrink-0">

@@ -20,8 +20,7 @@ interface Product {
   default_price: string;
   unit_amount: number | null;
   currency: string;
-  features: string[];
-  marketing_features?: Array<{ name: string }>;
+  marketing_features: string[];
 }
 
 const MAX_PRODUCTS = 3;
@@ -197,8 +196,9 @@ export default function StripeProductDisplay() {
                   )}
                 </div>
                 <ul className="mt-8 space-y-4">
-                  {product.features && product.features.length > 0 ? (
-                    product.features.map((feature, index) => (
+                  {Array.isArray(product.marketing_features) &&
+                  product.marketing_features.length > 0 ? (
+                    product.marketing_features.map((feature, index) => (
                       <li key={index} className="flex items-start">
                         <div className="flex-shrink-0">
                           <Check className="h-6 w-6 text-green-400" />
