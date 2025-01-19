@@ -4,7 +4,7 @@ import { verifyJWT } from "@/utils/jwt";
 
 export async function POST(
   req: Request,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
     // Authentication checks
@@ -37,7 +37,7 @@ export async function POST(
 
     // Get the current like count
     const post = await prisma.capperPost.findUnique({
-      where: { id: params.postId },
+      where: { id: (await params).postId },
       include: {
         likedBy: {
           where: {
