@@ -80,13 +80,61 @@ function InstagramPost({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleLike = () => {
-    if (isLiked) {
-      setLikeCount(likeCount - 1);
-    } else {
-      setLikeCount(likeCount + 1);
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      try {
+        const response = await fetch(`/api/posts/${_id}/like`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setIsLiked(data.isLiked);
+          if (data.likes !== undefined) {
+            setLikeCount(data.likes);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking like status:", error);
+      }
+    };
+
+    checkLikeStatus();
+  }, [_id]);
+
+  const handleLike = async () => {
+    try {
+      const method = isLiked ? "DELETE" : "POST";
+      const response = await fetch(`/api/posts/${_id}/like`, {
+        method,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 400) {
+          // Handle the "Already liked" or "Not liked yet" errors
+          console.log(errorData.error);
+          // Optionally show a toast or other user feedback
+          return;
+        }
+        throw new Error("Failed to update like");
+      }
+
+      const data = await response.json();
+
+      // Update local state with server response
+      setIsLiked(data.isLiked);
+      setLikeCount(data.likes);
+    } catch (error) {
+      console.error("Error updating like:", error);
+      // Revert the local state if the API call fails
+      if (isLiked) {
+        setLikeCount(likeCount - 1);
+      } else {
+        setLikeCount(likeCount + 1);
+      }
+      setIsLiked(!isLiked);
     }
-    setIsLiked(!isLiked);
   };
 
   useEffect(() => {
@@ -131,9 +179,12 @@ function InstagramPost({
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-semibold text-xs text-gray-100">
+            <button
+              onClick={() => router.push(`/cappers/${capperInfo.username}`)}
+              className="font-semibold text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
+            >
               {capperInfo.username}
-            </p>
+            </button>
           </div>
         </div>
         <p className="text-[10px] text-gray-400 uppercase">
@@ -182,7 +233,12 @@ function InstagramPost({
               {title}
             </h3>
             <p className="text-xs text-gray-200 mb-2">
-              <span className="font-semibold mr-1">{capperInfo.username}</span>
+              <button
+                onClick={() => router.push(`/cappers/${capperInfo.username}`)}
+                className="font-semibold mr-1 hover:text-[#4e43ff] transition-colors"
+              >
+                {capperInfo.username}
+              </button>
               {content}
             </p>
 
