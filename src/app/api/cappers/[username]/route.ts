@@ -109,9 +109,13 @@ export async function GET(
           id: product.id,
           name: product.name,
           description: product.description,
-          default_price: price?.id,
-          unit_amount: price?.unit_amount || 0,
-          currency: price?.currency || "usd",
+          default_price: {
+            id: price?.id,
+            recurring: price?.recurring,
+            unit_amount: price?.unit_amount || 0,
+            currency: price?.currency || "usd",
+            type: price?.type || "one_time",
+          },
           marketing_features: marketing_features,
         };
       });

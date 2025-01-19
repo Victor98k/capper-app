@@ -44,7 +44,7 @@ export async function GET(request: Request) {
 
       // Transform the products to include price information
       const transformedProducts = products.data.map((product) => {
-        const price = product.default_price as any;
+        const price = product.default_price as Stripe.Price;
         let marketing_features = [];
 
         // Extract marketing features from the product
@@ -69,9 +69,13 @@ export async function GET(request: Request) {
           id: product.id,
           name: product.name,
           description: product.description,
-          default_price: price?.id,
-          unit_amount: price?.unit_amount || 0,
-          currency: price?.currency || "usd",
+          default_price: {
+            id: price?.id,
+            recurring: price?.recurring,
+            unit_amount: price?.unit_amount || 0,
+            currency: price?.currency || "usd",
+            type: price?.type || "one_time",
+          },
           marketing_features: marketing_features,
         };
       });

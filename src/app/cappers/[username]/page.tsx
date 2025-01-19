@@ -28,6 +28,11 @@ import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import InstagramPost from "@/components/Posts";
 
+type PriceRecurring = {
+  interval?: "day" | "week" | "month" | "year" | null;
+  interval_count?: number;
+};
+
 type CapperProfile = {
   id: string;
   userId: string;
@@ -47,9 +52,13 @@ type CapperProfile = {
     id: string;
     name: string;
     description: string | null;
-    default_price: string;
-    unit_amount: number;
-    currency: string;
+    default_price: {
+      id: string;
+      recurring: PriceRecurring | null;
+      unit_amount: number;
+      currency: string;
+      type: "one_time" | "recurring";
+    };
     marketing_features: string[];
   }[];
 };
@@ -307,26 +316,39 @@ export default function CapperProfilePage({
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex-grow">
-                        <div className="text-center">
-                          {product.unit_amount !== undefined ? (
+                        <div className="flex flex-col items-center">
+                          <span className="text-5xl font-extrabold text-white">
+                            {product.default_price.unit_amount === 0
+                              ? "Free"
+                              : new Intl.NumberFormat("en-US", {
+                                  style: "decimal",
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }).format(
+                                  product.default_price.unit_amount / 100
+                                )}
+                          </span>
+                          {product.default_price.unit_amount > 0 && (
                             <>
-                              <span className="text-5xl font-extrabold text-white">
-                                {product.unit_amount === 0
-                                  ? "Free"
-                                  : `$${(product.unit_amount / 100).toFixed(
-                                      2
-                                    )}`}
+                              <span className="text-sm font-medium text-gray-400 mt-1">
+                                {product.default_price.currency.toUpperCase()}
                               </span>
-                              {product.unit_amount > 0 && (
-                                <span className="text-xl font-medium text-gray-300">
-                                  /month
-                                </span>
-                              )}
+                              <span className="text-xl font-medium text-gray-300">
+                                {
+                                  product.default_price?.type === "one_time"
+                                    ? " one-time"
+                                    : product.default_price?.recurring?.interval
+                                    ? `/${product.default_price.recurring.interval}`
+                                    : "/month" // fallback to /month if no interval specified
+                                }
+                                {product.default_price?.recurring
+                                  ?.interval_count &&
+                                product.default_price.recurring.interval_count >
+                                  1
+                                  ? ` (${product.default_price.recurring.interval_count} ${product.default_price.recurring.interval}s)`
+                                  : ""}
+                              </span>
                             </>
-                          ) : (
-                            <span className="text-xl font-medium text-gray-300">
-                              Price not set
-                            </span>
                           )}
                         </div>
                         <ul className="mt-8 space-y-4">
@@ -358,7 +380,7 @@ export default function CapperProfilePage({
                         <SubscribeButton
                           capperId={capper.id}
                           productId={product.id}
-                          priceId={product.default_price}
+                          priceId={product.default_price.id}
                           stripeAccountId={capper.user.stripeConnectId}
                           className="w-full bg-violet-500 hover:bg-violet-600"
                         />
