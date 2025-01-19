@@ -23,6 +23,7 @@ import {
   Loader2,
   Check,
   Shield,
+  User,
 } from "lucide-react";
 import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
@@ -222,7 +223,7 @@ export default function CapperProfilePage({
       <SideNav />
       <main className="flex-1 p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Profile Header - Similar to existing but with subscription button */}
+          {/* Profile Header */}
           <div className="bg-gray-800 rounded-lg p-4 sm:p-6 mb-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
               <Avatar className="h-24 w-24 sm:h-32 sm:w-32">
@@ -288,8 +289,155 @@ export default function CapperProfilePage({
             </div>
           </div>
 
-          {/* Subscription Packages - Moved above tabs */}
-          <div className="mb-8">
+          {/* Tabs Section */}
+          <div className="bg-gray-800 rounded-lg p-6 mb-12">
+            <Tabs defaultValue="picks" className="w-full">
+              <div className="border-b border-gray-700 mb-6">
+                <TabsList className="w-full flex justify-start bg-transparent space-x-8">
+                  <TabsTrigger
+                    value="picks"
+                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                  >
+                    <Trophy className="w-4 h-4 mr-2 inline-block" />
+                    Recent Picks
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="stats"
+                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                  >
+                    <TrendingUp className="w-4 h-4 mr-2 inline-block" />
+                    Statistics
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="reviews"
+                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                  >
+                    <Star className="w-4 h-4 mr-2 inline-block" />
+                    Reviews
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="about"
+                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                  >
+                    <User className="w-4 h-4 mr-2 inline-block" />
+                    About
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="picks" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="bg-gray-700/50 border-gray-600">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-white">
+                          Historical Picks
+                        </h3>
+                        <Badge
+                          variant="secondary"
+                          className="bg-violet-500/10 text-violet-400"
+                        >
+                          Last 30 Days
+                        </Badge>
+                      </div>
+                      {/* Add historical picks content here */}
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gray-700/50 border-gray-600">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-white">
+                          Pick Statistics
+                        </h3>
+                        <Badge
+                          variant="secondary"
+                          className="bg-violet-500/10 text-violet-400"
+                        >
+                          Overall
+                        </Badge>
+                      </div>
+                      {/* Add pick statistics content here */}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="stats" className="mt-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="bg-gray-700/50 border-gray-600">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-white">
+                          Performance by Sport
+                        </h3>
+                        <Badge
+                          variant="secondary"
+                          className="bg-violet-500/10 text-violet-400"
+                        >
+                          All Time
+                        </Badge>
+                      </div>
+                      {/* Add charts or detailed stats here */}
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gray-700/50 border-gray-600">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-white">
+                          Monthly Results
+                        </h3>
+                        <Badge
+                          variant="secondary"
+                          className="bg-violet-500/10 text-violet-400"
+                        >
+                          2024
+                        </Badge>
+                      </div>
+                      {/* Add charts or detailed stats here */}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* Add similar styling for other tab contents */}
+            </Tabs>
+          </div>
+
+          {/* Posts Section */}
+          <div className="mb-12">
+            <div className="mb-6 text-center">
+              <h2 className="text-2xl font-bold text-white">
+                {capper.user.username}'s Posts
+              </h2>
+              <p className="text-gray-400 mt-2">
+                Latest picks and predictions from {capper.user.firstName}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-[1200px] mx-auto">
+              {posts.length > 0 ? (
+                posts.map((post) => (
+                  <InstagramPost
+                    key={post._id}
+                    {...post}
+                    capperInfo={{
+                      firstName: capper.user.firstName,
+                      lastName: capper.user.lastName,
+                      username: capper.user.username,
+                      imageUrl: capper.imageUrl,
+                      isVerified: true,
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-400">No posts available yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Subscription Packages Section */}
+          <div className="mt-12">
             <h2 className="text-2xl font-semibold text-white mb-6">
               Subscription Plans
             </h2>
@@ -397,91 +545,6 @@ export default function CapperProfilePage({
               )}
             </div>
           </div>
-
-          {/* Tabs - Remove the products tab and its content */}
-          <Tabs defaultValue="picks" className="w-full">
-            <TabsList className="w-full justify-start text-[#4e43ff] bg-gray-800 p-1 m-1 overflow-x-auto flex-nowrap">
-              <TabsTrigger className="" value="picks">
-                Recent Picks
-              </TabsTrigger>
-              <TabsTrigger className="" value="stats">
-                Statistics
-              </TabsTrigger>
-              <TabsTrigger className="" value="reviews">
-                Reviews
-              </TabsTrigger>
-              <TabsTrigger className="" value="about">
-                About
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="picks" className="mt-6">
-              <div className="mb-6 text-center">
-                <h2 className="text-2xl font-bold text-white">
-                  {capper.user.username}'s Posts
-                </h2>
-                <p className="text-gray-400 mt-2">
-                  Latest picks and predictions from {capper.user.firstName}
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-[1200px] mx-auto">
-                {posts.length > 0 ? (
-                  posts.map((post) => (
-                    <InstagramPost
-                      key={post._id}
-                      _id={post._id}
-                      title={post.title}
-                      content={post.content}
-                      imageUrl={post.imageUrl}
-                      odds={post.odds}
-                      bets={post.bets}
-                      tags={post.tags}
-                      capperId={capper.id}
-                      productId={capper.products[0]?.id || ""}
-                      createdAt={post.createdAt}
-                      updatedAt={post.updatedAt}
-                      likes={post.likes}
-                      comments={post.comments}
-                      capperInfo={{
-                        firstName: capper.user.firstName,
-                        lastName: capper.user.lastName,
-                        username: capper.user.username,
-                        imageUrl: capper.imageUrl,
-                        isVerified: true,
-                      }}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-8">
-                    <p className="text-gray-400">No posts available yet.</p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="stats" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">
-                      Performance by Sport
-                    </h3>
-                    {/* Add charts or detailed stats here */}
-                  </CardContent>
-                </Card>
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">
-                      Monthly Results
-                    </h3>
-                    {/* Add charts or detailed stats here */}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Add content for other tabs */}
-          </Tabs>
         </div>
       </main>
     </div>
