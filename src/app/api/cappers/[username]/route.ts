@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 
 export async function GET(
   request: NextRequest,
-  context: { params: { username: string } }
+  context: { params: Record<string, string> } // Fix the type here
 ): Promise<NextResponse> {
   const username = context.params.username;
 
