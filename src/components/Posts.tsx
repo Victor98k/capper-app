@@ -223,6 +223,11 @@ function InstagramPost({
               }`}
             />
           </Button>
+          <div className="space-y-1">
+            <p className="font-semibold text-xs text-gray-100">
+              {likeCount} likes
+            </p>
+          </div>
         </div>
 
         {/* Content section with responsive layout */}
@@ -346,11 +351,6 @@ function InstagramPost({
         </div>
 
         {/* Likes count remains the same */}
-        <div className="space-y-1">
-          <p className="font-semibold text-xs text-gray-100">
-            {likeCount} likes
-          </p>
-        </div>
       </div>
     </Card>
   );
