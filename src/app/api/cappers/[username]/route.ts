@@ -29,112 +29,112 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { username: string } }
-) {
-  const { username } = params;
-  const cookies = request.cookies;
+// export async function GET(
+//   request: NextRequest,
+//   { params }: { params: { username: string } }
+// ) {
+//   const { username } = params;
+//   const cookies = request.cookies;
 
-  // Basic auth check similar to your working endpoint
-  // if (!cookies) {
-  //   return NextResponse.json({ error: "No authentication" }, { status: 401 });
-  // }
+//   // Basic auth check similar to your working endpoint
+//   // if (!cookies) {
+//   //   return NextResponse.json({ error: "No authentication" }, { status: 401 });
+//   // }
 
-  try {
-    // Find the capper by username through the User relation
-    const capper = await prisma.capper.findFirst({
-      where: {
-        user: {
-          username: username,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            username: true,
-            stripeConnectId: true,
-          },
-        },
-      },
-    });
+//   try {
+//     // Find the capper by username through the User relation
+//     const capper = await prisma.capper.findFirst({
+//       where: {
+//         user: {
+//           username: username,
+//         },
+//       },
+//       include: {
+//         user: {
+//           select: {
+//             firstName: true,
+//             lastName: true,
+//             username: true,
+//             stripeConnectId: true,
+//           },
+//         },
+//       },
+//     });
 
-    if (!capper) {
-      return NextResponse.json({ error: "Capper not found" }, { status: 404 });
-    }
+//     if (!capper) {
+//       return NextResponse.json({ error: "Capper not found" }, { status: 404 });
+//     }
 
-    // Fetch Stripe products if the capper has a connected account
-    let products: any[] = [];
-    if (capper.user.stripeConnectId) {
-      const stripeProducts = await stripe.products.list(
-        {
-          expand: ["data.default_price"],
-          limit: 100,
-          active: true,
-          type: "service",
-        },
-        {
-          stripeAccount: capper.user.stripeConnectId,
-        }
-      );
+//     // Fetch Stripe products if the capper has a connected account
+//     let products: any[] = [];
+//     if (capper.user.stripeConnectId) {
+//       const stripeProducts = await stripe.products.list(
+//         {
+//           expand: ["data.default_price"],
+//           limit: 100,
+//           active: true,
+//           type: "service",
+//         },
+//         {
+//           stripeAccount: capper.user.stripeConnectId,
+//         }
+//       );
 
-      products = stripeProducts.data.map((product) => {
-        const price = product.default_price as any;
-        let features = [];
+//       products = stripeProducts.data.map((product) => {
+//         const price = product.default_price as any;
+//         let features = [];
 
-        if (Array.isArray((product as any).features)) {
-          features = (product as any).features.map(
-            (feature: any) => feature.name
-          );
-        } else if (product.metadata?.features) {
-          try {
-            features = JSON.parse(product.metadata.features);
-          } catch (error) {
-            console.error(
-              `Error parsing features for product ${product.id}:`,
-              error
-            );
-          }
-        }
+//         if (Array.isArray((product as any).features)) {
+//           features = (product as any).features.map(
+//             (feature: any) => feature.name
+//           );
+//         } else if (product.metadata?.features) {
+//           try {
+//             features = JSON.parse(product.metadata.features);
+//           } catch (error) {
+//             console.error(
+//               `Error parsing features for product ${product.id}:`,
+//               error
+//             );
+//           }
+//         }
 
-        if (!features || features.length === 0) {
-          features = [
-            `Access to all ${product.name} picks`,
-            "Daily expert predictions",
-            "Performance tracking",
-            "Real-time updates",
-            "Expert analysis",
-          ];
-        }
+//         if (!features || features.length === 0) {
+//           features = [
+//             `Access to all ${product.name} picks`,
+//             "Daily expert predictions",
+//             "Performance tracking",
+//             "Real-time updates",
+//             "Expert analysis",
+//           ];
+//         }
 
-        return {
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          default_price: price?.id,
-          unit_amount: price?.unit_amount || 0,
-          currency: price?.currency || "usd",
-          features: features,
-        };
-      });
-    }
+//         return {
+//           id: product.id,
+//           name: product.name,
+//           description: product.description,
+//           default_price: price?.id,
+//           unit_amount: price?.unit_amount || 0,
+//           currency: price?.currency || "usd",
+//           features: features,
+//         };
+//       });
+//     }
 
-    const capperWithProducts = {
-      ...capper,
-      products,
-    };
+//     const capperWithProducts = {
+//       ...capper,
+//       products,
+//     };
 
-    return NextResponse.json(capperWithProducts);
-  } catch (error) {
-    console.error("Error fetching capper:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch capper" },
-      { status: 500 }
-    );
-  }
-}
+//     return NextResponse.json(capperWithProducts);
+//   } catch (error) {
+//     console.error("Error fetching capper:", error);
+//     return NextResponse.json(
+//       { error: "Failed to fetch capper" },
+//       { status: 500 }
+//     );
+//   }
+// }
 
 export async function DELETE(request: NextRequest) {
   try {
