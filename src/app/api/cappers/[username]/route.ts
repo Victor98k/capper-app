@@ -6,7 +6,14 @@ export async function GET(
   req: Request,
   context: { params: { username: string } }
 ) {
-  const username = context.params.username;
+  const { username } = context.params; // Destructure like in your working example
+  const cookies = req.headers.get("cookie");
+
+  // Basic auth check similar to your working endpoint
+  if (!cookies) {
+    return NextResponse.json({ error: "No authentication" }, { status: 401 });
+  }
+
   try {
     // Find the capper by username through the User relation
     const capper = await prisma.capper.findFirst({
