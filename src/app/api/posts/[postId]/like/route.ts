@@ -61,11 +61,11 @@ export async function POST(
       prisma.postLike.create({
         data: {
           userId: payload.userId,
-          postId: params.postId,
+          postId: (await params).postId,
         },
       }),
       prisma.capperPost.update({
-        where: { id: params.postId },
+        where: { id: (await params).postId },
         data: {
           likes: post.likes + 1,
         },
@@ -87,7 +87,7 @@ export async function POST(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
     // Authentication checks (same as POST)
@@ -120,7 +120,7 @@ export async function DELETE(
 
     // Get the current like count
     const post = await prisma.capperPost.findUnique({
-      where: { id: params.postId },
+      where: { id: (await params).postId },
       include: {
         likedBy: {
           where: {
@@ -144,11 +144,11 @@ export async function DELETE(
       prisma.postLike.deleteMany({
         where: {
           userId: payload.userId,
-          postId: params.postId,
+          postId: (await params).postId,
         },
       }),
       prisma.capperPost.update({
-        where: { id: params.postId },
+        where: { id: (await params).postId },
         data: {
           likes: Math.max(0, post.likes - 1),
         },
