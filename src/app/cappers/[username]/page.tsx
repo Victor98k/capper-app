@@ -162,11 +162,17 @@ export default function CapperProfilePage({
 
   useEffect(() => {
     const fetchPosts = async () => {
-      if (!capper?.userId) return;
+      if (!capper?.id) return;
 
       try {
-        const response = await fetch(`/api/posts?userId=${capper.userId}`);
-        if (!response.ok) throw new Error("Failed to fetch posts");
+        const response = await fetch(`/api/posts?capperId=${capper.id}`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch posts");
+        }
+
         const data = await response.json();
         setPosts(data);
       } catch (error) {
@@ -175,7 +181,7 @@ export default function CapperProfilePage({
     };
 
     fetchPosts();
-  }, [capper?.userId]);
+  }, [capper?.id]);
 
   if (loading) {
     return (

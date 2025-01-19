@@ -41,14 +41,16 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Get all posts with capper information
+    // Get capperId from query parameters
+    const url = new URL(req.url);
+    const capperId = url.searchParams.get("capperId");
+
+    // Build the query based on whether capperId is provided
+    const query = capperId ? { capperId } : {};
+
+    // Get posts with capper information
     const posts = await prisma.capperPost.findMany({
-      // where: {
-      //   productId: {
-      //     isSet: true,
-      //     not: null,
-      //   },
-      // },
+      where: query,
       orderBy: {
         createdAt: "desc",
       },
@@ -71,14 +73,16 @@ export async function GET(req: Request) {
       bets: post.bets,
       tags: post.tags,
       capperId: post.capperId,
+      productId: post.productId || "",
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
+      likes: post.likes,
+      comments: post.comments,
       capperInfo: {
         firstName: post.capper.user.firstName,
         lastName: post.capper.user.lastName,
         username: post.capper.user.username,
         imageUrl: post.capper.user.imageUrl,
-        // isVerified: post.capper.user.isVerified || false,
       },
     }));
 
