@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { username: string } }
 ) {
   const username = params.username;
