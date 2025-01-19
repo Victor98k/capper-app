@@ -4,10 +4,9 @@ import { verifyJWT } from "@/utils/jwt";
 
 export async function POST(
   req: Request,
-  context: { params: { postId: string } }
+  { params }: { params: { postId: string } }
 ) {
   try {
-    const { postId } = context.params;
     // Authentication checks
     const cookies = req.headers.get("cookie");
     if (!cookies) {
@@ -38,7 +37,7 @@ export async function POST(
 
     // Get the current like count
     const post = await prisma.capperPost.findUnique({
-      where: { id: postId },
+      where: { id: params.postId },
       include: {
         likedBy: {
           where: {
@@ -62,11 +61,11 @@ export async function POST(
       prisma.postLike.create({
         data: {
           userId: payload.userId,
-          postId: postId,
+          postId: params.postId,
         },
       }),
       prisma.capperPost.update({
-        where: { id: postId },
+        where: { id: params.postId },
         data: {
           likes: post.likes + 1,
         },
@@ -88,10 +87,9 @@ export async function POST(
 
 export async function DELETE(
   req: Request,
-  context: { params: { postId: string } }
+  { params }: { params: { postId: string } }
 ) {
   try {
-    const { postId } = context.params;
     // Authentication checks (same as POST)
     const cookies = req.headers.get("cookie");
     if (!cookies) {
@@ -122,7 +120,7 @@ export async function DELETE(
 
     // Get the current like count
     const post = await prisma.capperPost.findUnique({
-      where: { id: postId },
+      where: { id: params.postId },
       include: {
         likedBy: {
           where: {
@@ -146,11 +144,11 @@ export async function DELETE(
       prisma.postLike.deleteMany({
         where: {
           userId: payload.userId,
-          postId: postId,
+          postId: params.postId,
         },
       }),
       prisma.capperPost.update({
-        where: { id: postId },
+        where: { id: params.postId },
         data: {
           likes: Math.max(0, post.likes - 1),
         },
@@ -173,10 +171,9 @@ export async function DELETE(
 // Add a new GET endpoint to check if user has liked the post
 export async function GET(
   req: Request,
-  context: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
-    const { postId } = context.params;
     // ... authentication checks ...
     const cookies = req.headers.get("cookie");
     if (!cookies) {
@@ -201,7 +198,7 @@ export async function GET(
 
     // Get both the post and like status
     const post = await prisma.capperPost.findUnique({
-      where: { id: postId },
+      where: { id: (await params).postId },
       include: {
         likedBy: {
           where: {
