@@ -30,11 +30,11 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function GET(
-  req: Request,
-  context: { params: { username: string } }
+  request: NextRequest,
+  { params }: { params: { username: string } }
 ) {
-  const { username } = context.params; // Destructure like in your working example
-  const cookies = req.headers.get("cookie");
+  const { username } = params;
+  const cookies = request.cookies;
 
   // Basic auth check similar to your working endpoint
   // if (!cookies) {
