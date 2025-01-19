@@ -4,10 +4,9 @@ import { stripe } from "@/lib/stripe";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { username: string } }
+  context: { params: { username: string } }
 ) {
-  const username = params.username;
-
+  const username = context.params.username;
   try {
     // Find the capper by username through the User relation
     const capper = await prisma.capper.findFirst({
