@@ -4,9 +4,9 @@ import { stripe } from "@/lib/stripe";
 
 export async function GET(
   req: Request,
-  context: { params: { username: string } }
+  { params }: { params: { username: string } }
 ) {
-  const username = context.params.username;
+  const username = params.username;
 
   try {
     // Find the capper by username through the User relation
