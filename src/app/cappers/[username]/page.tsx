@@ -107,6 +107,7 @@ export default function CapperProfilePage({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [subscribedProducts, setSubscribedProducts] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -149,7 +150,7 @@ export default function CapperProfilePage({
     const checkSubscriptionStatus = async () => {
       try {
         const response = await fetch(
-          `/api/subscriptions/check?capperId=${capper?.id}`,
+          `/api/subscriptions/check?capperId=${capper?.id}&productId=${capper?.products[0].id}`,
           {
             credentials: "include",
           }
@@ -168,7 +169,7 @@ export default function CapperProfilePage({
     if (capper?.id) {
       checkSubscriptionStatus();
     }
-  }, [capper?.id]);
+  }, [capper?.id, capper?.products]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -191,6 +192,31 @@ export default function CapperProfilePage({
     };
 
     fetchPosts();
+  }, [capper?.id]);
+
+  useEffect(() => {
+    const checkSubscriptions = async () => {
+      if (!capper?.id) return;
+
+      try {
+        const response = await fetch(
+          `/api/subscriptions/check?capperId=${capper.id}`,
+          {
+            credentials: "include",
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Subscription check response:", data);
+          setSubscribedProducts(data.subscribedProducts || []);
+        }
+      } catch (error) {
+        console.error("Error checking subscriptions:", error);
+      }
+    };
+
+    checkSubscriptions();
   }, [capper?.id]);
 
   if (loading) {
@@ -444,17 +470,25 @@ export default function CapperProfilePage({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {capper.products.length > 0 ? (
                 capper.products.map((product) => {
-                  console.log("Rendering product:", {
-                    id: product.id,
-                    name: product.name,
-                    marketing_features: product.marketing_features,
+                  const isSubscribedToProduct = subscribedProducts.includes(
+                    product.id
+                  );
+                  console.log("Product subscription status:", {
+                    productId: product.id,
+                    isSubscribed: isSubscribedToProduct,
+                    subscribedProducts,
                   });
 
                   return (
                     <Card
                       key={product.id}
-                      className="bg-gray-800 border-gray-700 flex flex-col"
+                      className="bg-gray-800 border-gray-700 flex flex-col relative"
                     >
+                      {isSubscribedToProduct && (
+                        <div className="absolute -top-3 -right-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                          Subscribed
+                        </div>
+                      )}
                       <CardHeader>
                         <CardTitle className="text-2xl font-semibold text-white">
                           {product.name}
@@ -530,8 +564,18 @@ export default function CapperProfilePage({
                           productId={product.id}
                           priceId={product.default_price.id}
                           stripeAccountId={capper.user.stripeConnectId}
-                          className="w-full bg-violet-500 hover:bg-violet-600"
-                        />
+                          isSubscribed={isSubscribedToProduct}
+                          className={`w-full ${
+                            isSubscribedToProduct
+                              ? "bg-gray-500 hover:bg-gray-600 cursor-not-allowed"
+                              : "bg-violet-500 hover:bg-violet-600"
+                          }`}
+                          disabled={isSubscribedToProduct}
+                        >
+                          {isSubscribedToProduct
+                            ? "Currently Subscribed"
+                            : "Subscribe"}
+                        </SubscribeButton>
                       </CardFooter>
                     </Card>
                   );

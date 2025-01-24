@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -12,8 +12,10 @@ interface SubscribeButtonProps {
   productId?: string;
   priceId?: string;
   stripeAccountId?: string;
-  initialIsSubscribed?: boolean;
+  isSubscribed?: boolean;
   className?: string;
+  disabled?: boolean;
+  children?: React.ReactNode;
 }
 
 export function SubscribeButton({
@@ -21,66 +23,13 @@ export function SubscribeButton({
   productId,
   priceId,
   stripeAccountId,
-  initialIsSubscribed = false,
+  isSubscribed = false,
   className,
+  disabled,
+  children,
 }: SubscribeButtonProps) {
-  const [isSubscribed, setIsSubscribed] = useState(initialIsSubscribed);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
-  // Check subscription status on mount
-  useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      try {
-        setIsLoading(true);
-        console.log("Checking subscription for:", {
-          capperId,
-          productId,
-        });
-
-        const response = await fetch(
-          `/api/subscriptions/check?capperId=${capperId}${
-            productId ? `&productId=${productId}` : ""
-          }`,
-          {
-            credentials: "include",
-          }
-        );
-
-        console.log("Response status:", response.status);
-
-        // Log the raw response text for debugging
-        const responseText = await response.text();
-        console.log("Raw response:", responseText);
-
-        let data;
-        try {
-          data = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error("Failed to parse response:", parseError);
-          throw new Error("Invalid response format");
-        }
-
-        console.log("Parsed response data:", data);
-
-        if (response.ok) {
-          setIsSubscribed(data.isSubscribed);
-        } else {
-          console.error("Failed to check subscription status:", data.error);
-          setIsSubscribed(false);
-        }
-      } catch (error) {
-        console.error("Error checking subscription status:", error);
-        setIsSubscribed(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (capperId) {
-      checkSubscriptionStatus();
-    }
-  }, [capperId, productId]);
 
   const handleSubscription = async () => {
     if (isSubscribed) {
@@ -99,7 +48,6 @@ export function SubscribeButton({
         });
 
         if (response.ok) {
-          setIsSubscribed(false);
           toast.success("Unsubscribed successfully");
           router.refresh();
         } else {
@@ -188,7 +136,7 @@ export function SubscribeButton({
   return (
     <Button
       onClick={handleSubscription}
-      disabled={isLoading}
+      disabled={disabled || isLoading}
       variant={isSubscribed ? "outline" : "default"}
       className={`${
         isSubscribed
@@ -196,16 +144,17 @@ export function SubscribeButton({
           : "bg-[#4e43ff] hover:bg-[#4e43ff]/90"
       } ${className || ""}`}
     >
-      {isLoading ? (
-        "Loading..."
-      ) : isSubscribed ? (
-        <>
-          <Check className="h-4 w-4" />
-          Subscribed
-        </>
-      ) : (
-        "Subscribe"
-      )}
+      {children ||
+        (isLoading ? (
+          "Loading..."
+        ) : isSubscribed ? (
+          <>
+            <Check className="h-4 w-4" />
+            Subscribed
+          </>
+        ) : (
+          "Subscribe"
+        ))}
     </Button>
   );
 }

@@ -5,153 +5,125 @@ import { stripe } from "@/lib/stripe";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const capperId = searchParams.get("capperId");
-    const productId = searchParams.get("productId");
+    const url = new URL(req.url);
+    const capperId = url.searchParams.get("capperId");
+    const productId = url.searchParams.get("productId");
 
-    // Get token from cookies
-    const cookies = req.headers.get("cookie");
-    const cookiesArray =
-      cookies?.split(";").map((cookie) => cookie.trim()) || [];
-    const tokenCookie = cookiesArray.find((cookie) =>
-      cookie.startsWith("token=")
-    );
-    const token = tokenCookie?.split("=")[1];
+    console.log("Request params:", { capperId, productId });
 
-    if (!token) {
-      return NextResponse.json(
-        {
-          isSubscribed: false,
-          error: "No authentication token found",
-        },
-        { status: 401 }
-      );
+    if (!capperId) {
+      return NextResponse.json({ error: "Missing capperId" }, { status: 400 });
     }
 
-    // Verify token with better error handling
+    // First verify the capper exists and get their details
+    const capper = await prisma.capper.findUnique({
+      where: { id: capperId },
+      include: {
+        user: {
+          select: {
+            username: true,
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!capper) {
+      console.log("Capper not found:", capperId);
+      return NextResponse.json({
+        isSubscribed: false,
+        error: "Capper not found",
+      });
+    }
+
+    const cookies = req.headers.get("cookie");
+    const token = cookies
+      ?.split(";")
+      .find((c) => c.trim().startsWith("token="))
+      ?.split("=")[1];
+
+    if (!token) {
+      return NextResponse.json({
+        isSubscribed: false,
+        error: "No authentication token",
+      });
+    }
+
     let payload;
     try {
       payload = await verifyJWT(token);
-      if (!payload?.userId) {
-        return NextResponse.json(
-          {
-            isSubscribed: false,
-            error: "Invalid token payload",
-          },
-          { status: 401 }
-        );
-      }
     } catch (jwtError) {
-      console.error("JWT verification failed:", jwtError);
-      return NextResponse.json(
-        {
-          isSubscribed: false,
-          error: "Token verification failed",
-        },
-        { status: 401 }
-      );
+      return NextResponse.json({
+        isSubscribed: false,
+        error: "Token verification failed",
+      });
     }
 
-    // Add null check for capperId
-    if (!capperId) {
-      return NextResponse.json(
-        {
-          isSubscribed: false,
-          error: "Capper ID is required",
-        },
-        { status: 400 }
-      );
+    if (!payload || !payload.userId) {
+      return NextResponse.json({
+        isSubscribed: false,
+        error: "Invalid authentication",
+      });
     }
 
-    console.log("Checking subscription with params:", {
-      userId: payload.userId,
-      capperId,
-      existingSubscription: await prisma.subscription.findFirst({
-        where: {
-          userId: payload.userId,
-          capperId: capperId,
-          status: "active",
-        },
-      }),
-    });
-
-    // Check database subscription
-    const dbSubscription = await prisma.subscription.findFirst({
+    // First get all user's active subscriptions
+    const allSubscriptions = await prisma.subscription.findMany({
       where: {
         userId: payload.userId,
-        capperId: capperId,
         status: "active",
       },
       include: {
         capper: {
           include: {
-            user: true,
+            user: {
+              select: {
+                username: true,
+              },
+            },
           },
         },
       },
     });
 
-    console.log("Raw database response:", dbSubscription);
+    console.log("All user subscriptions:", {
+      requestedCapperId: capperId,
+      requestedCapperUsername: capper.user.username,
+      activeSubscriptions: allSubscriptions.map((sub) => ({
+        capperId: sub.capperId,
+        capperUsername: sub.capper.user.username,
+      })),
+    });
 
-    // If we have a database subscription, verify it with Stripe
-    if (dbSubscription?.stripeSubscriptionId) {
-      try {
-        if (!dbSubscription?.capper?.user?.stripeConnectId) {
-          console.error("No Stripe Connect ID found for capper");
-          return NextResponse.json({
-            isSubscribed: false,
-            subscriptionDetails: null,
-          });
-        }
+    // Then check for specific capper subscription
+    const subscriptions = await prisma.subscription.findMany({
+      where: {
+        userId: payload.userId,
+        capperId: capper.id,
+        status: "active",
+      },
+    });
 
-        const stripeSubscription = await stripe.subscriptions.retrieve(
-          dbSubscription.stripeSubscriptionId as string,
-          {
-            expand: ["customer"],
-          },
-          {
-            stripeAccount: dbSubscription.capper.user.stripeConnectId,
-          }
-        );
-
-        const isActive = stripeSubscription.status === "active";
-
-        // If Stripe subscription is not active, update database
-        if (!isActive) {
-          await prisma.subscription.update({
-            where: { id: dbSubscription.id },
-            data: { status: "inactive" },
-          });
-        }
-
-        return NextResponse.json({
-          isSubscribed: isActive,
-          subscriptionDetails: {
-            id: dbSubscription.id,
-            status: isActive ? "active" : "inactive",
-            createdAt: dbSubscription.subscribedAt,
-            productId: dbSubscription.productId,
-            stripeSubscriptionId: dbSubscription.stripeSubscriptionId,
-          },
-        });
-      } catch (error) {
-        console.error("Error verifying Stripe subscription:", error);
-      }
-    }
-
-    // If no subscription found or verification failed
     return NextResponse.json({
-      isSubscribed: false,
-      subscriptionDetails: null,
+      isSubscribed: subscriptions.length > 0,
+      subscribedProducts: subscriptions.map((sub) => sub.productId),
+      debug: {
+        userId: payload.userId,
+        requestedCapper: {
+          id: capper.id,
+          username: capper.user.username,
+        },
+        activeSubscriptions: allSubscriptions.map((sub) => ({
+          capperId: sub.capperId,
+          username: sub.capper.user.username,
+        })),
+      },
     });
   } catch (error) {
-    console.error("Error checking subscription:", error);
+    console.error("Subscription check error:", error);
     return NextResponse.json(
       {
         isSubscribed: false,
-        error: "Failed to check subscription status",
-        details:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: "Internal server error",
       },
       { status: 500 }
     );

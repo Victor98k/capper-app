@@ -23,11 +23,9 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
-        console.log("Webhook: Processing checkout.session.completed", {
-          session_id: session.id,
-          metadata: session.metadata,
-          subscription: session.subscription,
-        });
+        // console.log("Full Session Object:", JSON.stringify(session, null, 2));
+        // console.log("Subscription ID:", session.subscription);
+        // console.log("Metadata:", session.metadata);
 
         const metadata = session.metadata as {
           userId: string;
@@ -36,27 +34,33 @@ export async function POST(req: Request) {
           priceId: string;
         };
 
-        // Log before creating subscription
-        console.log("Creating subscription with data:", {
-          userId: metadata.userId,
-          capperId: metadata.capperId,
-          productId: metadata.productId,
-          priceId: metadata.priceId,
-          stripeSubscriptionId: session.subscription,
-        });
+        try {
+          // Check if subscription exists before creating
+          if (!session.subscription) {
+            console.error("No subscription ID found in session");
+            throw new Error("Missing subscription ID in checkout session");
+          }
 
-        // Create subscription record in database
-        await prisma.subscription.create({
-          data: {
-            userId: metadata.userId,
-            capperId: metadata.capperId,
-            status: "active",
-            subscribedAt: new Date(),
-            productId: metadata.productId,
-            priceId: metadata.priceId,
-            stripeSubscriptionId: session.subscription as string,
-          },
-        });
+          await prisma.subscription.create({
+            data: {
+              userId: metadata.userId,
+              capperId: metadata.capperId,
+              status: "active",
+              subscribedAt: new Date(),
+              productId: metadata.productId,
+              priceId: metadata.priceId,
+              stripeSubscriptionId: session.subscription as string,
+            },
+          });
+        } catch (error) {
+          console.error("Failed to create subscription:", {
+            error,
+            sessionId: session.id,
+            subscriptionId: session.subscription,
+            metadata: session.metadata,
+          });
+          throw error;
+        }
 
         // Update capper's subscriberIds
         await prisma.capper.update({
