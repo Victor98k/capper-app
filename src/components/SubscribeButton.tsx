@@ -16,6 +16,7 @@ interface SubscribeButtonProps {
   className?: string;
   disabled?: boolean;
   children?: React.ReactNode;
+  scrollToBundles?: boolean;
 }
 
 export function SubscribeButton({
@@ -27,11 +28,20 @@ export function SubscribeButton({
   className,
   disabled,
   children,
+  scrollToBundles = false,
 }: SubscribeButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubscription = async () => {
+    if (scrollToBundles && !isSubscribed) {
+      const bundlesSection = document.getElementById("subscription-plans");
+      if (bundlesSection) {
+        bundlesSection.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+    }
+
     if (isSubscribed) {
       setIsLoading(true);
       try {

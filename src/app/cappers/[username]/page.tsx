@@ -313,6 +313,13 @@ export default function CapperProfilePage({
               <StatCard icon={<TrendingUp />} title="ROI" value="+15.8%" />
               <StatCard icon={<Star />} title="Rating" value="4.8/5" />
             </div>
+
+            <SubscribeButton
+              capperId={capper.id}
+              isSubscribed={isSubscribed}
+              scrollToBundles={true}
+              className="mt-6"
+            />
           </div>
 
           {/* Tabs Section */}
@@ -463,7 +470,7 @@ export default function CapperProfilePage({
           </div>
 
           {/* Subscription Packages Section */}
-          <div className="mt-12">
+          <div className="mt-12" id="subscription-plans">
             <h2 className="text-2xl font-semibold text-white mb-6">
               Subscription Plans
             </h2>
