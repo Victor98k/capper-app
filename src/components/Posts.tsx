@@ -142,28 +142,39 @@ function InstagramPost({
   useEffect(() => {
     const checkSubscription = async () => {
       try {
-        console.log("Checking subscription for capperId:", capperId);
+        console.log("Checking subscription for:", {
+          capperId,
+          productId,
+        });
+
         const response = await fetch(
           `/api/subscriptions/check?capperId=${capperId}&productId=${productId}`,
           {
             credentials: "include",
           }
         );
+
         if (response.ok) {
           const data = await response.json();
           console.log("Subscription check response:", data);
-          setIsSubscribed(data.isSubscribed);
+
+          // Check if this specific product is in the subscribedProducts array
+          const isSubscribedToProduct =
+            data.subscribedProducts?.includes(productId);
+          setIsSubscribed(isSubscribedToProduct || false);
         } else {
           console.error("Subscription check failed:", await response.text());
+          setIsSubscribed(false);
         }
       } catch (error) {
         console.error("Error checking subscription:", error);
+        setIsSubscribed(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (capperId) {
+    if (capperId && productId) {
       checkSubscription();
     }
   }, [capperId, productId]);

@@ -66,6 +66,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // Retrieve the price to check if it's recurring or one-time
+    const price = await stripe.prices.retrieve(priceId, {
+      stripeAccount: capper.user.stripeConnectId,
+    });
+
     // Ensure we have the base URL
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
@@ -80,7 +85,7 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        mode: "subscription",
+        mode: price.type === "recurring" ? "subscription" : "payment",
         success_url: `${baseUrl}/cappers/${capper.user.username}`,
         cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
         metadata: {
@@ -88,6 +93,7 @@ export async function POST(req: Request) {
           capperId: capperId,
           productId: productId,
           priceId: priceId,
+          priceType: price.type, // Add this to help with webhook processing
         },
       },
       {
@@ -98,7 +104,8 @@ export async function POST(req: Request) {
     console.log("Created checkout session:", {
       id: session.id,
       metadata: session.metadata,
-      success_url: `${baseUrl}/cappers/${capper.user.username}`, // Log the URL for debugging
+      mode: price.type === "recurring" ? "subscription" : "payment",
+      success_url: `${baseUrl}/cappers/${capper.user.username}`,
     });
 
     return NextResponse.json({
