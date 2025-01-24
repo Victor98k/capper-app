@@ -138,8 +138,8 @@ function NewPostPage() {
   const handleSubmit = async () => {
     try {
       // Validate required fields
-      if (!title || !content) {
-        alert("Title and content are required");
+      if (!title || !content || !selectedProduct) {
+        alert("Title, content, and bundle selection are required");
         return;
       }
 
@@ -153,6 +153,7 @@ function NewPostPage() {
       formData.append("bets", JSON.stringify(bets));
       formData.append("odds", JSON.stringify(odds));
       formData.append("username", username);
+      formData.append("productId", selectedProduct);
 
       if (image) {
         formData.append("image", image);
@@ -196,15 +197,30 @@ function NewPostPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/stripe/products");
-        if (response.ok) {
-          const data = await response.json();
-          setProducts(data);
+        const username = localStorage.getItem("username");
+        if (!username) {
+          console.error("No username found");
+          return;
+        }
+
+        const response = await fetch(`/api/cappers/${username}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const data = await response.json();
+        if (data.products && Array.isArray(data.products)) {
+          setProducts(data.products);
+        } else {
+          console.error("No products found or invalid format");
+          setProducts([]);
         }
       } catch (error) {
         console.error("Error fetching products:", error);
+        setProducts([]);
       }
     };
+
     fetchProducts();
   }, []);
 

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { verifyJWT } from "@/utils/jwt";
 import { z } from "zod";
 import { v2 as cloudinary } from "cloudinary";
+import Stripe from "stripe";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -18,6 +19,7 @@ const PostSchema = z.object({
   tags: z.array(z.string()),
   bets: z.array(z.string()),
   odds: z.array(z.string()),
+  productId: z.string().min(1, "Product ID is required"),
 });
 
 // Add GET handler
@@ -64,27 +66,49 @@ export async function GET(req: Request) {
     });
 
     // Transform the posts to match the expected format
-    const transformedPosts = posts.map((post) => ({
-      _id: post.id,
-      title: post.title,
-      content: post.content,
-      imageUrl: post.imageUrl || "",
-      odds: post.odds,
-      bets: post.bets,
-      tags: post.tags,
-      capperId: post.capperId,
-      productId: post.productId || "",
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
-      likes: post.likes,
-      comments: post.comments,
-      capperInfo: {
-        firstName: post.capper.user.firstName,
-        lastName: post.capper.user.lastName,
-        username: post.capper.user.username,
-        imageUrl: post.capper.user.imageUrl,
-      },
-    }));
+    const transformedPosts = await Promise.all(
+      posts.map(async (post) => {
+        let productName = "";
+        if (post.productId) {
+          try {
+            const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+              apiVersion: "2024-12-18.acacia",
+            });
+
+            const product = await stripe.products.retrieve(post.productId, {
+              stripeAccount: post.capper.user.stripeConnectId || undefined,
+            } as Stripe.RequestOptions);
+
+            productName = product.name;
+          } catch (error) {
+            console.error("Error fetching product name:", error);
+          }
+        }
+
+        return {
+          _id: post.id,
+          title: post.title,
+          content: post.content,
+          imageUrl: post.imageUrl || "",
+          odds: post.odds,
+          bets: post.bets,
+          tags: post.tags,
+          capperId: post.capperId,
+          productId: post.productId || "",
+          productName,
+          createdAt: post.createdAt.toISOString(),
+          updatedAt: post.updatedAt.toISOString(),
+          likes: post.likes,
+          comments: post.comments,
+          capperInfo: {
+            firstName: post.capper.user.firstName,
+            lastName: post.capper.user.lastName,
+            username: post.capper.user.username,
+            imageUrl: post.capper.user.imageUrl,
+          },
+        };
+      })
+    );
 
     return NextResponse.json(transformedPosts);
   } catch (error) {
@@ -150,6 +174,7 @@ export async function POST(req: Request) {
     const betsString = formData.get("bets");
     const oddsString = formData.get("odds");
     const username = formData.get("username");
+    const productId = formData.get("productId");
 
     if (
       !title ||
@@ -157,7 +182,8 @@ export async function POST(req: Request) {
       !tagsString ||
       !betsString ||
       !oddsString ||
-      !username
+      !username ||
+      !productId
     ) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -166,10 +192,10 @@ export async function POST(req: Request) {
     }
 
     // Log received formData
-    console.log("Received FormData entries:");
-    for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
+    // console.log("Received FormData entries:");
+    // for (let pair of formData.entries()) {
+    //   console.log(pair[0], pair[1]);
+    // }
 
     // Add image handling
     const image = formData.get("image");
@@ -232,7 +258,7 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log("Found user:", user);
+      // console.log("Found user:", user);
 
       // If user exists but no capper profile, create one
       if (user) {
@@ -247,7 +273,7 @@ export async function POST(req: Request) {
           },
         });
 
-        console.log("Created new capper profile:", newCapperProfile);
+        // console.log("Created new capper profile:", newCapperProfile);
         capperProfile = newCapperProfile;
       } else {
         return NextResponse.json(
@@ -256,55 +282,86 @@ export async function POST(req: Request) {
         );
       }
     }
-    // test
-    // Create the post using CapperPost model
-    const post = await prisma.capperPost.create({
-      data: {
-        title: title as string,
-        content: content as string,
-        imageUrl: imageUrl,
-        tags,
-        bets,
-        odds,
-        capperId: capperProfile.id,
-        likes: 0,
-        comments: 0,
-      },
-      include: {
-        capper: {
-          include: {
-            user: true,
+
+    // Verify the product belongs to this capper
+    if (capperProfile) {
+      try {
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+          apiVersion: "2024-12-18.acacia",
+        });
+
+        // Use the capper's Stripe Connect account ID
+        const product = await stripe.products.retrieve(
+          productId as string,
+          {
+            stripeAccount: capperProfile.user.stripeConnectId || undefined,
+          } as Stripe.RequestOptions
+        );
+
+        if (!product) {
+          return NextResponse.json(
+            { error: "Invalid product ID or product not found" },
+            { status: 400 }
+          );
+        }
+
+        // Create the post with productId
+        const post = await prisma.capperPost.create({
+          data: {
+            title: title as string,
+            content: content as string,
+            imageUrl: imageUrl,
+            tags,
+            bets,
+            odds,
+            capperId: capperProfile.id,
+            productId: productId as string,
+            likes: 0,
+            comments: 0,
           },
-        },
-      },
-    });
+          include: {
+            capper: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        });
 
-    // Transform the post to match the expected format
-    const transformedPost = {
-      _id: post.id,
-      title: post.title,
-      content: post.content,
-      imageUrl: post.imageUrl || "",
-      odds: post.odds,
-      bets: post.bets,
-      tags: post.tags,
-      capperId: post.capperId,
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
-      likes: post.likes,
-      comments: post.comments,
-      capperInfo: {
-        firstName: post.capper.user.firstName,
-        lastName: post.capper.user.lastName,
-        username: post.capper.user.username,
-        imageUrl: post.capper.user.imageUrl,
-      },
-    };
+        // Transform the post to match the expected format
+        const transformedPost = {
+          _id: post.id,
+          title: post.title,
+          content: post.content,
+          imageUrl: post.imageUrl || "",
+          odds: post.odds,
+          bets: post.bets,
+          tags: post.tags,
+          capperId: post.capperId,
+          createdAt: post.createdAt.toISOString(),
+          updatedAt: post.updatedAt.toISOString(),
+          likes: post.likes,
+          comments: post.comments,
+          capperInfo: {
+            firstName: post.capper.user.firstName,
+            lastName: post.capper.user.lastName,
+            username: post.capper.user.username,
+            imageUrl: post.capper.user.imageUrl,
+          },
+        };
 
-    return NextResponse.json(
-      { success: true, post: transformedPost },
-      { status: 201 }
-    );
+        return NextResponse.json(
+          { success: true, post: transformedPost },
+          { status: 201 }
+        );
+      } catch (error) {
+        console.error("Stripe product verification error:", error);
+        return NextResponse.json(
+          { error: "Failed to verify product ownership" },
+          { status: 400 }
+        );
+      }
+    }
   } catch (error) {
     console.error(
       "Server error:",

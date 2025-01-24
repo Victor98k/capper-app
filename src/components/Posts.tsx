@@ -27,6 +27,7 @@ interface PostProps {
   tags: string[];
   capperId: string;
   productId: string;
+  productName?: string;
   createdAt: string;
   updatedAt: string;
   likes?: number;
@@ -63,6 +64,7 @@ function InstagramPost({
   tags,
   capperId,
   productId,
+  productName,
   createdAt,
   likes = 0,
   comments = 0,
@@ -187,12 +189,19 @@ function InstagramPost({
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-gray-400 uppercase">
-          {new Date(createdAt).toLocaleDateString(undefined, {
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
+        <div className="flex items-center gap-2">
+          {productName && (
+            <span className="text-[10px] text-[#4e43ff] font-semibold">
+              {productName}
+            </span>
+          )}
+          <p className="text-[10px] text-gray-400 uppercase">
+            {new Date(createdAt).toLocaleDateString(undefined, {
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        </div>
       </div>
 
       {/* Image container - adjusted for better mobile responsiveness */}
