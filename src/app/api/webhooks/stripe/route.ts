@@ -23,24 +23,16 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
-        // console.log("Full Session Object:", JSON.stringify(session, null, 2));
-        // console.log("Subscription ID:", session.subscription);
-        // console.log("Metadata:", session.metadata);
-
         const metadata = session.metadata as {
           userId: string;
           capperId: string;
           productId: string;
           priceId: string;
+          priceType: string;
         };
 
         try {
-          // Check if subscription exists before creating
-          if (!session.subscription) {
-            console.error("No subscription ID found in session");
-            throw new Error("Missing subscription ID in checkout session");
-          }
-
+          // For both subscription and one-time payments
           await prisma.subscription.create({
             data: {
               userId: metadata.userId,
@@ -49,7 +41,24 @@ export async function POST(req: Request) {
               subscribedAt: new Date(),
               productId: metadata.productId,
               priceId: metadata.priceId,
-              stripeSubscriptionId: session.subscription as string,
+              // Set stripeSubscriptionId only for recurring payments
+              ...(session.subscription && {
+                stripeSubscriptionId: session.subscription as string,
+              }),
+              // Set expiration for one-time payments (e.g., 1 year from purchase)
+              ...(metadata.priceType === "one_time" && {
+                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+              }),
+            },
+          });
+
+          // Update capper's subscriberIds
+          await prisma.capper.update({
+            where: { id: metadata.capperId },
+            data: {
+              subscriberIds: {
+                push: metadata.userId,
+              },
             },
           });
         } catch (error) {
@@ -61,16 +70,6 @@ export async function POST(req: Request) {
           });
           throw error;
         }
-
-        // Update capper's subscriberIds
-        await prisma.capper.update({
-          where: { id: metadata.capperId },
-          data: {
-            subscriberIds: {
-              push: metadata.userId,
-            },
-          },
-        });
 
         break;
       }

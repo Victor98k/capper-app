@@ -86,15 +86,27 @@ export async function POST(req: Request) {
           },
         ],
         mode: price.type === "recurring" ? "subscription" : "payment",
-        success_url: `${baseUrl}/cappers/${capper.user.username}`,
-        cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
+        success_url: `${baseUrl}/cappers/${capper.user.username}?success=true`,
+        cancel_url: `${baseUrl}/cappers/${capper.user.username}?canceled=true`,
         metadata: {
           userId: payload.userId,
           capperId: capperId,
           productId: productId,
           priceId: priceId,
-          priceType: price.type, // Add this to help with webhook processing
+          priceType: price.type,
         },
+        // Add payment_intent_data for one-time payments
+        ...(price.type === "one_time" && {
+          payment_intent_data: {
+            metadata: {
+              userId: payload.userId,
+              capperId: capperId,
+              productId: productId,
+              priceId: priceId,
+              priceType: price.type,
+            },
+          },
+        }),
       },
       {
         stripeAccount: capper.user.stripeConnectId,

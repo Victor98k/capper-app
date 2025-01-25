@@ -100,6 +100,19 @@ export async function GET(req: Request) {
         userId: payload.userId,
         capperId: capper.id,
         status: "active",
+        OR: [
+          // For recurring subscriptions
+          {
+            stripeSubscriptionId: { not: null },
+          },
+          // For one-time payments that haven't expired
+          {
+            AND: [
+              { stripeSubscriptionId: null },
+              { expiresAt: { gt: new Date() } },
+            ],
+          },
+        ],
       },
     });
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Facebook, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import capperLogo from "@/images/Cappers Logga.png";
 import {
   Card,
   CardContent,
@@ -78,108 +79,137 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black">
-      <h1 className="text-6xl font-bold text-white mb-8">
-        Welcome back to <span className="text-[#4e43ff]">Cappers club</span>
-      </h1>
-      {alert && (
-        <Alert
-          className={`mb-4 w-full max-w-md ${
-            alert.type === "error"
-              ? "bg-destructive text-destructive-foreground"
-              : alert.type === "success"
-              ? "bg-primary text-primary-foreground"
-              : ""
-          }`}
+    <div className="min-h-screen flex">
+      {/* Left side with video */}
+      <div className="hidden md:block w-1/2 relative">
+        <video
+          className="w-full h-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
         >
-          <AlertTitle>{alert.message}</AlertTitle>
-          <AlertDescription>{alert.description}</AlertDescription>
-        </Alert>
-      )}
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Sign in to your <span className="text-[#4e43ff]">Cappers</span>{" "}
-            Account
-          </CardTitle>
-          <CardDescription className="text-center">
-            Enter your email and password to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="remember" />
-              <label
-                htmlFor="remember"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          <source src="/videos/capperLoginVid.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      {/* Right side with login form */}
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-4 md:p-8">
+        <img
+          src={capperLogo.src}
+          alt="Cappers Logo"
+          className="hidden md:block w-48 mb-8"
+        />
+        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
+          Welcome back to{" "}
+          <span className="inline-flex items-center">
+            <img
+              src={capperLogo.src}
+              alt="Cappers Logo"
+              className="h-8 lg:h-10"
+            />
+          </span>
+        </h1>
+        {alert && (
+          <Alert
+            className={`mb-4 w-full max-w-sm ${
+              alert.type === "error"
+                ? "bg-destructive text-destructive-foreground"
+                : alert.type === "success"
+                ? "bg-primary text-primary-foreground"
+                : ""
+            }`}
+          >
+            <AlertTitle>{alert.message}</AlertTitle>
+            <AlertDescription>{alert.description}</AlertDescription>
+          </Alert>
+        )}
+        <Card className="w-full max-w-sm">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-xl font-bold text-center">
+              Sign in to your <span className="text-[#4e43ff]">Cappers</span>{" "}
+              Account
+            </CardTitle>
+            <CardDescription className="text-center text-sm">
+              Enter your email and password to access your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="remember" />
+                <label
+                  htmlFor="remember"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Remember me
+                </label>
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-[#4e43ff] text-white hover:bg-[#3d35cc]"
               >
-                Remember me
-              </label>
+                Log in
+              </Button>
+            </form>
+            {/* <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div> */}
+            <div className="grid grid-cols-2 gap-4">
+              <Button variant="outline">
+                <Mail className="mr-2 h-4 w-4" /> Google
+              </Button>
+              <Button variant="outline">
+                <Facebook className="mr-2 h-4 w-4" /> Facebook
+              </Button>
             </div>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
             <Button
-              type="submit"
-              className="w-full bg-[#4e43ff] text-white hover:bg-[#3d35cc]"
+              variant="link"
+              className="w-full text-sm text-muted-foreground"
             >
-              Log in
+              Forgot password?
             </Button>
-          </form>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline">
-              <Mail className="mr-2 h-4 w-4" /> Google
+            <Button
+              variant="link"
+              className="w-full text-sm text-muted-foreground"
+              onClick={() => router.push("/sign-up")}
+            >
+              Don't have an account? Sign up
             </Button>
-            <Button variant="outline">
-              <Facebook className="mr-2 h-4 w-4" /> Facebook
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <Button
-            variant="link"
-            className="w-full text-sm text-muted-foreground"
-          >
-            Forgot password?
-          </Button>
-          <Button
-            variant="link"
-            className="w-full text-sm text-muted-foreground"
-            onClick={() => router.push("/sign-up")}
-          >
-            Don't have an account? Sign up
-          </Button>
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
