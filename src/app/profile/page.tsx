@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Bell,
-  MessageSquare,
-  PieChart,
-  Settings,
-  Terminal,
-  Users,
-} from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -31,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import StripeProductDisplay from "@/components/StripeProductDisplay";
 
-export function CapperProfile() {
+function CapperProfile() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [bio, setBio] = useState("");
@@ -528,4 +521,7 @@ export function CapperProfile() {
     </div>
   );
 }
-export default CapperProfile;
+
+export default function Page() {
+  return <CapperProfile />;
+}
