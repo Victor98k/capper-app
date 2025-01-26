@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { SideNav } from "@/components/SideNavCappers";
+import { SideNav } from "@/components/SideNav";
 import { Bell, MessageSquare, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";

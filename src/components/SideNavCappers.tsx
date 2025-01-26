@@ -67,14 +67,6 @@ export function SideNav() {
   // NavLinks component
   const NavLinks = () => (
     <nav className="space-y-4">
-      <div className="mb-8">
-        <Input
-          type="search"
-          placeholder="Search"
-          className="w-full bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400"
-        />
-      </div>
-
       <Button
         variant="ghost"
         className="w-full justify-start"
@@ -97,10 +89,10 @@ export function SideNav() {
         variant="ghost"
         className="w-full justify-start"
         size="lg"
-        onClick={() => router.push("/My-cappers")}
+        onClick={() => router.push("/profile")}
       >
         <Heart className="h-5 w-5 mr-3" />
-        My Subscribers
+        Profile info
       </Button>
       <Button
         variant="ghost"
@@ -109,7 +101,7 @@ export function SideNav() {
         onClick={() => router.push("/My-bets")}
       >
         <TicketIcon className="h-5 w-5 mr-3" />
-        My Feed
+        My Posts
       </Button>
       <Button
         variant="ghost"
@@ -141,7 +133,7 @@ export function SideNav() {
             <AvatarFallback>UN</AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="text-sm font-medium">Profile</p>
+            <p className="text-sm font-medium">"Username here"</p>
           </div>
         </div>
 

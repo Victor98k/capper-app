@@ -220,7 +220,7 @@ export function SideNav() {
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden md:block h-screen">
+      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden md:block h-screen sticky top-0">
         <div className="p-6">
           <div className="mb-8">
             <Image

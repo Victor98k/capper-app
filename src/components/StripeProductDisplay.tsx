@@ -156,7 +156,9 @@ export default function StripeProductDisplay() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-black">Your Products</h2>
+        <h2 className="text-xl font-semibold text-black">
+          Your current products
+        </h2>
         {products.length < MAX_PRODUCTS && (
           <Button
             size="sm"
