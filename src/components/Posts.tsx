@@ -335,7 +335,7 @@ function InstagramPost({
                 <p className="text-xs font-semibold text-white mb-1 pr-4">
                   ODDS
                 </p>
-                <div className="bg-[#24b657] p-1 md:p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                <div className="bg-[#4e43ff] p-1 md:p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
                   <div className="flex justify-center md:justify-end">
                     {odds.map((odd, index) => (
                       <span
