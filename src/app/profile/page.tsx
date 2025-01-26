@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 import {
   Card,
@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/dialog";
 import StripeProductDisplay from "@/components/StripeProductDisplay";
 
-function CapperProfile() {
+// Create a separate component for the parts that use useSearchParams
+function CapperProfileContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [bio, setBio] = useState("");
@@ -519,6 +520,14 @@ function CapperProfile() {
         </main>
       </div>
     </div>
+  );
+}
+
+function CapperProfile() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CapperProfileContent />
+    </Suspense>
   );
 }
 
