@@ -28,6 +28,7 @@ import {
 import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import InstagramPost from "@/components/Posts";
+import { Input } from "@/components/ui/input";
 
 type PriceRecurring = {
   interval?: "day" | "week" | "month" | "year" | null;
@@ -108,6 +109,7 @@ export default function CapperProfilePage({
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [subscribedProducts, setSubscribedProducts] = useState<string[]>([]);
+  const [calculatedAmount, setCalculatedAmount] = useState("0.00");
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -259,7 +261,7 @@ export default function CapperProfilePage({
                     capper?.user?.lastName || ""
                   }`}
                 />
-                <AvatarFallback>
+                <AvatarFallback className="bg-[#4e43ff] text-white text-4xl uppercase">
                   {capper?.user?.firstName?.charAt(0) || ""}
                   {capper?.user?.lastName?.charAt(0) || ""}
                 </AvatarFallback>
@@ -303,7 +305,7 @@ export default function CapperProfilePage({
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6 sm:mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6 sm:mt-8">
               <StatCard
                 icon={<Users />}
                 title="Subscribers"
@@ -311,7 +313,37 @@ export default function CapperProfilePage({
               />
               <StatCard icon={<Trophy />} title="Win Rate" value="67%" />
               <StatCard icon={<TrendingUp />} title="ROI" value="+15.8%" />
-              <StatCard icon={<Star />} title="Rating" value="4.8/5" />
+            </div>
+
+            {/* ROI Calculator */}
+            <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
+              <h3 className="text-lg font-medium mb-3">ROI Calculator</h3>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 max-w-xs">
+                  <Input
+                    type="number"
+                    placeholder="Enter investment amount"
+                    className="bg-gray-800 border-gray-600 text-white"
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      if (!isNaN(value)) {
+                        const roi = value * (1 + 0.158); // 15.8% ROI
+                        setCalculatedAmount(roi.toFixed(2));
+                      } else {
+                        setCalculatedAmount("0.00");
+                      }
+                    }}
+                  />
+                </div>
+                <div className="text-lg">
+                  <span className="text-gray-400 mr-2">=</span>
+                  <span className="text-green-400">${calculatedAmount}</span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mt-2">
+                Calculate your potential returns based on historical ROI of
+                15.8% "HARD CODED"
+              </p>
             </div>
 
             <SubscribeButton
