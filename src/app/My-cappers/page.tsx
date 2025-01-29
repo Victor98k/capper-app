@@ -74,8 +74,8 @@ function MyCappers() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <div className="space-y-6 py-6">
+    <div className="w-full px-4 md:max-w-3xl mx-auto">
+      <div className="space-y-4 md:space-y-6 py-4 md:py-6">
         {posts.map((post) => (
           <div key={post._id} className="flex justify-center">
             <Post {...post} />

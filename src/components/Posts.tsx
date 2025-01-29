@@ -181,42 +181,40 @@ function InstagramPost({
 
   return (
     <Card className="w-full max-w-md bg-gray-900 border-gray-800 flex flex-col mx-auto">
-      {/* Header - made more compact */}
+      {/* Header */}
       <div className="flex items-center justify-between p-2 border-b border-gray-800">
         <div className="flex items-center space-x-2">
-          <Avatar className="h-6 w-6 border border-gray-700">
+          <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-gray-700">
             <AvatarImage src={capperInfo.imageUrl} alt={capperInfo.username} />
             <AvatarFallback className="bg-violet-600 text-white text-xs">
               {capperInfo.firstName[0]}
               {capperInfo.lastName[0]}
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex flex-col sm:block">
             <button
               onClick={() => router.push(`/cappers/${capperInfo.username}`)}
               className="font-semibold text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
             >
               {capperInfo.username}
             </button>
+            {productName && (
+              <span className="text-[10px] text-[#4e43ff] font-semibold sm:ml-2">
+                {productName}
+              </span>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {productName && (
-            <span className="text-[10px] text-[#4e43ff] font-semibold">
-              {productName}
-            </span>
-          )}
-          <p className="text-[10px] text-gray-400 uppercase">
-            {new Date(createdAt).toLocaleDateString(undefined, {
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
-        </div>
+        <p className="text-[10px] text-gray-400 uppercase">
+          {new Date(createdAt).toLocaleDateString(undefined, {
+            month: "long",
+            day: "numeric",
+          })}
+        </p>
       </div>
 
-      {/* Image container - adjusted for better mobile responsiveness */}
-      <div className="relative w-full aspect-[4/3] border-b border-gray-800">
+      {/* Image container */}
+      <div className="relative w-full aspect-square sm:aspect-[4/3] border-b border-gray-800">
         <Image
           src={imageUrl || "/placeholder-image.jpg"}
           alt={title || "Post image"}
@@ -227,37 +225,35 @@ function InstagramPost({
         />
       </div>
 
-      {/* Bottom section - reorganized for mobile */}
-      <div className="p-2 space-y-2">
-        {/* Action Buttons - simplified to only like button */}
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleLike}
-            className="h-8 w-8"
-          >
-            <Heart
-              className={`h-4 w-4 ${
-                isLiked ? "text-red-500 fill-red-500" : "text-gray-300"
-              }`}
-            />
-          </Button>
-          <div className="space-y-1">
+      {/* Bottom section */}
+      <div className="p-3">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between sm:justify-start sm:gap-4 mb-3">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLike}
+              className="h-8 w-8"
+            >
+              <Heart
+                className={`h-5 w-5 ${
+                  isLiked ? "text-red-500 fill-red-500" : "text-gray-300"
+                }`}
+              />
+            </Button>
             <p className="font-semibold text-xs text-gray-100">
               {likeCount} likes
             </p>
           </div>
         </div>
 
-        {/* Content section with responsive layout */}
-        <div className="flex flex-col md:flex-row md:justify-between gap-4">
-          {/* Left side: Title, Content, and Bet Button */}
-          <div className="flex-1">
-            <h3 className="font-bold text-sm md:text-m text-gray-100 mb-1">
-              {title}
-            </h3>
-            <p className="text-xs text-gray-200 mb-2">
+        {/* Grid Layout for Content and Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4">
+          {/* Left Column - Content */}
+          <div className="space-y-2">
+            <h3 className="font-bold text-sm text-gray-100">{title}</h3>
+            <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
               <button
                 onClick={() => router.push(`/cappers/${capperInfo.username}`)}
                 className="font-semibold mr-1 hover:text-[#4e43ff] transition-colors"
@@ -265,82 +261,21 @@ function InstagramPost({
                 {capperInfo.username}
               </button>
               {content}
-            </p>
-
-            {/* Bets Modal - with subscription check */}
-            {bets.length > 0 && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full md:w-auto mt-2 text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 md:px-6 py-2 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
-                  >
-                    See Bet 🎯
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
-                  {isSubscribed ? (
-                    // Show bets if subscribed
-                    <>
-                      <DialogHeader>
-                        <DialogTitle className="text-lg font-bold mb-4">
-                          Bet Details
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-2">
-                        {bets.map((bet, index) => (
-                          <div
-                            key={index}
-                            className="p-3 bg-gray-800/50 rounded-lg text-sm"
-                          >
-                            {bet}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    // Show subscription prompt if not subscribed
-                    <>
-                      <DialogHeader>
-                        <DialogTitle className="text-lg font-bold mb-4">
-                          Subscribe to View Bets
-                        </DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                          Subscribe to {capperInfo.username}'s picks to view
-                          their betting details and more exclusive content.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button
-                          onClick={() =>
-                            router.push(`/cappers/${capperInfo.username}`)
-                          }
-                          className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
-                        >
-                          View Subscription Plans
-                        </Button>
-                      </DialogFooter>
-                    </>
-                  )}
-                </DialogContent>
-              </Dialog>
-            )}
+            </div>
           </div>
 
-          {/* Right side: Odds and Tags - adjusted for mobile */}
-          <div className="space-y-2 md:space-y-3 w-full md:min-w-[140px] md:w-auto">
+          {/* Right Column - Stats (Desktop) */}
+          <div className="hidden sm:flex sm:flex-col sm:gap-4 sm:w-[140px]">
             {/* Odds section */}
             {odds.length > 0 && (
-              <div className="flex flex-col items-center md:items-end mr-2">
-                <p className="text-xs font-semibold text-white mb-1 pr-4">
-                  ODDS
-                </p>
-                <div className="bg-[#4e43ff] p-1 md:p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
-                  <div className="flex justify-center md:justify-end">
+              <div className="flex flex-col items-end">
+                <p className="text-xs font-semibold text-white mb-1">ODDS</p>
+                <div className="bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                  <div className="flex justify-end">
                     {odds.map((odd, index) => (
                       <span
                         key={index}
-                        className="text-xl md:text-2xl font-bold text-white px-1"
+                        className="text-2xl font-bold text-white px-1"
                       >
                         {odd}
                       </span>
@@ -351,15 +286,13 @@ function InstagramPost({
             )}
 
             {/* Tags section */}
-            <div className="flex flex-col items-center md:items-end mr-2 pr-2">
-              <p className="text-xs font-semibold text-white mb-1 pr-2">
-                SPORT
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center md:justify-end">
+            <div className="flex flex-col items-end">
+              <p className="text-xs font-semibold text-white mb-1">SPORT</p>
+              <div className="flex flex-wrap gap-2 justify-end">
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="text-lg md:text-xl bg-[#4e43ff] text-white px-3 md:px-4 py-1 md:py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
+                    className="text-xl bg-[#4e43ff] text-white px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
                     title={tag}
                   >
                     {sportEmojiMap[tag] || tag}
@@ -370,7 +303,101 @@ function InstagramPost({
           </div>
         </div>
 
-        {/* Likes count remains the same */}
+        {/* Mobile Stats and Tags */}
+        <div className="sm:hidden mt-3 space-y-3">
+          {/* Mobile Tags */}
+          <div className="flex gap-1">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-base bg-[#4e43ff]/10 text-[#4e43ff] px-2 py-1 rounded-md"
+                title={tag}
+              >
+                {sportEmojiMap[tag] || tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Mobile Odds */}
+          {odds.length > 0 && (
+            <div className="bg-[#4e43ff]/10 px-3 py-1.5 rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-[#4e43ff]">
+                  ODDS
+                </span>
+                {odds.map((odd, index) => (
+                  <span
+                    key={index}
+                    className="text-sm font-bold text-[#4e43ff]"
+                  >
+                    {odd}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* See Bet Button - Fixed at bottom */}
+        {bets.length > 0 && (
+          <div className="mt-3">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 py-2 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                >
+                  See Bet 🎯
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
+                {isSubscribed ? (
+                  // Show bets if subscribed
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="text-lg font-bold mb-4">
+                        Bet Details
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                      {bets.map((bet, index) => (
+                        <div
+                          key={index}
+                          className="p-3 bg-gray-800/50 rounded-lg text-sm"
+                        >
+                          {bet}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  // Show subscription prompt if not subscribed
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="text-lg font-bold mb-4">
+                        Subscribe to View Bets
+                      </DialogTitle>
+                      <DialogDescription className="text-gray-400">
+                        Subscribe to {capperInfo.username}'s picks to view their
+                        betting details and more exclusive content.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        onClick={() =>
+                          router.push(`/cappers/${capperInfo.username}`)
+                        }
+                        className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
+                      >
+                        View Subscription Plans
+                      </Button>
+                    </DialogFooter>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </div>
     </Card>
   );

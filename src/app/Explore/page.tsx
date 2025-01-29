@@ -1,74 +1,60 @@
 "use client";
 
 import { SideNav } from "@/components/SideNav";
-import DisplayCapperCard from "@/components/displayCapperCard";
+import ExploreCapperCard from "@/components/exploreCapperCard";
 import { useEffect, useState } from "react";
 
-type Capper = {
-  id: string;
-  userId: string;
-  user: {
-    firstName: string;
-    lastName: string;
+type Post = {
+  _id: string;
+  imageUrl: string;
+  capperId: string;
+  capperInfo: {
     username: string;
   };
-  bio?: string;
-  title?: string;
-  imageUrl?: string;
-  tags: string[];
-  subscriberIds: string[];
 };
 
 export default function ExplorePage() {
-  const [cappers, setCappers] = useState<Capper[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCappers = async () => {
+    const fetchPosts = async () => {
       try {
-        const response = await fetch("/api/cappers");
+        const response = await fetch("/api/posts");
         const data = await response.json();
-        setCappers(data);
+        setPosts(data);
       } catch (error) {
-        console.error("Error fetching cappers:", error);
+        console.error("Error fetching posts:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCappers();
+    fetchPosts();
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex">
       <SideNav />
-      <main className="flex-1 p-8 lg:p-8">
+      <main className="flex-1 p-4">
         <div className="lg:mt-0 mt-8">
-          <h2 className="text-2xl font-bold mb-4">Explore Cappers</h2>
+          <h1 className="text-5xl font-bold mb-6 mt-12">Explore our Cappers</h1>
           {loading ? (
-            <p className="text-center text-gray-400">Loading cappers...</p>
+            <p className="text-center text-gray-400">Loading...</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cappers.map((capper) => (
-                <DisplayCapperCard
-                  key={capper.id}
-                  userId={capper.userId}
-                  imageUrl={capper.imageUrl || undefined}
-                  firstName={capper.user.firstName}
-                  lastName={capper.user.lastName}
-                  username={capper.user.username}
-                  bio={capper.bio || undefined}
-                  title={capper.title || undefined}
-                  tags={capper.tags}
-                  subscriberIds={capper.subscriberIds}
-                  isVerified={false}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 max-w-9xl mx-auto mt-12">
+              {posts.map((post) => (
+                <ExploreCapperCard
+                  key={post._id}
+                  username={post.capperInfo.username}
+                  imageUrl={post.imageUrl}
                 />
               ))}
             </div>
           )}
-          {!loading && cappers.length === 0 && (
+          {!loading && posts.length === 0 && (
             <p className="text-center text-gray-400 mt-8">
-              No cappers found. Check back later!
+              No posts found. Check back later!
             </p>
           )}
         </div>

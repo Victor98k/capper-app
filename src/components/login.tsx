@@ -99,21 +99,21 @@ export function Login() {
         <img
           src={capperLogo.src}
           alt="Cappers Logo"
-          className="hidden md:block w-48 mb-8"
+          className="md:hidden w-32 mb-6"
         />
-        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
           Welcome back to{" "}
           <span className="inline-flex items-center">
             <img
               src={capperLogo.src}
               alt="Cappers Logo"
-              className="h-8 lg:h-10"
+              className="h-6 md:h-8 lg:h-10"
             />
           </span>
         </h1>
         {alert && (
           <Alert
-            className={`mb-4 w-full max-w-sm ${
+            className={`mb-4 w-full max-w-[calc(100%-2rem)] md:max-w-sm ${
               alert.type === "error"
                 ? "bg-destructive text-destructive-foreground"
                 : alert.type === "success"
@@ -125,13 +125,13 @@ export function Login() {
             <AlertDescription>{alert.description}</AlertDescription>
           </Alert>
         )}
-        <Card className="w-full max-w-sm">
+        <Card className="w-full max-w-[calc(100%-2rem)] md:max-w-sm">
           <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl font-bold text-center">
+            <CardTitle className="text-lg md:text-xl font-bold text-center">
               Sign in to your <span className="text-[#4e43ff]">Cappers</span>{" "}
               Account
             </CardTitle>
-            <CardDescription className="text-center text-sm">
+            <CardDescription className="text-center text-xs md:text-sm">
               Enter your email and password to access your account
             </CardDescription>
           </CardHeader>
@@ -196,13 +196,13 @@ export function Login() {
           <CardFooter className="flex flex-col space-y-2">
             <Button
               variant="link"
-              className="w-full text-sm text-muted-foreground"
+              className="w-full text-xs md:text-sm text-muted-foreground"
             >
               Forgot password?
             </Button>
             <Button
               variant="link"
-              className="w-full text-sm text-muted-foreground"
+              className="w-full text-xs md:text-sm text-muted-foreground"
               onClick={() => router.push("/sign-up")}
             >
               Don't have an account? Sign up
