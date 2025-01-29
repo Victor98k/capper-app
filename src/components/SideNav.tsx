@@ -84,79 +84,84 @@ export function SideNav() {
     console.log("isCapper state:", isCapper);
 
     return (
-      <nav className="space-y-4">
-        <div className="mb-8">
-          {/* <Input
-            type="search"
-            placeholder="Search"
-            className="w-full bg-gray-900 border-gray-600 text-gray-100 placeholder-gray-400"
-          /> */}
-        </div>
+      <div className="flex flex-col h-full">
+        <nav className="space-y-4 flex-1">
+          <div className="mb-8">
+            {/* <Input
+              type="search"
+              placeholder="Search"
+              className="w-full bg-gray-900 border-gray-600 text-gray-100 placeholder-gray-400"
+            /> */}
+          </div>
 
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/home")}
-        >
-          <Home className="h-5 w-5 mr-3" />
-          Home
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/Explore")}
-        >
-          <Compass className="h-5 w-5 mr-3" />
-          Explore
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/My-cappers")}
-        >
-          <Heart className="h-5 w-5 mr-3" />
-          My Cappers
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/My-bets")}
-        >
-          <TicketIcon className="h-5 w-5 mr-3" />
-          My Bets
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/Analytics")}
-        >
-          <BarChart3 className="h-5 w-5 mr-3" />
-          Analytics
-        </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            size="lg"
+            onClick={() => router.push("/home")}
+          >
+            <Home className="h-5 w-5 mr-3" />
+            Home
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            size="lg"
+            onClick={() => router.push("/Explore")}
+          >
+            <Compass className="h-5 w-5 mr-3" />
+            Explore
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            size="lg"
+            onClick={() => router.push("/My-cappers")}
+          >
+            <Heart className="h-5 w-5 mr-3" />
+            My Cappers
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            size="lg"
+            onClick={() => router.push("/My-bets")}
+          >
+            <TicketIcon className="h-5 w-5 mr-3" />
+            My Bets
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            size="lg"
+            onClick={() => router.push("/Analytics")}
+          >
+            <BarChart3 className="h-5 w-5 mr-3" />
+            Analytics
+          </Button>
 
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/Settings")}
-        >
-          <Settings className="h-5 w-5 mr-3" />
-          Settings
-        </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            size="lg"
+            onClick={() => router.push("/Settings")}
+          >
+            <Settings className="h-5 w-5 mr-3" />
+            Settings
+          </Button>
+        </nav>
 
-        <div className="pt-4 border-t border-gray-700">
-          <div className="flex items-center space-x-3 mb-4">
+        {/* User profile and logout section */}
+        <div className="border-t border-gray-700 pt-4 mt-auto">
+          <div className="flex items-center space-x-3 mb-4 ">
             <Avatar>
               <AvatarImage
                 src="/placeholder.svg?height=32&width=32"
                 alt="@username"
               />
-              <AvatarFallback>UN</AvatarFallback>
+              <AvatarFallback className="bg-[#4e43ff]">
+                {username?.charAt(0)?.toUpperCase() || "UN"}
+              </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <p className="text-sm font-medium">{username}</p>
@@ -183,7 +188,7 @@ export function SideNav() {
             Logout
           </Button>
         </div>
-      </nav>
+      </div>
     );
   };
 
@@ -193,6 +198,22 @@ export function SideNav() {
 
   return (
     <>
+      {/* Desktop Sidebar */}
+      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden md:block h-screen sticky top-0">
+        <div className="p-6 h-full flex flex-col">
+          <div className="mb-8 flex justify-center">
+            <Image
+              src={logo}
+              alt="Cappers Logo"
+              width={150}
+              height={50}
+              priority
+            />
+          </div>
+          <NavLinks />
+        </div>
+      </aside>
+
       {/* Mobile Menu */}
       <div className="lg:hidden fixed top-6 left-6 z-50">
         <Sheet>
@@ -205,7 +226,7 @@ export function SideNav() {
             side="left"
             className="w-64 p-6 bg-gray-800 border-gray-700"
           >
-            <div className="mb-8">
+            <div className="mb-8 flex justify-center">
               <Image
                 src={logo}
                 alt="Cappers Logo"
@@ -218,22 +239,6 @@ export function SideNav() {
           </SheetContent>
         </Sheet>
       </div>
-
-      {/* Desktop Sidebar */}
-      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden md:block h-screen sticky top-0">
-        <div className="p-6">
-          <div className="mb-8">
-            <Image
-              src={logo}
-              alt="Cappers Logo"
-              width={150}
-              height={50}
-              priority
-            />
-          </div>
-          <NavLinks />
-        </div>
-      </aside>
     </>
   );
 }
