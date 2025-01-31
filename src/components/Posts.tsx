@@ -180,190 +180,101 @@ function InstagramPost({
   }, [capperId, productId]);
 
   return (
-    <Card className="w-full bg-gray-900 border-gray-800 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-800">
-        <div className="flex items-center space-x-2">
-          <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-gray-700">
-            <AvatarImage src={capperInfo.imageUrl} alt={capperInfo.username} />
-            <AvatarFallback className="bg-violet-600 text-white text-xs">
-              {capperInfo.firstName[0]}
-              {capperInfo.lastName[0]}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col sm:block">
-            <button
-              onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-              className="font-semibold text-sm sm:text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
-            >
-              {capperInfo.username}
-            </button>
-            {productName && (
-              <span className="text-xs sm:text-[10px] text-[#4e43ff] font-semibold sm:ml-2">
-                {productName}
-              </span>
-            )}
-          </div>
-        </div>
-        <p className="text-xs sm:text-[10px] text-gray-400 uppercase">
-          {new Date(createdAt).toLocaleDateString(undefined, {
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-      </div>
-
-      {/* Image container */}
-      <div className="relative w-full aspect-square sm:aspect-[4/3] border-b border-gray-800">
-        <Image
-          src={imageUrl || "/placeholder-image.jpg"}
-          alt={title || "Post image"}
-          fill
-          className="object-cover"
-          sizes="(max-width: 468px) 100vw, (max-width: 768px) 75vw, 33vw"
-          priority
-        />
-      </div>
-
-      {/* Bottom section */}
-      <div className="p-3">
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between sm:justify-start sm:gap-4 mb-3">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLike}
-              className="h-8 w-8"
-            >
-              <Heart
-                className={`h-5 w-5 ${
-                  isLiked ? "text-red-500 fill-red-500" : "text-gray-300"
-                }`}
-              />
-            </Button>
-            <p className="font-semibold text-xs text-gray-100">
-              {likeCount} likes
-            </p>
-          </div>
-        </div>
-
-        {/* Grid Layout for Content and Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4">
-          {/* Left Column - Content */}
-          <div className="space-y-2">
-            <h3 className="font-bold text-sm text-gray-100">{title}</h3>
-            <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
-              <button
-                onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-                className="font-semibold mr-1 hover:text-[#4e43ff] transition-colors"
-              >
+    <Card className="w-full max-w-[600px] bg-gray-900 border-gray-800">
+      {/* Card Header - Mobile: Larger touch targets */}
+      <div className="p-4 sm:p-6 border-b border-gray-800">
+        <div className="flex items-center justify-between">
+          {/* User Info - Mobile: Larger avatar and text */}
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-10 w-10 sm:h-8 sm:w-8">
+              <AvatarImage src={capperInfo.imageUrl || "/placeholder.svg"} />
+              <AvatarFallback>{capperInfo.username[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold text-base sm:text-sm">
                 {capperInfo.username}
-              </button>
-              {content}
+              </p>
+              <p className="text-sm sm:text-xs text-gray-400">
+                {new Date(createdAt).toLocaleDateString()}
+              </p>
             </div>
           </div>
 
-          {/* Right Column - Stats (Desktop) */}
-          <div className="hidden sm:flex sm:flex-col sm:gap-4 sm:w-[140px]">
-            {/* Odds section */}
-            {odds.length > 0 && (
-              <div className="flex flex-col items-end">
-                <p className="text-xs font-semibold text-white mb-1">ODDS</p>
-                <div className="bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
-                  <div className="flex justify-end">
-                    {odds.map((odd, index) => (
-                      <span
-                        key={index}
-                        className="text-2xl font-bold text-white px-1"
-                      >
-                        {odd}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* More Options Button - Mobile: Larger touch target */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 sm:h-8 sm:w-8"
+          >
+            <MoreHorizontal className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
 
-            {/* Tags section */}
-            <div className="flex flex-col items-end">
-              <p className="text-xs font-semibold text-white mb-1">SPORT</p>
-              <div className="flex flex-wrap gap-2 justify-end">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xl bg-[#4e43ff] text-white px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
-                    title={tag}
-                  >
-                    {sportEmojiMap[tag] || tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+      {/* Content Section - Mobile: Larger text and spacing */}
+      <CardContent className="p-4 sm:p-6 space-y-4">
+        {/* Title and Content */}
+        <div className="space-y-2">
+          <h2 className="text-xl sm:text-lg font-bold">{title}</h2>
+          <p className="text-base sm:text-sm text-gray-300">{content}</p>
         </div>
 
-        {/* Mobile Stats and Tags */}
-        <div className="sm:hidden mt-3 space-y-3">
-          {/* Mobile Tags */}
-          <div className="flex gap-1">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-base bg-[#4e43ff]/10 text-[#4e43ff] px-2 py-1 rounded-md"
-                title={tag}
-              >
-                {sportEmojiMap[tag] || tag}
-              </span>
-            ))}
-          </div>
+        {/* Tags Section - Mobile: Larger touch targets */}
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag, index) => (
+            <span
+              key={index}
+              className="px-3 py-1.5 sm:px-2 sm:py-1 bg-gray-800 rounded-full text-sm sm:text-xs"
+            >
+              {sportEmojiMap[tag] || ""} {tag}
+            </span>
+          ))}
+        </div>
 
-          {/* Mobile Odds */}
-          {odds.length > 0 && (
-            <div className="bg-[#4e43ff]/10 px-3 py-1.5 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#4e43ff]">
-                  ODDS
+        {/* Odds Section - Mobile: Larger text */}
+        {odds.length > 0 && (
+          <div className="mt-4 p-4 sm:p-3 bg-gray-800/50 rounded-lg">
+            <div className="flex flex-col space-y-2">
+              <span className="text-sm sm:text-xs text-gray-400">ODDS</span>
+              {odds.map((odd, index) => (
+                <span
+                  key={index}
+                  className="text-base sm:text-sm font-bold text-[#4e43ff]"
+                >
+                  {odd}
                 </span>
-                {odds.map((odd, index) => (
-                  <span
-                    key={index}
-                    className="text-sm font-bold text-[#4e43ff]"
-                  >
-                    {odd}
-                  </span>
-                ))}
-              </div>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* See Bet Button - Fixed at bottom */}
+        {/* See Bet Button - Mobile: Larger button */}
         {bets.length > 0 && (
-          <div className="mt-3">
+          <div className="mt-4">
             <Dialog>
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 py-2 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                  className="w-full py-3 sm:py-2 text-base sm:text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-6 sm:px-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
                 >
                   See Bet 🎯
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
+
+              {/* Dialog Content - Mobile: Larger text and spacing */}
+              <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto p-6 sm:p-4">
                 {isSubscribed ? (
-                  // Show bets if subscribed
                   <>
                     <DialogHeader>
-                      <DialogTitle className="text-lg font-bold mb-4">
+                      <DialogTitle className="text-xl sm:text-lg font-bold mb-4">
                         Bet Details
                       </DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {bets.map((bet, index) => (
                         <div
                           key={index}
-                          className="p-3 bg-gray-800/50 rounded-lg text-sm"
+                          className="p-4 sm:p-3 bg-gray-800/50 rounded-lg text-base sm:text-sm"
                         >
                           {bet}
                         </div>
@@ -371,13 +282,12 @@ function InstagramPost({
                     </div>
                   </>
                 ) : (
-                  // Show subscription prompt if not subscribed
                   <>
                     <DialogHeader>
-                      <DialogTitle className="text-lg font-bold mb-4">
+                      <DialogTitle className="text-xl sm:text-lg font-bold mb-4">
                         Subscribe to View Bets
                       </DialogTitle>
-                      <DialogDescription className="text-gray-400">
+                      <DialogDescription className="text-base sm:text-sm text-gray-400">
                         Subscribe to {capperInfo.username}'s picks to view their
                         betting details and more exclusive content.
                       </DialogDescription>
@@ -387,7 +297,7 @@ function InstagramPost({
                         onClick={() =>
                           router.push(`/cappers/${capperInfo.username}`)
                         }
-                        className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
+                        className="w-full py-3 sm:py-2 text-base sm:text-sm bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
                       >
                         View Subscription Plans
                       </Button>
@@ -398,7 +308,7 @@ function InstagramPost({
             </Dialog>
           </div>
         )}
-      </div>
+      </CardContent>
     </Card>
   );
 }

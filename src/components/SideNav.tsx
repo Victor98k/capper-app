@@ -79,100 +79,96 @@ export function SideNav() {
     }
   };
 
-  // NavLinks component
+  // NavLinks component - Shared between mobile and desktop
   const NavLinks = () => {
-    console.log("isCapper state:", isCapper);
-
     return (
       <div className="flex flex-col h-full">
-        <nav className="space-y-4 flex-1">
-          <div className="mb-8">
-            {/* <Input
-              type="search"
-              placeholder="Search"
-              className="w-full bg-gray-900 border-gray-600 text-gray-100 placeholder-gray-400"
-            /> */}
+        {/* Navigation Items - Mobile: larger spacing, Desktop: compact */}
+        <nav className="space-y-2 lg:space-y-2 flex-1">
+          <div className="mb-4">{/* Search input removed for now */}</div>
+
+          {/* Mobile: py-4 padding, space-y-6 gap | Desktop: normal padding, space-y-2 gap */}
+          <div className="space-y-6 lg:space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base"
+              onClick={() => router.push("/home")}
+            >
+              <Home className="h-5 w-5 mr-3" />
+              Home
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base"
+              onClick={() => router.push("/Explore")}
+            >
+              <Compass className="h-5 w-5 mr-3" />
+              Explore
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base"
+              onClick={() => router.push("/My-cappers")}
+            >
+              <Heart className="h-5 w-5 mr-3" />
+              My Cappers
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base"
+              onClick={() => router.push("/My-bets")}
+            >
+              <TicketIcon className="h-5 w-5 mr-3" />
+              My Bets
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base"
+              onClick={() => router.push("/Analytics")}
+            >
+              <BarChart3 className="h-5 w-5 mr-3" />
+              Analytics
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base"
+              onClick={() => router.push("/Settings")}
+            >
+              <Settings className="h-5 w-5 mr-3" />
+              Settings
+            </Button>
           </div>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            size="lg"
-            onClick={() => router.push("/home")}
-          >
-            <Home className="h-5 w-5 mr-3" />
-            Home
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            size="lg"
-            onClick={() => router.push("/Explore")}
-          >
-            <Compass className="h-5 w-5 mr-3" />
-            Explore
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            size="lg"
-            onClick={() => router.push("/My-cappers")}
-          >
-            <Heart className="h-5 w-5 mr-3" />
-            My Cappers
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            size="lg"
-            onClick={() => router.push("/My-bets")}
-          >
-            <TicketIcon className="h-5 w-5 mr-3" />
-            My Bets
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            size="lg"
-            onClick={() => router.push("/Analytics")}
-          >
-            <BarChart3 className="h-5 w-5 mr-3" />
-            Analytics
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            size="lg"
-            onClick={() => router.push("/Settings")}
-          >
-            <Settings className="h-5 w-5 mr-3" />
-            Settings
-          </Button>
         </nav>
 
-        {/* User profile and logout section */}
+        {/* Profile Section - Mobile: larger avatar and text | Desktop: normal size */}
         <div className="border-t border-gray-700 pt-4 mt-auto">
-          <div className="flex items-center space-x-3 mb-4 ">
-            <Avatar>
+          <div className="flex items-center space-x-3 mb-4">
+            <Avatar className="h-10 w-10">
+              {" "}
+              {/* Larger for better touch */}
               <AvatarImage
                 src="/placeholder.svg?height=32&width=32"
                 alt="@username"
               />
-              <AvatarFallback className="bg-[#4e43ff]">
+              <AvatarFallback className="bg-[#4e43ff] text-base">
                 {username?.charAt(0)?.toUpperCase() || "UN"}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <p className="text-sm font-medium">{username}</p>
+              <p className="text-base font-medium">{username}</p>
             </div>
           </div>
-          {/* Push to capper dashboard if isCapper is true */}
+
           {isCapper && (
             <Button
               variant="secondary"
               onClick={() => router.push("/home-capper")}
-              className="w-full mb-2"
+              className="w-full mb-2 py-3 text-base"
             >
               <LineChart className="h-5 w-5 mr-2" />
               Capper Dashboard
@@ -182,7 +178,7 @@ export function SideNav() {
           <Button
             variant="destructive"
             onClick={handleLogout}
-            className="w-full"
+            className="w-full py-3 text-base"
           >
             <LogOut className="h-5 w-5 mr-2" />
             Logout
@@ -198,35 +194,47 @@ export function SideNav() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* ==================== MOBILE NAVIGATION ==================== */}
       <div className="lg:hidden">
         <Sheet>
+          {/* Mobile Menu Trigger Button */}
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Menu className="h-5 w-5 text-gray-100" />
             </Button>
           </SheetTrigger>
+
+          {/* Mobile Slide-out Menu */}
           <SheetContent
             side="left"
-            className="w-64 p-6 bg-gray-900 border-gray-800"
+            className="w-[85vw] max-w-[300px] p-0 bg-gray-900 border-gray-800"
           >
-            <div className="mb-8 flex justify-center">
-              <Image
-                src={logo}
-                alt="Cappers Logo"
-                width={150}
-                height={50}
-                priority
-              />
+            <div className="flex flex-col h-full">
+              {/* Mobile Header with Logo */}
+              <div className="p-4 border-b border-gray-800">
+                <Image
+                  src={logo}
+                  alt="Cappers Logo"
+                  width={120}
+                  height={40}
+                  priority
+                  className="mx-auto"
+                />
+              </div>
+
+              {/* Mobile Navigation Content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <NavLinks />
+              </div>
             </div>
-            <NavLinks />
           </SheetContent>
         </Sheet>
       </div>
 
-      {/* Desktop Sidebar */}
+      {/* ==================== DESKTOP NAVIGATION ==================== */}
       <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden lg:block h-screen sticky top-0">
         <div className="p-6 h-full flex flex-col">
+          {/* Desktop Logo */}
           <div className="mb-8 flex justify-center">
             <Image
               src={logo}
@@ -236,6 +244,7 @@ export function SideNav() {
               priority
             />
           </div>
+          {/* Desktop Navigation Content */}
           <NavLinks />
         </div>
       </aside>
