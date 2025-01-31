@@ -704,14 +704,11 @@ export default function CapperProfilePage({
                           isSubscribed={isSubscribedToProduct}
                           className={`w-full ${
                             isSubscribedToProduct
-                              ? "bg-green-500 hover:bg-green-600 cursor-not-allowed"
+                              ? "bg-red-500 hover:bg-red-600"
                               : "bg-violet-500 hover:bg-violet-600"
                           }`}
-                          disabled={isSubscribedToProduct}
                         >
-                          {isSubscribedToProduct
-                            ? "Currently Subscribed"
-                            : "Subscribe"}
+                          {isSubscribedToProduct ? "Unsubscribe" : "Subscribe"}
                         </SubscribeButton>
                       </CardFooter>
                     </Card>
