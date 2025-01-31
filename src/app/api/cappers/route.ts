@@ -22,6 +22,13 @@ export async function GET(request: Request) {
 
     // Get all cappers with their associated user info
     const cappers = await prisma.capper.findMany({
+      where: {
+        // Only get cappers that have an associated user
+        user: {
+          // Check that user exists and is not null
+          id: { not: undefined },
+        },
+      },
       include: {
         user: {
           select: {

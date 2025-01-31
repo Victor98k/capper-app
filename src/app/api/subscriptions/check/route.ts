@@ -15,7 +15,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing capperId" }, { status: 400 });
     }
 
-    // First verify the capper exists and get their details
+    // First verify the capper exists
     const capper = await prisma.capper.findUnique({
       where: { id: capperId },
       include: {
@@ -66,46 +66,15 @@ export async function GET(req: Request) {
       });
     }
 
-    // First get all user's active subscriptions
-    const allSubscriptions = await prisma.subscription.findMany({
-      where: {
-        userId: payload.userId,
-        status: "active",
-      },
-      include: {
-        capper: {
-          include: {
-            user: {
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    console.log("All user subscriptions:", {
-      requestedCapperId: capperId,
-      requestedCapperUsername: capper.user.username,
-      activeSubscriptions: allSubscriptions.map((sub) => ({
-        capperId: sub.capperId,
-        capperUsername: sub.capper.user.username,
-      })),
-    });
-
-    // Then check for specific capper subscription
-    const subscriptions = await prisma.subscription.findMany({
+    // Check for specific product subscription if productId is provided
+    const subscriptionQuery = {
       where: {
         userId: payload.userId,
         capperId: capper.id,
         status: "active",
+        ...(productId && { productId }), // Only include productId in query if it's provided
         OR: [
-          // For recurring subscriptions
-          {
-            stripeSubscriptionId: { not: null },
-          },
-          // For one-time payments that haven't expired
+          { stripeSubscriptionId: { not: null } },
           {
             AND: [
               { stripeSubscriptionId: null },
@@ -114,21 +83,29 @@ export async function GET(req: Request) {
           },
         ],
       },
+    };
+
+    const subscriptions = await prisma.subscription.findMany(subscriptionQuery);
+
+    // Get all subscribed products for this capper
+    const allSubscribedProducts = await prisma.subscription.findMany({
+      where: {
+        userId: payload.userId,
+        capperId: capper.id,
+        status: "active",
+      },
+      select: {
+        productId: true,
+      },
     });
 
     return NextResponse.json({
       isSubscribed: subscriptions.length > 0,
-      subscribedProducts: subscriptions.map((sub) => sub.productId),
+      subscribedProducts: allSubscribedProducts.map((sub) => sub.productId),
       debug: {
         userId: payload.userId,
-        requestedCapper: {
-          id: capper.id,
-          username: capper.user.username,
-        },
-        activeSubscriptions: allSubscriptions.map((sub) => ({
-          capperId: sub.capperId,
-          username: sub.capper.user.username,
-        })),
+        requestedProduct: productId,
+        subscriptionCount: subscriptions.length,
       },
     });
   } catch (error) {

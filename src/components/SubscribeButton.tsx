@@ -5,7 +5,17 @@ import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loadStripe } from "@stripe/stripe-js";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 
 interface SubscribeButtonProps {
   capperId: string;
@@ -31,7 +41,44 @@ export function SubscribeButton({
   scrollToBundles = false,
 }: SubscribeButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const router = useRouter();
+
+  const handleUnsubscribe = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/subscriptions", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          capperId,
+          productId,
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to unsubscribe");
+      }
+
+      toast.success("Successfully unsubscribed");
+      setShowConfirmDialog(false);
+      router.refresh();
+
+      // Optionally reload the page to reflect changes
+      window.location.reload();
+    } catch (error) {
+      console.error("Unsubscribe error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to unsubscribe"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubscription = async () => {
     if (scrollToBundles && !isSubscribed) {
@@ -43,35 +90,7 @@ export function SubscribeButton({
     }
 
     if (isSubscribed) {
-      setIsLoading(true);
-      try {
-        const response = await fetch("/api/subscriptions", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            capperId,
-            productId,
-          }),
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          toast.success("Unsubscribed successfully");
-          router.refresh();
-        } else {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to unsubscribe");
-        }
-      } catch (error) {
-        console.error("Unsubscribe error:", error);
-        toast.error(
-          error instanceof Error ? error.message : "Failed to unsubscribe"
-        );
-      } finally {
-        setIsLoading(false);
-      }
+      setShowConfirmDialog(true);
       return;
     }
 
@@ -144,27 +163,57 @@ export function SubscribeButton({
   };
 
   return (
-    <Button
-      onClick={handleSubscription}
-      disabled={disabled || isLoading}
-      variant={isSubscribed ? "outline" : "default"}
-      className={`${
-        isSubscribed
-          ? "border-green-500 text-green-500 hover:bg-green-500/10 flex items-center gap-2"
-          : "bg-[#4e43ff] hover:bg-[#4e43ff]/90"
-      } ${className || ""}`}
-    >
-      {children ||
-        (isLoading ? (
-          "Loading..."
-        ) : isSubscribed ? (
-          <>
-            <Check className="h-4 w-4" />
-            Subscribed
-          </>
+    <>
+      <Button
+        onClick={handleSubscription}
+        disabled={disabled || isLoading}
+        className={cn(
+          "relative",
+          {
+            "opacity-50 cursor-not-allowed": disabled && !isSubscribed,
+          },
+          className
+        )}
+      >
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          "Subscribe"
-        ))}
-    </Button>
+          children || (isSubscribed ? "Unsubscribe" : "Subscribe")
+        )}
+      </Button>
+
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="bg-gray-900 text-gray-100 border-gray-800">
+          <DialogHeader>
+            <DialogTitle>Confirm Unsubscribe</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Are you sure you want to cancel your subscription? You'll lose
+              access to exclusive content.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              className="border-gray-700 hover:bg-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleUnsubscribe}
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Unsubscribe"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

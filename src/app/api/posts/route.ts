@@ -48,18 +48,53 @@ export async function GET(req: Request) {
     const capperId = url.searchParams.get("capperId");
 
     // Build the query based on whether capperId is provided
-    const query = capperId ? { capperId } : {};
+    const query = capperId
+      ? {
+          capperId,
+          // Only get posts where the capper and user still exist
+          capper: {
+            user: {
+              id: { not: null },
+            },
+          },
+        }
+      : {
+          capper: {
+            user: {
+              id: { not: null },
+            },
+          },
+        };
 
     // Get posts with capper information
     const posts = await prisma.capperPost.findMany({
-      where: query,
+      where: {
+        AND: [
+          capperId ? { capperId } : {},
+          {
+            capper: {
+              user: {
+                id: { not: undefined },
+              },
+            },
+          },
+        ],
+      },
       orderBy: {
         createdAt: "desc",
       },
       include: {
         capper: {
           include: {
-            user: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                username: true,
+                imageUrl: true,
+                stripeConnectId: true,
+              },
+            },
           },
         },
       },
@@ -74,7 +109,6 @@ export async function GET(req: Request) {
             const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
               apiVersion: "2024-12-18.acacia",
             });
-
             const product = await stripe.products.retrieve(post.productId, {
               stripeAccount: post.capper.user.stripeConnectId || undefined,
             } as Stripe.RequestOptions);

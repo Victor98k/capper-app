@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 import { verifyJWT } from "@/utils/jwt";
 
 export async function POST(req: Request) {
@@ -90,40 +91,97 @@ export async function DELETE(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { capperId } = await req.json();
+    const { capperId, productId } = await req.json();
+
+    // Find the active subscription in our database
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        userId: payload.userId,
+        capperId: capperId,
+        ...(productId && { productId }), // Only include productId if provided
+        status: "active",
+      },
+      include: {
+        capper: {
+          include: {
+            user: {
+              select: {
+                stripeConnectId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!subscription) {
+      return NextResponse.json(
+        { error: "No active subscription found" },
+        { status: 404 }
+      );
+    }
+
+    // If it's a Stripe subscription, cancel it in Stripe
+    if (subscription.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(
+          subscription.stripeSubscriptionId,
+          undefined,
+          {
+            stripeAccount:
+              subscription.capper.user.stripeConnectId || undefined,
+          }
+        );
+      } catch (stripeError) {
+        console.error("Stripe cancellation error:", stripeError);
+        return NextResponse.json(
+          { error: "Failed to cancel Stripe subscription" },
+          { status: 500 }
+        );
+      }
+    }
 
     // Get current subscriberIds
     const capper = await prisma.capper.findUnique({
       where: { id: capperId },
     });
 
-    // Remove subscriber from capper's subscriberIds
-    const updatedCapper = await prisma.capper.update({
-      where: { id: capperId },
-      data: {
-        subscriberIds: {
-          set:
-            capper?.subscriberIds.filter((id) => id !== payload.userId) || [],
+    // Update our database
+    await prisma.$transaction([
+      // Remove subscriber from capper's subscriberIds
+      prisma.capper.update({
+        where: { id: capperId },
+        data: {
+          subscriberIds: {
+            set:
+              capper?.subscriberIds.filter((id) => id !== payload.userId) || [],
+          },
         },
-      },
-    });
+      }),
+      // Update subscription status
+      prisma.subscription.updateMany({
+        where: {
+          userId: payload.userId,
+          capperId: capperId,
+          ...(productId && { productId }), // Only include productId if provided
+          status: "active",
+        },
+        data: {
+          status: "cancelled",
+          cancelledAt: new Date(),
+        },
+      }),
+    ]);
 
-    // Update subscription status
-    const subscription = await prisma.subscription.updateMany({
-      where: {
-        userId: payload.userId,
-        capperId: capperId,
-        status: "active",
-      },
-      data: {
-        status: "cancelled",
-        cancelledAt: new Date(),
-      },
+    return NextResponse.json({
+      success: true,
+      message: "Subscription cancelled successfully",
     });
-
-    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Unsubscribe error:", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to cancel subscription" },
+      { status: 500 }
+    );
   }
 }

@@ -142,35 +142,25 @@ function InstagramPost({
   useEffect(() => {
     const checkSubscription = async () => {
       try {
-        console.log("Checking subscription for:", {
-          capperId,
-          productId,
-        });
-
+        console.log("Checking subscription for post:", { capperId, productId });
         const response = await fetch(
           `/api/subscriptions/check?capperId=${capperId}&productId=${productId}`,
           {
             credentials: "include",
           }
         );
-
         if (response.ok) {
           const data = await response.json();
           console.log("Subscription check response:", data);
-
-          // Check if this specific product is in the subscribedProducts array
-          const isSubscribedToProduct =
-            data.subscribedProducts?.includes(productId);
-          setIsSubscribed(isSubscribedToProduct || false);
+          // Only set isSubscribed to true if user is subscribed to this specific product
+          setIsSubscribed(
+            data.isSubscribed && data.subscribedProducts.includes(productId)
+          );
         } else {
           console.error("Subscription check failed:", await response.text());
-          setIsSubscribed(false);
         }
       } catch (error) {
         console.error("Error checking subscription:", error);
-        setIsSubscribed(false);
-      } finally {
-        setIsLoading(false);
       }
     };
 

@@ -153,7 +153,7 @@ export default function CapperProfilePage({
     const checkSubscriptionStatus = async () => {
       try {
         const response = await fetch(
-          `/api/subscriptions/check?capperId=${capper?.id}&productId=${capper?.products[0].id}`,
+          `/api/subscriptions/check?capperId=${capper?.id}`,
           {
             credentials: "include",
           }
@@ -161,7 +161,7 @@ export default function CapperProfilePage({
 
         if (response.ok) {
           const data = await response.json();
-          setIsSubscribed(data.isSubscribed);
+          setIsSubscribed(data.subscribedProducts.length > 0);
           setSubscriptionDetails(data.subscriptionDetails);
         }
       } catch (error) {
@@ -172,7 +172,7 @@ export default function CapperProfilePage({
     if (capper?.id) {
       checkSubscriptionStatus();
     }
-  }, [capper?.id, capper?.products]);
+  }, [capper?.id]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -385,8 +385,15 @@ export default function CapperProfilePage({
               capperId={capper.id}
               isSubscribed={isSubscribed}
               scrollToBundles={true}
-              className="mt-4 sm:mt-6 w-full sm:w-auto"
-            />
+              className={`mt-4 sm:mt-6 w-full sm:w-auto ${
+                isSubscribed
+                  ? "bg-green-500 hover:bg-green-600 cursor-not-allowed"
+                  : "bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+              }`}
+              disabled={isSubscribed}
+            >
+              {isSubscribed ? "Subscribed" : "Subscribe"}
+            </SubscribeButton>
           </div>
 
           {/* Tabs Section */}
@@ -513,9 +520,55 @@ export default function CapperProfilePage({
                 Latest picks and predictions from {capper.user.firstName}
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {posts.length > 0 ? (
-                posts.map((post) => (
+
+            {/* First 3 Posts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
+              {posts.slice(0, 3).map((post) => (
+                <InstagramPost
+                  key={post._id}
+                  {...post}
+                  capperInfo={{
+                    firstName: capper.user.firstName,
+                    lastName: capper.user.lastName,
+                    username: capper.user.username,
+                    imageUrl: capper.imageUrl,
+                    isVerified: true,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Paywall Section - Show only if there are more than 3 posts and user is not subscribed */}
+            {posts.length > 3 && !isSubscribed && (
+              <div className="relative my-12">
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 pointer-events-none" />
+
+                {/* Paywall Content */}
+                <div className="relative bg-gray-800/50 rounded-xl p-8 text-center backdrop-blur-sm border border-violet-500/20">
+                  <h3 className="text-2xl font-bold mb-4">
+                    Subscribe to See More Posts
+                  </h3>
+                  <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+                    Get access to all of {capper.user.firstName}'s exclusive
+                    content, picks, and analysis
+                  </p>
+                  <SubscribeButton
+                    capperId={capper.id}
+                    isSubscribed={isSubscribed}
+                    scrollToBundles={true}
+                    className="bg-violet-500 hover:bg-violet-600"
+                  >
+                    Subscribe Now
+                  </SubscribeButton>
+                </div>
+              </div>
+            )}
+
+            {/* Remaining Posts - Show only if subscribed */}
+            {isSubscribed && posts.length > 3 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mt-8">
+                {posts.slice(3).map((post) => (
                   <InstagramPost
                     key={post._id}
                     {...post}
@@ -527,13 +580,16 @@ export default function CapperProfilePage({
                       isVerified: true,
                     }}
                   />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-gray-400">No posts available yet.</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
+
+            {/* No Posts Message */}
+            {posts.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-400">No posts available yet.</p>
+              </div>
+            )}
           </div>
 
           {/* Subscription Packages Section */}
@@ -556,12 +612,24 @@ export default function CapperProfilePage({
                   return (
                     <Card
                       key={product.id}
-                      className="bg-gray-800 border-gray-700 flex flex-col relative p-4 sm:p-6"
+                      className={`bg-gray-800 border-2 flex flex-col relative p-4 sm:p-6 ${
+                        isSubscribedToProduct
+                          ? "border-green-500 shadow-lg shadow-green-500/20"
+                          : "border-gray-700"
+                      }`}
                     >
                       <CardHeader className="p-0 sm:p-4">
-                        <CardTitle className="text-xl sm:text-2xl font-semibold text-white">
-                          {product.name}
-                        </CardTitle>
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-xl sm:text-2xl font-semibold text-white">
+                            {product.name}
+                          </CardTitle>
+                          {isSubscribedToProduct && (
+                            <span className="flex items-center gap-1 text-sm text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
+                              <Check className="h-4 w-4" />
+                              Active
+                            </span>
+                          )}
+                        </div>
                         <CardDescription className="text-sm sm:text-base text-gray-300">
                           {product.description}
                         </CardDescription>
@@ -636,7 +704,7 @@ export default function CapperProfilePage({
                           isSubscribed={isSubscribedToProduct}
                           className={`w-full ${
                             isSubscribedToProduct
-                              ? "bg-gray-500 hover:bg-gray-600 cursor-not-allowed"
+                              ? "bg-green-500 hover:bg-green-600 cursor-not-allowed"
                               : "bg-violet-500 hover:bg-violet-600"
                           }`}
                           disabled={isSubscribedToProduct}
