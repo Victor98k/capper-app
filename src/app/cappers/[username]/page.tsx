@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import { SideNav } from "@/components/SideNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -247,41 +248,66 @@ export default function CapperProfilePage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex">
-      <SideNav />
-      <main className="flex-1 p-8">
+    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col lg:flex-row">
+      {/* Hide SideNav on mobile */}
+      <div className="hidden lg:block">
+        <SideNav />
+      </div>
+
+      {/* Add mobile header */}
+      <div className="lg:hidden sticky top-0 z-50 w-full bg-gray-900 border-b border-gray-800 p-4 flex items-center">
+        <div className="absolute left-4">
+          <SideNav />
+        </div>
+        <div className="flex-1 text-center">
+          <h1 className="text-xl font-semibold">Capper Profile</h1>
+        </div>
+      </div>
+
+      <main className="flex-1 p-2 sm:p-4 lg:p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Profile Header */}
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 mb-8">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
-              <Avatar className="h-24 w-24 sm:h-32 sm:w-32">
+          {/* Profile Header - More compact on mobile */}
+          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
+            {/* Profile Info Section - Make it more compact on mobile */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+              {/* Avatar - Smaller on mobile */}
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32">
                 <AvatarImage
                   src={capper?.imageUrl}
                   alt={`${capper?.user?.firstName || ""} ${
                     capper?.user?.lastName || ""
                   }`}
                 />
-                <AvatarFallback className="bg-[#4e43ff] text-white text-4xl uppercase">
+                <AvatarFallback className="bg-[#4e43ff] text-white text-2xl sm:text-4xl uppercase">
                   {capper?.user?.firstName?.charAt(0) || ""}
                   {capper?.user?.lastName?.charAt(0) || ""}
                 </AvatarFallback>
               </Avatar>
+
+              {/* Profile Details - Center on mobile */}
               <div className="flex-1 text-center sm:text-left">
-                <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-2 sm:gap-4">
                   <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold flex items-center justify-center sm:justify-start">
+                    {/* Name and Verification */}
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center justify-center sm:justify-start gap-2">
                       {capper?.user?.firstName} {capper?.user?.lastName}
-                      <CheckCircle className="h-6 w-6 text-blue-400 ml-2" />
+                      <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
                     </h1>
-                    <p className="text-xl text-gray-400 mb-2">
+
+                    {/* Username */}
+                    <p className="text-lg sm:text-xl text-gray-400 mb-2">
                       @{capper?.user?.username}
                     </p>
+
+                    {/* Title - if exists */}
                     {capper?.title && (
-                      <p className="text-lg text-violet-400 mb-4">
+                      <p className="text-base sm:text-lg text-violet-400 mb-2 sm:mb-4">
                         {capper.title}
                       </p>
                     )}
                   </div>
+
+                  {/* Subscription Badge */}
                   {isSubscribed && (
                     <div className="flex items-center gap-2 bg-green-500/10 text-green-500 px-3 py-1.5 rounded-full text-sm font-medium">
                       <Check className="h-4 w-4" />
@@ -289,7 +315,9 @@ export default function CapperProfilePage({
                     </div>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-2 mb-4">
+
+                {/* Tags */}
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-4">
                   {capper.tags.map((tag) => (
                     <Badge
                       key={tag}
@@ -300,34 +328,48 @@ export default function CapperProfilePage({
                     </Badge>
                   ))}
                 </div>
-                <p className="text-gray-100">{capper.bio}</p>
+
+                {/* Bio */}
+                <p className="text-gray-100 text-sm sm:text-base">
+                  {capper.bio}
+                </p>
               </div>
             </div>
 
-            {/* Stats Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6 sm:mt-8">
+            {/* Stats Overview - Stack on mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 sm:mt-6">
               <StatCard
-                icon={<Users />}
+                icon={<Users className="h-5 w-5 sm:h-6 sm:w-6" />}
                 title="Subscribers"
                 value={capper.subscriberIds.length.toLocaleString()}
               />
-              <StatCard icon={<Trophy />} title="Win Rate" value="67%" />
-              <StatCard icon={<TrendingUp />} title="ROI" value="+15.8%" />
+              <StatCard
+                icon={<Trophy className="h-5 w-5 sm:h-6 sm:w-6" />}
+                title="Win Rate"
+                value="67%"
+              />
+              <StatCard
+                icon={<TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />}
+                title="ROI"
+                value="+15.8%"
+              />
             </div>
 
-            {/* ROI Calculator */}
-            <div className="mt-6 p-4 bg-gray-700/30 rounded-lg">
-              <h3 className="text-lg font-medium mb-3">ROI Calculator</h3>
-              <div className="flex items-center gap-4">
-                <div className="flex-1 max-w-xs">
+            {/* ROI Calculator - Simplified on mobile */}
+            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+              <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">
+                ROI Calculator
+              </h3>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                <div className="w-full sm:w-auto sm:flex-1 max-w-xs">
                   <Input
                     type="number"
                     placeholder="Enter investment amount"
-                    className="bg-gray-800 border-gray-600 text-white"
+                    className="bg-gray-800 border-gray-600 text-white text-sm sm:text-base"
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
                       if (!isNaN(value)) {
-                        const roi = value * (1 + 0.158); // 15.8% ROI
+                        const roi = value * (1 + 0.158);
                         setCalculatedAmount(roi.toFixed(2));
                       } else {
                         setCalculatedAmount("0.00");
@@ -335,22 +377,23 @@ export default function CapperProfilePage({
                     }}
                   />
                 </div>
-                <div className="text-lg">
+                <div className="text-base sm:text-lg">
                   <span className="text-gray-400 mr-2">=</span>
                   <span className="text-green-400">${calculatedAmount}</span>
                 </div>
               </div>
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-xs sm:text-sm text-gray-400 mt-2">
                 Calculate your potential returns based on historical ROI of
-                15.8% "HARD CODED"
+                15.8%
               </p>
             </div>
 
+            {/* Subscribe Button */}
             <SubscribeButton
               capperId={capper.id}
               isSubscribed={isSubscribed}
               scrollToBundles={true}
-              className="mt-6"
+              className="mt-4 sm:mt-6 w-full sm:w-auto"
             />
           </div>
 
@@ -358,31 +401,31 @@ export default function CapperProfilePage({
           <div className="bg-gray-800 rounded-lg p-6 mb-12">
             <Tabs defaultValue="picks" className="w-full">
               <div className="border-b border-gray-700 mb-6">
-                <TabsList className="w-full flex justify-start bg-transparent space-x-8">
+                <TabsList className="w-full flex justify-start bg-transparent space-x-4 sm:space-x-8 overflow-x-auto">
                   <TabsTrigger
                     value="picks"
-                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                    className="relative px-1 pb-4 text-sm sm:text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all whitespace-nowrap"
                   >
                     <Trophy className="w-4 h-4 mr-2 inline-block" />
                     Recent Picks
                   </TabsTrigger>
                   <TabsTrigger
                     value="stats"
-                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                    className="relative px-1 pb-4 text-sm sm:text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all whitespace-nowrap"
                   >
                     <TrendingUp className="w-4 h-4 mr-2 inline-block" />
                     Statistics
                   </TabsTrigger>
                   <TabsTrigger
                     value="reviews"
-                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                    className="relative px-1 pb-4 text-sm sm:text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all whitespace-nowrap"
                   >
                     <Star className="w-4 h-4 mr-2 inline-block" />
                     Reviews
                   </TabsTrigger>
                   <TabsTrigger
                     value="about"
-                    className="relative px-1 pb-4 text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all"
+                    className="relative px-1 pb-4 text-sm sm:text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all whitespace-nowrap"
                   >
                     <User className="w-4 h-4 mr-2 inline-block" />
                     About
@@ -478,7 +521,7 @@ export default function CapperProfilePage({
                 Latest picks and predictions from {capper.user.firstName}
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-[1200px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {posts.length > 0 ? (
                 posts.map((post) => (
                   <InstagramPost
@@ -506,7 +549,7 @@ export default function CapperProfilePage({
             <h2 className="text-2xl font-semibold text-white mb-6">
               Subscription Plans
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {capper.products.length > 0 ? (
                 capper.products.map((product) => {
                   const isSubscribedToProduct = subscribedProducts.includes(
@@ -521,18 +564,13 @@ export default function CapperProfilePage({
                   return (
                     <Card
                       key={product.id}
-                      className="bg-gray-800 border-gray-700 flex flex-col relative"
+                      className="bg-gray-800 border-gray-700 flex flex-col relative p-4 sm:p-6"
                     >
-                      {isSubscribedToProduct && (
-                        <div className="absolute -top-3 -right-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                          Subscribed
-                        </div>
-                      )}
-                      <CardHeader>
-                        <CardTitle className="text-2xl font-semibold text-white">
+                      <CardHeader className="p-0 sm:p-4">
+                        <CardTitle className="text-xl sm:text-2xl font-semibold text-white">
                           {product.name}
                         </CardTitle>
-                        <CardDescription className="text-gray-300">
+                        <CardDescription className="text-sm sm:text-base text-gray-300">
                           {product.description}
                         </CardDescription>
                       </CardHeader>
@@ -643,11 +681,15 @@ const StatCard = ({
   title: string;
   value: string;
 }) => (
-  <div className="bg-gray-700/50 p-4 rounded-lg flex items-center space-x-4">
-    <div className="text-violet-400">{icon}</div>
+  <div className="bg-gray-700/50 p-3 sm:p-4 rounded-lg flex items-center space-x-3 sm:space-x-4">
+    <div className="text-violet-400">
+      {React.cloneElement(icon as React.ReactElement, {
+        className: "h-5 w-5 sm:h-6 sm:w-6",
+      })}
+    </div>
     <div>
-      <p className="text-sm text-gray-400">{title}</p>
-      <p className="text-xl font-bold">{value}</p>
+      <p className="text-xs sm:text-sm text-gray-400">{title}</p>
+      <p className="text-lg sm:text-xl font-bold">{value}</p>
     </div>
   </div>
 );
