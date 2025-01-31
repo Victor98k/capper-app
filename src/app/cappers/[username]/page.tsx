@@ -337,22 +337,14 @@ export default function CapperProfilePage({
             </div>
 
             {/* Stats Overview - Stack on mobile */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 sm:mt-6">
+            <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 mt-4 sm:mt-6">
               <StatCard
-                icon={<Users className="h-5 w-5 sm:h-6 sm:w-6" />}
+                icon={<Users />}
                 title="Subscribers"
                 value={capper.subscriberIds.length.toLocaleString()}
               />
-              <StatCard
-                icon={<Trophy className="h-5 w-5 sm:h-6 sm:w-6" />}
-                title="Win Rate"
-                value="67%"
-              />
-              <StatCard
-                icon={<TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />}
-                title="ROI"
-                value="+15.8%"
-              />
+              <StatCard icon={<Trophy />} title="Win Rate" value="67%" />
+              <StatCard icon={<TrendingUp />} title="ROI" value="+15.8%" />
             </div>
 
             {/* ROI Calculator - Simplified on mobile */}
@@ -681,15 +673,28 @@ const StatCard = ({
   title: string;
   value: string;
 }) => (
-  <div className="bg-gray-700/50 p-3 sm:p-4 rounded-lg flex items-center space-x-3 sm:space-x-4">
-    <div className="text-violet-400">
-      {React.cloneElement(icon as React.ReactElement, {
-        className: "h-5 w-5 sm:h-6 sm:w-6",
-      })}
+  <div>
+    {/* Mobile version - just icon and value */}
+    <div className="sm:hidden flex flex-col items-center">
+      <div className="text-violet-400 mb-1">
+        {React.cloneElement(icon as React.ReactElement, {
+          className: "h-6 w-6",
+        })}
+      </div>
+      <p className="text-base font-bold">{value}</p>
     </div>
-    <div>
-      <p className="text-xs sm:text-sm text-gray-400">{title}</p>
-      <p className="text-lg sm:text-xl font-bold">{value}</p>
+
+    {/* Desktop version - full card */}
+    <div className="hidden sm:flex bg-gray-700/50 p-4 rounded-lg items-center space-x-4">
+      <div className="text-violet-400">
+        {React.cloneElement(icon as React.ReactElement, {
+          className: "h-6 w-6",
+        })}
+      </div>
+      <div>
+        <p className="text-sm text-gray-400">{title}</p>
+        <p className="text-xl font-bold">{value}</p>
+      </div>
     </div>
   </div>
 );
