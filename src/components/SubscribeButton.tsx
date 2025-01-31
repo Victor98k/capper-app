@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { Loader } from "./ui/loader";
 
 interface SubscribeButtonProps {
   capperId: string;
@@ -176,7 +177,7 @@ export function SubscribeButton({
         )}
       >
         {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader size="sm" />
         ) : (
           children || (isSubscribed ? "Unsubscribe" : "Subscribe")
         )}
@@ -205,11 +206,7 @@ export function SubscribeButton({
               disabled={isLoading}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Unsubscribe"
-              )}
+              {isLoading ? <Loader size="sm" /> : "Unsubscribe"}
             </Button>
           </DialogFooter>
         </DialogContent>

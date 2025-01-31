@@ -25,6 +25,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { UserRegistrationData } from "@/types/user";
+import { Loader } from "@/components/ui/loader";
 
 export function Signup() {
   const [firstName, setFirstName] = useState("");
@@ -38,10 +39,12 @@ export function Signup() {
     description: string;
   } | null>(null);
   const [username, setUsername] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     const registrationData: UserRegistrationData = {
       username,
       firstName,
@@ -106,6 +109,8 @@ export function Signup() {
         description:
           "Failed to connect to the server. Please check your connection and try again.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -238,8 +243,8 @@ export function Signup() {
                 </label>
                 {/* TODO Add terms and conditions, link to that. */}
               </div>
-              <Button type="submit" className="w-full">
-                Sign Up
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? <Loader size="sm" /> : "Sign Up"}
               </Button>
             </form>
             <div className="relative">

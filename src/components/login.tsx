@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader } from "@/components/ui/loader";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -26,10 +27,12 @@ export function Login() {
     message: string;
     description: string;
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setAlert(null);
     try {
       const response = await fetch("/api/auth/login", {
@@ -75,6 +78,8 @@ export function Login() {
         message: "Network error",
         description: "An error occurred during login. Please try again.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,8 +175,9 @@ export function Login() {
               <Button
                 type="submit"
                 className="w-full bg-[#4e43ff] text-white hover:bg-[#3d35cc]"
+                disabled={isLoading}
               >
-                Log in
+                {isLoading ? <Loader size="sm" /> : "Log in"}
               </Button>
             </form>
             {/* <div className="relative">

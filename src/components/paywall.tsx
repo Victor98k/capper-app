@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe } from "@stripe/react-stripe-js";
 import { toast } from "sonner";
+import { Loader } from "@/components/ui/loader";
 
 // Initialize Stripe
 const stripePromise = loadStripe(
@@ -87,7 +88,7 @@ function CheckoutButton({
       disabled={isLoading}
     >
       {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader size="sm" />
       ) : (
         `Subscribe ${(product.unit_amount / 100).toFixed(2)}/month`
       )}

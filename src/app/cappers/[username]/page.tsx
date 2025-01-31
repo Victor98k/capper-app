@@ -30,6 +30,7 @@ import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import InstagramPost from "@/components/Posts";
 import { Input } from "@/components/ui/input";
+import { Loader } from "@/components/ui/loader";
 
 type PriceRecurring = {
   interval?: "day" | "week" | "month" | "year" | null;
@@ -228,7 +229,7 @@ export default function CapperProfilePage({
         <SideNav />
         <main className="flex-1 p-8 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-[#4e43ff]" />
+            <Loader size="lg" />
             <p className="text-gray-400">Loading...</p>
           </div>
         </main>
@@ -271,7 +272,7 @@ export default function CapperProfilePage({
             {/* Profile Info Section - Make it more compact on mobile */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
               {/* Avatar - Smaller on mobile */}
-              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32">
+              <Avatar className="h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40">
                 <AvatarImage
                   src={capper?.imageUrl}
                   alt={`${capper?.user?.firstName || ""} ${
@@ -321,8 +322,8 @@ export default function CapperProfilePage({
                   {capper.tags.map((tag) => (
                     <Badge
                       key={tag}
-                      variant="secondary"
-                      className="bg-gray-700 text-gray-300"
+                      variant="outline"
+                      className="bg-[#4e43ff] text-gray-300"
                     >
                       {tag}
                     </Badge>
