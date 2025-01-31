@@ -180,7 +180,7 @@ function InstagramPost({
   }, [capperId, productId]);
 
   return (
-    <Card className="w-full max-w-md bg-gray-900 border-gray-800 flex flex-col mx-auto">
+    <Card className="w-full bg-gray-900 border-gray-800 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-xl">
       {/* Header */}
       <div className="flex items-center justify-between p-2 border-b border-gray-800">
         <div className="flex items-center space-x-2">
@@ -194,18 +194,18 @@ function InstagramPost({
           <div className="flex flex-col sm:block">
             <button
               onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-              className="font-semibold text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
+              className="font-semibold text-sm sm:text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
             >
               {capperInfo.username}
             </button>
             {productName && (
-              <span className="text-[10px] text-[#4e43ff] font-semibold sm:ml-2">
+              <span className="text-xs sm:text-[10px] text-[#4e43ff] font-semibold sm:ml-2">
                 {productName}
               </span>
             )}
           </div>
         </div>
-        <p className="text-[10px] text-gray-400 uppercase">
+        <p className="text-xs sm:text-[10px] text-gray-400 uppercase">
           {new Date(createdAt).toLocaleDateString(undefined, {
             month: "long",
             day: "numeric",

@@ -198,33 +198,17 @@ export function SideNav() {
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden md:block h-screen sticky top-0">
-        <div className="p-6 h-full flex flex-col">
-          <div className="mb-8 flex justify-center">
-            <Image
-              src={logo}
-              alt="Cappers Logo"
-              width={150}
-              height={50}
-              priority
-            />
-          </div>
-          <NavLinks />
-        </div>
-      </aside>
-
-      {/* Mobile Menu */}
-      <div className="lg:hidden fixed top-6 left-6 z-50">
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Menu className="h-5 w-5 text-gray-100" />
             </Button>
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-64 p-6 bg-gray-800 border-gray-700"
+            className="w-64 p-6 bg-gray-900 border-gray-800"
           >
             <div className="mb-8 flex justify-center">
               <Image
@@ -239,6 +223,22 @@ export function SideNav() {
           </SheetContent>
         </Sheet>
       </div>
+
+      {/* Desktop Sidebar */}
+      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden lg:block h-screen sticky top-0">
+        <div className="p-6 h-full flex flex-col">
+          <div className="mb-8 flex justify-center">
+            <Image
+              src={logo}
+              alt="Cappers Logo"
+              width={150}
+              height={50}
+              priority
+            />
+          </div>
+          <NavLinks />
+        </div>
+      </aside>
     </>
   );
 }

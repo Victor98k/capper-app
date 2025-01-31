@@ -74,10 +74,13 @@ function MyCappers() {
   }
 
   return (
-    <div className="w-full px-4 md:max-w-3xl mx-auto">
-      <div className="space-y-4 md:space-y-6 py-4 md:py-6">
+    <div className="w-full mx-auto">
+      <div className="space-y-6 md:space-y-8 py-4">
         {posts.map((post) => (
-          <div key={post._id} className="flex justify-center">
+          <div
+            key={post._id}
+            className="flex justify-center border-b border-gray-800 pb-6 md:pb-8 last:border-b-0 last:pb-0"
+          >
             <Post {...post} />
           </div>
         ))}
