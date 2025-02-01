@@ -25,6 +25,7 @@ import {
   Check,
   Shield,
   User,
+  Calculator,
 } from "lucide-react";
 import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
@@ -112,6 +113,7 @@ export default function CapperProfilePage({
   const [posts, setPosts] = useState<Post[]>([]);
   const [subscribedProducts, setSubscribedProducts] = useState<string[]>([]);
   const [calculatedAmount, setCalculatedAmount] = useState("0.00");
+  const [showROICalculator, setShowROICalculator] = useState(false);
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -313,12 +315,21 @@ export default function CapperProfilePage({
                     )}
                   </div>
 
-                  {/* Subscription Badge */}
-                  {isSubscribed && (
+                  {/* Subscription Status/Button */}
+                  {isSubscribed ? (
                     <div className="flex items-center gap-2 bg-green-500/10 text-green-500 px-3 py-1.5 rounded-full text-sm font-medium">
                       <Check className="h-4 w-4" />
                       Subscribed Member
                     </div>
+                  ) : (
+                    <SubscribeButton
+                      capperId={capper.id}
+                      isSubscribed={isSubscribed}
+                      scrollToBundles={true}
+                      className="bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+                    >
+                      Subscribe
+                    </SubscribeButton>
                   )}
                 </div>
 
@@ -343,7 +354,7 @@ export default function CapperProfilePage({
             </div>
 
             {/* Stats Overview - Stack on mobile */}
-            <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 mt-4 sm:mt-6">
+            <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-6">
               <StatCard
                 icon={<Users />}
                 title="Subscribers"
@@ -351,55 +362,49 @@ export default function CapperProfilePage({
               />
               <StatCard icon={<Trophy />} title="Win Rate" value="67%" />
               <StatCard icon={<TrendingUp />} title="ROI" value="+15.8%" />
+              <StatCard
+                icon={<Calculator />}
+                title="ROI Calculator"
+                value="Calculate"
+                onClick={() => setShowROICalculator(!showROICalculator)}
+                className="cursor-pointer hover:bg-gray-600/50 transition-colors"
+              />
             </div>
 
             {/* ROI Calculator - Simplified on mobile */}
-            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-700/30 rounded-lg">
-              <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">
-                ROI Calculator
-              </h3>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                <div className="w-full sm:w-auto sm:flex-1 max-w-xs">
-                  <Input
-                    type="number"
-                    placeholder="Enter investment amount"
-                    className="bg-gray-800 border-gray-600 text-white text-sm sm:text-base"
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value);
-                      if (!isNaN(value)) {
-                        const roi = value * (1 + 0.158);
-                        setCalculatedAmount(roi.toFixed(2));
-                      } else {
-                        setCalculatedAmount("0.00");
-                      }
-                    }}
-                  />
+            {showROICalculator && (
+              <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-700/30 rounded-lg">
+                <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">
+                  ROI Calculator
+                </h3>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="w-full sm:w-auto sm:flex-1 max-w-xs">
+                    <Input
+                      type="number"
+                      placeholder="Enter investment amount"
+                      className="bg-gray-800 border-gray-600 text-white text-sm sm:text-base"
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value)) {
+                          const roi = value * (1 + 0.158);
+                          setCalculatedAmount(roi.toFixed(2));
+                        } else {
+                          setCalculatedAmount("0.00");
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="text-base sm:text-lg">
+                    <span className="text-gray-400 mr-2">=</span>
+                    <span className="text-green-400">${calculatedAmount}</span>
+                  </div>
                 </div>
-                <div className="text-base sm:text-lg">
-                  <span className="text-gray-400 mr-2">=</span>
-                  <span className="text-green-400">${calculatedAmount}</span>
-                </div>
+                <p className="text-xs sm:text-sm text-gray-400 mt-2">
+                  Calculate your potential returns based on historical ROI of
+                  15.8%
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-gray-400 mt-2">
-                Calculate your potential returns based on historical ROI of
-                15.8%
-              </p>
-            </div>
-
-            {/* Subscribe Button */}
-            <SubscribeButton
-              capperId={capper.id}
-              isSubscribed={isSubscribed}
-              scrollToBundles={true}
-              className={`mt-4 sm:mt-6 w-full sm:w-auto ${
-                isSubscribed
-                  ? "bg-green-500 hover:bg-green-600 cursor-not-allowed"
-                  : "bg-[#4e43ff] hover:bg-[#4e43ff]/90"
-              }`}
-              disabled={isSubscribed}
-            >
-              {isSubscribed ? "Subscribed" : "Subscribe"}
-            </SubscribeButton>
+            )}
           </div>
 
           {/* Tabs Section */}
@@ -739,12 +744,16 @@ const StatCard = ({
   icon,
   title,
   value,
+  onClick,
+  className,
 }: {
   icon: React.ReactNode;
   title: string;
   value: string;
+  onClick?: () => void;
+  className?: string;
 }) => (
-  <div>
+  <div onClick={onClick} className={`cursor-pointer ${className}`}>
     {/* Mobile version - just icon and value */}
     <div className="sm:hidden flex flex-col items-center">
       <div className="text-violet-400 mb-1">
