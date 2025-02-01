@@ -11,6 +11,11 @@ export async function GET(req: Request) {
 
     console.log("Request params:", { capperId, productId });
 
+    console.log("Subscription check request check w capper id wrong?:", {
+      capperId,
+      productId,
+    });
+
     if (!capperId) {
       return NextResponse.json({ error: "Missing capperId" }, { status: 400 });
     }
@@ -36,6 +41,7 @@ export async function GET(req: Request) {
       });
     }
 
+    // get cookies
     const cookies = req.headers.get("cookie");
     const token = cookies
       ?.split(";")

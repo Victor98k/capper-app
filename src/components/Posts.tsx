@@ -149,13 +149,23 @@ function InstagramPost({
             credentials: "include",
           }
         );
+
         if (response.ok) {
           const data = await response.json();
           console.log("Subscription check response:", data);
-          // Only set isSubscribed to true if user is subscribed to this specific product
-          setIsSubscribed(
-            data.isSubscribed && data.subscribedProducts.includes(productId)
-          );
+
+          // Check specifically if we have access to this product
+          const hasAccessToProduct =
+            data.subscribedProducts.includes(productId);
+          setIsSubscribed(hasAccessToProduct);
+
+          // Debug logging
+          console.log("Subscription status:", {
+            isSubscribed: hasAccessToProduct,
+            subscribedProducts: data.subscribedProducts,
+            currentProductId: productId,
+            debug: data.debug,
+          });
         } else {
           console.error("Subscription check failed:", await response.text());
         }
