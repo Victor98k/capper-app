@@ -153,6 +153,7 @@ export default function CapperProfilePage({
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       try {
+        console.log("Checking subscription for capper:", capper?.id);
         const response = await fetch(
           `/api/subscriptions/check?capperId=${capper?.id}`,
           {
@@ -162,8 +163,12 @@ export default function CapperProfilePage({
 
         if (response.ok) {
           const data = await response.json();
+          console.log("Subscription check response:", data);
           setIsSubscribed(data.subscribedProducts.length > 0);
+          setSubscribedProducts(data.subscribedProducts || []);
           setSubscriptionDetails(data.subscriptionDetails);
+        } else {
+          console.error("Subscription check failed:", await response.text());
         }
       } catch (error) {
         console.error("Error checking subscription status:", error);

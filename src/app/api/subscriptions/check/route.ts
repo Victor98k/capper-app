@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyJWT } from "@/utils/jwt";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
 
 export async function GET(req: Request) {
   try {
@@ -9,38 +8,11 @@ export async function GET(req: Request) {
     const capperId = url.searchParams.get("capperId");
     const productId = url.searchParams.get("productId");
 
-    console.log("Request params:", { capperId, productId });
-
-    console.log("Subscription check request check w capper id wrong?:", {
-      capperId,
-      productId,
-    });
-
     if (!capperId) {
       return NextResponse.json({ error: "Missing capperId" }, { status: 400 });
     }
 
-    // First verify the capper exists
-    const capper = await prisma.capper.findUnique({
-      where: {
-        id: capperId,
-      },
-      include: {
-        user: true,
-      },
-    });
-
-    // Push to later deploy.
-
-    if (!capper) {
-      console.log("Capper not found:", capperId);
-      return NextResponse.json({
-        isSubscribed: false,
-        error: "Capper not found",
-      });
-    }
-
-    // get cookies
+    // Get and verify token
     const cookies = req.headers.get("cookie");
     const token = cookies
       ?.split(";")
@@ -48,79 +20,62 @@ export async function GET(req: Request) {
       ?.split("=")[1];
 
     if (!token) {
-      return NextResponse.json({
-        isSubscribed: false,
-        error: "No authentication token",
-      });
+      return NextResponse.json({ isSubscribed: false });
     }
 
-    let payload;
-    try {
-      payload = await verifyJWT(token);
-    } catch (jwtError) {
-      return NextResponse.json({
-        isSubscribed: false,
-        error: "Token verification failed",
-      });
+    const payload = await verifyJWT(token).catch(() => null);
+    if (!payload?.userId) {
+      return NextResponse.json({ isSubscribed: false });
     }
 
-    if (!payload || !payload.userId) {
-      return NextResponse.json({
-        isSubscribed: false,
-        error: "Invalid authentication",
-      });
-    }
-
-    // Check for specific product subscription if productId is provided
-    const subscriptionQuery = {
+    // First, let's find any subscription regardless of status
+    const allSubscriptions = await prisma.subscription.findMany({
       where: {
         userId: payload.userId,
-        capperId: capper.id,
-        status: "active",
-        ...(productId && { productId }), // Only include productId in query if it's provided
-        OR: [
-          { stripeSubscriptionId: { not: null } },
-          {
-            AND: [
-              { stripeSubscriptionId: null },
-              { expiresAt: { gt: new Date() } },
-            ],
-          },
-        ],
+        capperId: capperId,
       },
-    };
+    });
 
-    const subscriptions = await prisma.subscription.findMany(subscriptionQuery);
+    console.log("All found subscriptions:", allSubscriptions);
 
-    // Get all subscribed products for this capper
-    const allSubscribedProducts = await prisma.subscription.findMany({
+    // Then check for active subscriptions
+    const activeSubscriptions = await prisma.subscription.findMany({
       where: {
         userId: payload.userId,
-        capperId: capper.id,
+        capperId: capperId,
         status: "active",
+        ...(productId && { productId }), // Only include productId if provided
       },
-      select: {
-        productId: true,
+    });
+
+    console.log("Active subscriptions:", activeSubscriptions);
+
+    // Log the exact query being used
+    console.log("Query parameters:", {
+      userId: payload.userId,
+      capperId,
+      productId,
+      exactQuery: {
+        userId: payload.userId,
+        capperId: capperId,
+        status: "active",
+        ...(productId && { productId }),
       },
     });
 
     return NextResponse.json({
-      isSubscribed: subscriptions.length > 0,
-      subscribedProducts: allSubscribedProducts.map((sub) => sub.productId),
+      isSubscribed: activeSubscriptions.length > 0,
+      subscribedProducts: activeSubscriptions.map((sub) => sub.productId),
       debug: {
         userId: payload.userId,
-        requestedProduct: productId,
-        subscriptionCount: subscriptions.length,
+        capperId,
+        productId,
+        subscriptionsFound: activeSubscriptions.length,
+        allSubscriptionsFound: allSubscriptions.length,
       },
     });
   } catch (error) {
     console.error("Subscription check error:", error);
-    return NextResponse.json(
-      {
-        isSubscribed: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ isSubscribed: false }, { status: 500 });
   }
 }
