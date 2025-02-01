@@ -21,16 +21,14 @@ export async function GET(req: Request) {
     }
 
     // First verify the capper exists
-    const user = await prisma.user.findUnique({
+    const capper = await prisma.capper.findUnique({
       where: {
-        username: capperId,
+        id: capperId,
       },
       include: {
-        capperProfile: true,
+        user: true,
       },
     });
-
-    const capper = user?.capperProfile;
 
     if (!capper) {
       console.log("Capper not found:", capperId);
