@@ -34,7 +34,6 @@ model User {
 // The cappers should only refer to the username from the user model. 
 model Capper {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  username      String         @unique
   userId        String         @unique @db.ObjectId
   user          User            @relation(fields: [userId], references: [id])
   bio           String?
