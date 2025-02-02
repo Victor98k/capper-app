@@ -28,27 +28,62 @@ export async function GET(req: Request) {
       return NextResponse.json({ isSubscribed: false });
     }
 
+    // At the start of the try block, after getting the payload
+    console.log("Checking subscriptions for:", {
+      authenticatedUserId: payload?.userId,
+      requestedCapperId: capperId,
+      requestedProductId: productId,
+      tokenPresent: !!token,
+    });
+
     // First, let's find any subscription regardless of status
     const allSubscriptions = await prisma.subscription.findMany({
       where: {
         userId: payload.userId,
         capperId: capperId,
+        ...(productId && { productId }),
       },
     });
 
-    console.log("All found subscriptions:", allSubscriptions);
+    // Log ALL found subscriptions with full details
+    console.log(
+      "All found subscriptions (raw):",
+      JSON.stringify(allSubscriptions, null, 2)
+    );
 
-    // Then check for active subscriptions
+    // Then check for active subscriptions with detailed logging
+    console.log("Searching for active subscriptions with criteria:", {
+      userId: payload.userId,
+      capperId: capperId,
+      status: "active",
+      productIdFilter: productId ? { productId } : "none",
+    });
+
     const activeSubscriptions = await prisma.subscription.findMany({
       where: {
         userId: payload.userId,
         capperId: capperId,
         status: "active",
-        ...(productId && { productId }), // Only include productId if provided
+        ...(productId && { productId }),
+      },
+      include: {
+        capper: {
+          include: {
+            user: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    console.log("Active subscriptions:", activeSubscriptions);
+    // Log the active subscriptions found
+    console.log(
+      "Active subscriptions found:",
+      JSON.stringify(activeSubscriptions, null, 2)
+    );
 
     // Log the exact query being used
     console.log("Query parameters:", {
@@ -63,6 +98,9 @@ export async function GET(req: Request) {
       },
     });
 
+    // Add debug log for the current date
+    console.log("Current date for comparison:", new Date().toISOString());
+
     return NextResponse.json({
       isSubscribed: activeSubscriptions.length > 0,
       subscribedProducts: activeSubscriptions.map((sub) => sub.productId),
@@ -72,6 +110,14 @@ export async function GET(req: Request) {
         productId,
         subscriptionsFound: activeSubscriptions.length,
         allSubscriptionsFound: allSubscriptions.length,
+        activeSubscriptions: activeSubscriptions.map((sub) => ({
+          id: sub.id,
+          status: sub.status,
+          subscribedAt: sub.subscribedAt,
+          expiresAt: sub.expiresAt,
+          cancelledAt: sub.cancelledAt,
+          capperUsername: sub.capper.user.username,
+        })),
       },
     });
   } catch (error) {

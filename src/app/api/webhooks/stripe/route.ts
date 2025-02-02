@@ -78,6 +78,12 @@ export async function POST(req: Request) {
       case "customer.subscription.updated": {
         const subscription = event.data.object;
 
+        console.log("Webhook subscription event:", {
+          type: event.type,
+          subscriptionId: subscription.id,
+          status: subscription.status,
+        });
+
         // Update subscription status in database
         await prisma.subscription.updateMany({
           where: {
@@ -85,6 +91,9 @@ export async function POST(req: Request) {
           },
           data: {
             status: subscription.status === "active" ? "active" : "inactive",
+            ...(subscription.status !== "active" && {
+              cancelledAt: new Date(),
+            }),
           },
         });
 
