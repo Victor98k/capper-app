@@ -52,12 +52,20 @@ export function CapperDashboard() {
   // Modify the checkStripeStatus function to be reusable
   const checkStripeStatus = async () => {
     try {
-      const token = localStorage.getItem("token");
+      // Remove localStorage check since we're using cookies now
       const response = await fetch("/api/stripe/connect", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
+        // Add credentials to include cookies in the request
+        credentials: "include",
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Stripe connect error:", errorData);
+        throw new Error(errorData.error || "Failed to fetch Stripe status");
+      }
 
       const data = await response.json();
       setStripeStatus({
@@ -65,7 +73,7 @@ export function CapperDashboard() {
         isLoading: false,
       });
 
-      console.log("Stripe status check:", data); // Debug log
+      console.log("Stripe status check:", data);
     } catch (error) {
       console.error("Failed to fetch Stripe status:", error);
       setStripeStatus({
@@ -77,10 +85,11 @@ export function CapperDashboard() {
 
   // Check Stripe status on initial load
   useEffect(() => {
-    if (user?.isCapper) {
+    if (user?.isCapper && !loading) {
+      console.log("Checking Stripe status for capper:", user.id);
       checkStripeStatus();
     }
-  }, [user]);
+  }, [user, loading]);
 
   // Add another useEffect to handle the success parameter
   useEffect(() => {

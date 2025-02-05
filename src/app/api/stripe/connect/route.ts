@@ -5,7 +5,15 @@ import { verifyJWT } from "@/utils/jwt";
 
 export async function POST(req: Request) {
   try {
-    const token = req.headers.get("authorization")?.split(" ")[1];
+    // Update token extraction to use cookies here too
+    const cookies = req.headers.get("cookie");
+    const cookiesArray =
+      cookies?.split(";").map((cookie) => cookie.trim()) || [];
+    const tokenCookie = cookiesArray.find((cookie) =>
+      cookie.startsWith("token=")
+    );
+    const token = tokenCookie?.split("=")[1];
+
     if (!token) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
@@ -103,7 +111,15 @@ export async function POST(req: Request) {
 // Add endpoint to check onboarding status
 export async function GET(req: Request) {
   try {
-    const token = req.headers.get("authorization")?.split(" ")[1];
+    // Update token extraction to use cookies instead of Authorization header
+    const cookies = req.headers.get("cookie");
+    const cookiesArray =
+      cookies?.split(";").map((cookie) => cookie.trim()) || [];
+    const tokenCookie = cookiesArray.find((cookie) =>
+      cookie.startsWith("token=")
+    );
+    const token = tokenCookie?.split("=")[1];
+
     if (!token) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }

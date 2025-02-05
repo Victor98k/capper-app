@@ -15,21 +15,13 @@ export default function StripeConnectOnboarding({
   const startOnboarding = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-
-      console.log("Token:", token); // Debug line
 
       const response = await fetch("/api/stripe/connect", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -52,18 +44,14 @@ export default function StripeConnectOnboarding({
   const openStripeDashboard = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
 
       const response = await fetch("/api/stripe/connect", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
+        credentials: "include",
       });
+
       const data = await response.json();
 
       if (data.url) {

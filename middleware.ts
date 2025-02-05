@@ -1,21 +1,30 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifyJWT } from "@/utils/jwt";
 
-export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
+export async function middleware(request: NextRequest) {
+  // Get token from cookies
+  const token = request.cookies.get("token")?.value;
 
-  // Add security headers
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=()"
-  );
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
-  );
+  if (!token) {
+    return NextResponse.json({ error: "No token provided" }, { status: 401 });
+  }
 
-  return response;
+  try {
+    const payload = await verifyJWT(token);
+    if (!payload) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+    return NextResponse.next();
+  } catch (error) {
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+  }
 }
+
+export const config = {
+  matcher: [
+    "/api/stripe/connect/:path*",
+    "/api/stripe/products/:path*",
+    "/api/stripe/:path*",
+  ],
+};

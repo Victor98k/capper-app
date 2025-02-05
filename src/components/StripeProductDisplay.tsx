@@ -27,7 +27,7 @@ interface Product {
     currency: string;
     type: "one_time" | "recurring";
   };
-  marketing_features: string[];
+  features: Array<{ name: string }>;
 }
 
 const MAX_PRODUCTS = 3;
@@ -40,22 +40,27 @@ export default function StripeProductDisplay() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await fetch("/api/stripe/products", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         });
 
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Products fetch error:", errorData);
+          throw new Error(errorData.error || "Failed to fetch products");
+        }
+
         const data = await response.json();
-        // Take only the first 3 products if somehow more are returned
-        setProducts(data.slice(0, MAX_PRODUCTS));
-        setError(null);
+        if (!Array.isArray(data)) {
+          console.error("Expected array but got:", data);
+          setProducts([]);
+          return;
+        }
+
+        setProducts(data);
       } catch (error) {
         console.error("Failed to fetch products:", error);
-        setError(
-          error instanceof Error ? error.message : "Failed to fetch products"
-        );
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -220,15 +225,15 @@ export default function StripeProductDisplay() {
                   )}
                 </div>
                 <ul className="mt-8 space-y-4">
-                  {Array.isArray(product.marketing_features) &&
-                  product.marketing_features.length > 0 ? (
-                    product.marketing_features.map((feature, index) => (
+                  {Array.isArray(product.features) &&
+                  product.features.length > 0 ? (
+                    product.features.map((feature, index) => (
                       <li key={index} className="flex items-start">
                         <div className="flex-shrink-0">
                           <Check className="h-6 w-6 text-green-400" />
                         </div>
                         <p className="ml-3 text-base text-gray-300">
-                          {feature}
+                          {feature.name}
                         </p>
                       </li>
                     ))

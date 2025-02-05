@@ -1,21 +1,29 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { verifyJWT } from "@/utils/jwt";
 import { prisma } from "@/lib/prisma";
-import type Stripe from "stripe";
+import { verifyJWT } from "@/utils/jwt";
 
-export async function GET(request: Request) {
+export async function GET(req: Request) {
   try {
-    const token = request.headers.get("authorization")?.split(" ")[1];
+    // Get token from cookies
+    const cookies = req.headers.get("cookie");
+    const cookiesArray =
+      cookies?.split(";").map((cookie) => cookie.trim()) || [];
+    const tokenCookie = cookiesArray.find((cookie) =>
+      cookie.startsWith("token=")
+    );
+    const token = tokenCookie?.split("=")[1];
+
     if (!token) {
       return NextResponse.json({ error: "No token provided" }, { status: 401 });
     }
 
     const payload = await verifyJWT(token);
-    if (!payload || !payload.userId) {
+    if (!payload?.userId) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
+    // Get the user's Stripe Connect ID
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       select: { stripeConnectId: true },
@@ -28,67 +36,28 @@ export async function GET(request: Request) {
       );
     }
 
-    try {
-      const products = await stripe.products.list(
-        {
-          active: true,
-          expand: ["data.default_price"],
-          limit: 3,
-        },
-        {
-          stripeAccount: user.stripeConnectId,
-        }
-      );
+    // Fetch products for this connected account
+    const products = await stripe.products.list(
+      { active: true, expand: ["data.default_price"] },
+      { stripeAccount: user.stripeConnectId }
+    );
 
-      console.log("Raw products data:", JSON.stringify(products.data, null, 2));
+    // Transform the products data
+    const transformedProducts = products.data.map((product) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      default_price: product.default_price,
+      unit_amount: (product.default_price as any)?.unit_amount,
+      currency: (product.default_price as any)?.currency,
+      features: product.marketing_features || [],
+    }));
 
-      // Transform the products to include price information
-      const transformedProducts = products.data.map((product) => {
-        const price = product.default_price as Stripe.Price;
-        let marketing_features = [];
-
-        // Extract marketing features from the product
-        if (Array.isArray(product.marketing_features)) {
-          marketing_features = product.marketing_features.map(
-            (feature: any) => feature.name
-          );
-        }
-
-        // Fallback if no marketing features are found
-        if (!marketing_features || marketing_features.length === 0) {
-          marketing_features = [
-            `Access to all ${product.name} picks`,
-            "Daily expert predictions",
-            "Performance tracking",
-            "Real-time updates",
-            "Expert analysis",
-          ];
-        }
-
-        return {
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          default_price: {
-            id: price?.id,
-            recurring: price?.recurring,
-            unit_amount: price?.unit_amount || 0,
-            currency: price?.currency || "usd",
-            type: price?.type || "one_time",
-          },
-          marketing_features: marketing_features,
-        };
-      });
-
-      return NextResponse.json(transformedProducts);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      throw error;
-    }
+    return NextResponse.json(transformedProducts);
   } catch (error) {
-    console.error("Error in products route:", error);
+    console.error("Error fetching products:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to fetch products" },
       { status: 500 }
     );
   }
