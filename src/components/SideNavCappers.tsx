@@ -129,15 +129,6 @@ export function SideNav() {
           <TicketIcon className="h-5 w-5 mr-3" />
           My Posts
         </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/Analytics")}
-        >
-          <BarChart3 className="h-5 w-5 mr-3" />
-          Analytics
-        </Button>
 
         <Button
           variant="ghost"

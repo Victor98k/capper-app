@@ -24,6 +24,14 @@ import {
 
 import Post from "@/components/Posts";
 import CapperDashboard from "@/components/capperDashboard";
+import Cropper from "react-easy-crop";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 // Add type for product
 interface Product {
@@ -49,6 +57,10 @@ function NewPostPage() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [showCropper, setShowCropper] = useState(false);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   const handleLogout = async () => {
     try {
@@ -77,6 +89,7 @@ function NewPostPage() {
       setImage(file);
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
+      setShowCropper(true);
     }
   };
 
@@ -141,9 +154,13 @@ function NewPostPage() {
     try {
       // Validate required fields
       if (!title || !content || !selectedProduct) {
-        alert("Title, content, and bundle selection are required");
+        toast.error("Please fill in all required fields", {
+          description: "Title, content, and bundle selection are required",
+        });
         return;
       }
+
+      toast.loading("Creating your post...");
 
       // Get username from localStorage
       const username = localStorage.getItem("username") || "";
@@ -181,15 +198,18 @@ function NewPostPage() {
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
+      toast.success("Post created successfully!", {
+        description: "Your post is now live and visible to your subscribers",
+      });
+
       console.log("Post created successfully:", data);
       router.push("/home-capper");
     } catch (error) {
       console.error("Failed to create post:", error);
-      alert(
-        `Error creating post: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      toast.error("Failed to create post", {
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      });
     }
   };
 
@@ -256,6 +276,63 @@ function NewPostPage() {
     fetchUserAvatar();
   }, []);
 
+  const onCropComplete = useCallback(
+    (croppedArea: any, croppedAreaPixels: any) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
+
+  const createCroppedImage = async () => {
+    try {
+      if (!imagePreview || !croppedAreaPixels) return;
+
+      const canvas = document.createElement("canvas");
+      const image = new Image();
+      image.src = imagePreview;
+
+      await new Promise((resolve) => {
+        image.onload = resolve;
+      });
+
+      canvas.width = croppedAreaPixels.width;
+      canvas.height = croppedAreaPixels.height;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) return;
+
+      ctx.drawImage(
+        image,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
+        0,
+        0,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height
+      );
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, "image/jpeg");
+      });
+
+      // Create new file from blob
+      const croppedFile = new File([blob], "cropped-post.jpg", {
+        type: "image/jpeg",
+      });
+
+      setImage(croppedFile);
+      setImagePreview(URL.createObjectURL(croppedFile));
+      setShowCropper(false);
+    } catch (error) {
+      console.error("Error cropping image:", error);
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -269,33 +346,13 @@ function NewPostPage() {
     <div className="flex min-h-screen bg-gray-100">
       <SideNav />
       <div className="flex-1">
-        <header className="bg-white shadow pl-16 lg:pl-0">
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Create New Post
-            </h1>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <MessageSquare className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
-              <Button variant="destructive" onClick={handleLogout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-        </header>
-
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Create a New Post</CardTitle>
+                <CardTitle className="text-4xl font-bold">
+                  Create a New Post
+                </CardTitle>
                 <CardDescription>
                   Share your insights and predictions with your subscribers
                 </CardDescription>
@@ -418,18 +475,55 @@ function NewPostPage() {
                       </div>
                     ) : (
                       <div className="mt-2 relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="max-w-xs h-auto rounded-md"
-                        />
-                        <button
-                          onClick={handleRemoveImage}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                          type="button"
-                        >
-                          ×
-                        </button>
+                        {showCropper ? (
+                          <Dialog
+                            open={showCropper}
+                            onOpenChange={setShowCropper}
+                          >
+                            <DialogContent className="sm:max-w-[600px]">
+                              <DialogHeader>
+                                <DialogTitle>Adjust Image</DialogTitle>
+                              </DialogHeader>
+                              <div className="relative w-full h-[400px]">
+                                <Cropper
+                                  image={imagePreview}
+                                  crop={crop}
+                                  zoom={zoom}
+                                  aspect={16 / 9}
+                                  onCropChange={setCrop}
+                                  onZoomChange={setZoom}
+                                  onCropComplete={onCropComplete}
+                                />
+                              </div>
+                              <div className="flex justify-end space-x-2">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setShowCropper(false)}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button onClick={createCroppedImage}>
+                                  Save Crop
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="max-w-xs h-auto rounded-md"
+                            />
+                            <button
+                              onClick={handleRemoveImage}
+                              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                              type="button"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -532,7 +626,12 @@ function NewPostPage() {
                     <Button variant="outline" onClick={() => router.back()}>
                       Cancel
                     </Button>
-                    <Button onClick={handleSubmit}>Create Post</Button>
+                    <Button
+                      onClick={handleSubmit}
+                      className="px-8 py-6 text-lg bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+                    >
+                      Create Post
+                    </Button>
                   </div>
                 </div>
               </CardContent>

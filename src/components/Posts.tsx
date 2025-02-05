@@ -147,7 +147,7 @@ function InstagramPost({
   useEffect(() => {
     const checkSubscription = async () => {
       try {
-        console.log("Checking subscription for post:", { capperId, productId });
+        // console.log("Checking subscription for post:", { capperId, productId });
         const response = await fetch(
           `/api/subscriptions/check?capperId=${capperId}&productId=${productId}`,
           {
@@ -165,12 +165,12 @@ function InstagramPost({
           setIsSubscribed(hasAccessToProduct);
 
           // Debug logging
-          console.log("Subscription status:", {
-            isSubscribed: hasAccessToProduct,
-            subscribedProducts: data.subscribedProducts,
-            currentProductId: productId,
-            debug: data.debug,
-          });
+          // console.log("Subscription status:", {
+          //   isSubscribed: hasAccessToProduct,
+          //   subscribedProducts: data.subscribedProducts,
+          //   currentProductId: productId,
+          //   debug: data.debug,
+          // });
         } else {
           console.error("Subscription check failed:", await response.text());
         }
@@ -203,7 +203,7 @@ function InstagramPost({
           <div className="flex flex-col sm:block">
             <button
               onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-              className="font-semibold text-sm sm:text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
+              className="font-semibold text-2xl sm:text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
             >
               {capperInfo.username}
             </button>
@@ -222,8 +222,8 @@ function InstagramPost({
         </p>
       </div>
 
-      {/* Image container */}
-      <div className="relative w-full h-68 md:h-96 overflow-hidden rounded-lg mb-4">
+      {/* Image container - make it taller */}
+      <div className="relative w-full h-56 md:h-[32rem] lg:h-[36rem] overflow-hidden rounded-lg mb-4">
         {imageUrl ? (
           <Image
             src={imageUrl}

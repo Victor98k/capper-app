@@ -87,34 +87,55 @@ export default function StripeConnectOnboarding({
 
   if (isOnboarded) {
     return (
-      <div className="p-6 bg-gray-900/50 rounded-xl border border-green-500/20">
-        <div className="flex items-center gap-3 mb-4">
-          <CheckCircle className="h-8 w-8 text-green-500" />
-          <h3 className="text-2xl font-semibold text-white">
-            Stripe Account Connected
-          </h3>
-        </div>
+      <>
+        <div className="p-6 bg-gray-800 rounded-xl border border-green-500/20">
+          <div className="flex items-center gap-3 mb-4">
+            <CheckCircle className="h-8 w-8 text-green-500" />
+            <h3 className="text-2xl font-semibold text-white">
+              Stripe Account Connected
+            </h3>
+          </div>
 
-        <p className="text-lg text-gray-300 mb-6">
-          Your Stripe account is connected and ready to receive payments. You
-          can now start accepting subscriptions from users.
-        </p>
-        <Button
-          onClick={openStripeDashboard}
-          variant="outline"
-          className="flex items-center gap-2 text-lg"
-          disabled={loading}
-        >
-          {loading ? (
-            "Opening dashboard..."
-          ) : (
-            <>
-              <ExternalLink className="h-4 w-4" />
-              View Stripe Dashboard
-            </>
-          )}
-        </Button>
-      </div>
+          <div className="space-y-4">
+            <p className="text-lg text-gray-300">
+              Your Stripe account is connected and ready to receive payments.
+              You can now:
+            </p>
+
+            <ul className="list-disc list-inside text-gray-300 ml-2 space-y-2">
+              <li>View your earnings and payment history</li>
+              <li>Track your active subscribers</li>
+              <li>Manage your payout settings</li>
+              <li>Access detailed analytics and reports</li>
+            </ul>
+
+            <div className="bg-gray-700/50 p-4 rounded-lg mt-6">
+              <h4 className="text-white font-medium mb-2">
+                Manage Your Business with Stripe Dashboard
+              </h4>
+              <p className="text-gray-300 mb-4">
+                Access your full Stripe dashboard to manage subscriptions, view
+                detailed analytics, and handle payouts all in one place.
+              </p>
+              <Button
+                onClick={openStripeDashboard}
+                variant="outline"
+                className="flex items-center gap-2 text-lg"
+                disabled={loading}
+              >
+                {loading ? (
+                  "Opening dashboard..."
+                ) : (
+                  <>
+                    <ExternalLink className="h-4 w-4" />
+                    View Stripe Dashboard
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
