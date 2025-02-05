@@ -21,7 +21,7 @@ interface PostProps {
   _id: string;
   title: string;
   content: string;
-  imageUrl: string;
+  imageUrl?: string;
   odds: string[];
   bets: string[];
   tags: string[];
@@ -193,6 +193,7 @@ function InstagramPost({
             <AvatarImage
               src={capperInfo.profileImage || ""}
               alt={capperInfo.username}
+              sizes="28px"
             />
             <AvatarFallback className="bg-violet-600 text-white text-xs">
               {capperInfo.firstName[0]}
@@ -222,25 +223,38 @@ function InstagramPost({
       </div>
 
       {/* Image container */}
-      <div className="relative w-full h-48 md:h-64 overflow-hidden rounded-lg mb-4">
+      <div className="relative w-full h-68 md:h-96 overflow-hidden rounded-lg mb-4">
         {imageUrl ? (
-          <Image src={imageUrl} alt={title} fill className="object-cover" />
+          <Image
+            src={imageUrl}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
         ) : (
-          fallbackImage && (
-            <div className="w-full h-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-20 h-20 rounded-full overflow-hidden relative">
-                  <Image
-                    src={fallbackImage.profileImage || "/default-avatar.png"}
-                    alt="Capper avatar"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <span className="text-4xl">{fallbackImage.emoji}</span>
+          <div className="w-full h-full bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-6">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden relative shadow-lg">
+                <Image
+                  src={
+                    fallbackImage?.profileImage ||
+                    capperInfo.profileImage ||
+                    "/default-avatar.png"
+                  }
+                  alt="Capper avatar"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 128px, 160px"
+                />
               </div>
+              <span className="text-5xl md:text-6xl">
+                {fallbackImage?.emoji ||
+                  (tags[0] && sportEmojiMap[tags[0]]) ||
+                  "⚽"}
+              </span>
             </div>
-          )
+          </div>
         )}
       </div>
 
