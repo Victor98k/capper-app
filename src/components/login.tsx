@@ -66,7 +66,7 @@ export function Login() {
       localStorage.setItem("userLastName", data.lastName);
       localStorage.setItem("userEmail", data.email);
       localStorage.setItem("username", data.username);
-      localStorage.setItem("token", data.token);
+      // localStorage.setItem("token", data.token);
 
       setTimeout(() => {
         router.push("/home");

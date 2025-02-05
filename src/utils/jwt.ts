@@ -4,8 +4,9 @@ import * as Jose from "jose";
 // Why is the type any?
 export type JWTUserPayload = {
   userId: string;
-  [key: string]: any; // index signature, allows the object to have any additional properties with string keys.
-  // Använts
+  iat?: number;
+  exp?: number;
+  // Add specific allowed fields instead of [key: string]: any
 };
 
 // Ifall inte JWT Secret finns så kastar vi ett error.
@@ -21,22 +22,16 @@ const encodedSecret = new TextEncoder().encode(secret);
 // Then we return the new payload thats signed thorigh JOSE.
 export async function signJWT(payload: JWTUserPayload): Promise<string> {
   try {
-    if (!payload || typeof payload !== "object") {
-      throw new Error("Invalid JWT payload");
+    if (!payload?.userId) {
+      throw new Error("Invalid payload: userId is required");
     }
 
-    // Ensure payload is a plain object
-    const sanitizedPayload = {
-      ...payload,
-      userId: payload.userId.toString(), // Ensure userId is a string
-    };
-
-    console.log("Signing JWT with payload:", sanitizedPayload); // Debug line
-
-    return await new Jose.SignJWT(sanitizedPayload)
+    return await new Jose.SignJWT(payload)
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
       .setExpirationTime("1d")
+      .setNotBefore(0) // Add not-before claim
+      .setIssuer("your-app-name") // Add issuer
       .sign(encodedSecret);
   } catch (error) {
     console.error("Error signing JWT:", error);
