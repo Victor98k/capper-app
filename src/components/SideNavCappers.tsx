@@ -24,6 +24,7 @@ export function SideNav() {
   const { user } = useAuth();
   const router = useRouter();
   const [isCapper, setIsCapper] = useState<boolean>(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Fetch cappers to check status
   useEffect(() => {
@@ -54,6 +55,27 @@ export function SideNav() {
     }
   }, [user?.email]);
 
+  // Add this effect to fetch profile image
+  useEffect(() => {
+    const fetchCapperProfile = async () => {
+      if (!user?.id) return;
+      try {
+        const response = await fetch("/api/cappers");
+        const data = await response.json();
+        console.log("Capper data:", data);
+        const capperData = data.find((c: any) => c.userId === user.id);
+        console.log("Found capper:", capperData);
+        if (capperData?.profileImage) {
+          setProfileImage(capperData.profileImage);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchCapperProfile();
+  }, [user?.id]);
+
   // Handle the Logout
   const handleLogout = async () => {
     try {
@@ -65,90 +87,107 @@ export function SideNav() {
   };
 
   // NavLinks component
-  const NavLinks = () => (
-    <nav className="space-y-4">
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/home-capper")}
-      >
-        <Home className="h-5 w-5 mr-3" />
-        Home Dashboard
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/New-post")}
-      >
-        <Compass className="h-5 w-5 mr-3" />
-        Add new post
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/profile")}
-      >
-        <Heart className="h-5 w-5 mr-3" />
-        Profile info
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/My-bets")}
-      >
-        <TicketIcon className="h-5 w-5 mr-3" />
-        My Posts
-      </Button>
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/Analytics")}
-      >
-        <BarChart3 className="h-5 w-5 mr-3" />
-        Analytics
-      </Button>
+  const NavLinks = () => {
+    const storedUsername =
+      typeof window !== "undefined" ? localStorage.getItem("username") : null;
 
-      <Button
-        variant="ghost"
-        className="w-full justify-start"
-        size="lg"
-        onClick={() => router.push("/Settings")}
-      >
-        <Settings className="h-5 w-5 mr-3" />
-        Settings
-      </Button>
-
-      <div className="pt-4 border-t border-gray-700">
-        <div className="flex items-center space-x-3 mb-4">
-          <Avatar>
-            <AvatarFallback>UN</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="text-sm font-medium">"Username here"</p>
-          </div>
-        </div>
+    return (
+      <nav className="space-y-4">
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/home-capper")}
+        >
+          <Home className="h-5 w-5 mr-3" />
+          Home Dashboard
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/New-post")}
+        >
+          <Compass className="h-5 w-5 mr-3" />
+          Add new post
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/profile")}
+        >
+          <Heart className="h-5 w-5 mr-3" />
+          Profile info
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/My-bets")}
+        >
+          <TicketIcon className="h-5 w-5 mr-3" />
+          My Posts
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/Analytics")}
+        >
+          <BarChart3 className="h-5 w-5 mr-3" />
+          Analytics
+        </Button>
 
         <Button
-          variant="secondary"
-          onClick={() => router.push("/home")}
-          className="w-full mb-2"
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/Settings")}
         >
-          <Home className="h-5 w-5 mr-2" />
-          Main Home
+          <Settings className="h-5 w-5 mr-3" />
+          Settings
         </Button>
 
-        <Button variant="destructive" onClick={handleLogout} className="w-full">
-          <LogOut className="h-5 w-5 mr-2" />
-          Logout
-        </Button>
-      </div>
-    </nav>
-  );
+        <div className="pt-4 border-t border-gray-700">
+          <div className="flex items-center space-x-3 mb-4">
+            <Avatar>
+              <AvatarImage
+                src={profileImage || ""}
+                alt={user?.firstName || "User"}
+              />
+              <AvatarFallback className="bg-[#4e43ff] text-base">
+                {user?.firstName?.charAt(0)?.toUpperCase() || "UN"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <p className="text-sm font-medium">
+                {storedUsername || user?.username}
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="secondary"
+            onClick={() => router.push("/home")}
+            className="w-full mb-2"
+          >
+            <Home className="h-5 w-5 mr-2" />
+            Main Home
+          </Button>
+
+          <Button
+            variant="destructive"
+            onClick={handleLogout}
+            className="w-full"
+          >
+            <LogOut className="h-5 w-5 mr-2" />
+            Logout
+          </Button>
+        </div>
+      </nav>
+    );
+  };
 
   return (
     <>

@@ -50,6 +50,7 @@ type CapperProfile = {
   bio?: string;
   title?: string;
   imageUrl?: string;
+  profileImage?: string;
   tags: string[];
   subscriberIds: string[];
   socialLinks?: Record<string, string>;
@@ -281,7 +282,7 @@ export default function CapperProfilePage({
               {/* Avatar - Smaller on mobile */}
               <Avatar className="h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40">
                 <AvatarImage
-                  src={capper?.imageUrl}
+                  src={capper?.profileImage || capper?.imageUrl || ""}
                   alt={`${capper?.user?.firstName || ""} ${
                     capper?.user?.lastName || ""
                   }`}
@@ -542,7 +543,7 @@ export default function CapperProfilePage({
                     firstName: capper.user.firstName,
                     lastName: capper.user.lastName,
                     username: capper.user.username,
-                    imageUrl: capper.imageUrl,
+                    profileImage: capper.profileImage,
                     isVerified: true,
                   }}
                 />
@@ -587,7 +588,7 @@ export default function CapperProfilePage({
                       firstName: capper.user.firstName,
                       lastName: capper.user.lastName,
                       username: capper.user.username,
-                      imageUrl: capper.imageUrl,
+                      profileImage: capper.profileImage,
                       isVerified: true,
                     }}
                   />

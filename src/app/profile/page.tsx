@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
+import Cropper from "react-easy-crop";
 
 import {
   Card,
@@ -14,7 +15,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import DisplayCapperCard from "@/components/displayCapperCard";
 import { SideNav } from "@/components/SideNavCappers";
-import StripeConnectOnboarding from "@/components/StripeConnectOnboarding";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +22,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import StripeProductDisplay from "@/components/StripeProductDisplay";
 
 // Create a separate component for the parts that use useSearchParams
 function CapperProfileContent() {
+  // 1. First all the context hooks
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 2. All useState hooks together
   const [bio, setBio] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
@@ -38,10 +41,138 @@ function CapperProfileContent() {
     isOnboarded: false,
     isLoading: true,
   });
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
+    null
+  );
+  const [isDragging, setIsDragging] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [showCropper, setShowCropper] = useState(false);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+  // 3. All useCallback hooks together
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setProfileImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImagePreview(previewUrl);
+    }
+  }, []);
+
+  const onCropComplete = useCallback(
+    (croppedArea: any, croppedAreaPixels: any) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
 
   // Add searchParams to check for success parameter
-  const searchParams = useSearchParams();
   const success = searchParams.get("success");
+
+  // 4. All useEffect hooks together
+  useEffect(() => {
+    if (user?.isCapper) {
+      checkStripeStatus();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (success === "true" && user?.isCapper) {
+      checkStripeStatus();
+    }
+  }, [success, user]);
+
+  useEffect(() => {
+    const fetchCapperProfile = async () => {
+      if (user?.id) {
+        try {
+          const response = await fetch("/api/cappers");
+          const data = await response.json();
+          const capperData = data.find((c: any) => c.userId === user.id);
+          if (capperData) {
+            setBio(capperData.bio || "");
+            setTags(capperData.tags || []);
+            setUsername(capperData.user.username || "");
+          }
+        } catch (error) {
+          console.error("Failed to fetch capper profile:", error);
+        }
+      }
+    };
+
+    fetchCapperProfile();
+  }, [user?.id]);
+
+  // Regular function handlers can go after the hooks
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImagePreview(previewUrl);
+      setShowCropper(true);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setProfileImage(null);
+    setProfileImagePreview(null);
+  };
+
+  const handleProfileImageUpdate = async () => {
+    try {
+      if (!profileImage || !user?.id) return;
+
+      const formData = new FormData();
+      formData.append("profileImage", profileImage);
+      formData.append("userId", user.id);
+
+      const response = await fetch("/api/cappers/profile-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile image");
+      }
+
+      const data = await response.json();
+
+      // Update the preview with the new image URL
+      setProfileImagePreview(data.imageUrl);
+
+      // Clear the file input
+      setProfileImage(null);
+
+      console.log("Profile image updated successfully:", data);
+    } catch (error) {
+      console.error("Failed to update profile image:", error);
+      alert("Failed to update profile image. Please try again.");
+    }
+  };
 
   // Modify the checkStripeStatus function to be reusable
   const checkStripeStatus = async () => {
@@ -68,45 +199,6 @@ function CapperProfileContent() {
       });
     }
   };
-
-  // Check Stripe status on initial load
-  useEffect(() => {
-    if (user?.isCapper) {
-      checkStripeStatus();
-    }
-  }, [user]);
-
-  // Add another useEffect to handle the success parameter
-  useEffect(() => {
-    if (success === "true" && user?.isCapper) {
-      console.log(
-        "Detected successful Stripe onboarding, rechecking status..."
-      );
-      checkStripeStatus();
-    }
-  }, [success, user]);
-
-  // Update useEffect to fetch tags as well
-  useEffect(() => {
-    const fetchCapperProfile = async () => {
-      if (user?.id) {
-        try {
-          const response = await fetch("/api/cappers");
-          const data = await response.json();
-          const capperData = data.find((c: any) => c.userId === user.id);
-          if (capperData) {
-            setBio(capperData.bio || "");
-            setTags(capperData.tags || []);
-            setUsername(capperData.user.username || "");
-          }
-        } catch (error) {
-          console.error("Failed to fetch capper profile:", error);
-        }
-      }
-    };
-
-    fetchCapperProfile();
-  }, [user?.id]);
 
   // Show loading state
   if (loading) {
@@ -238,6 +330,56 @@ function CapperProfileContent() {
     }
   };
 
+  const createCroppedImage = async () => {
+    try {
+      if (!profileImagePreview || !croppedAreaPixels) return;
+
+      const canvas = document.createElement("canvas");
+      const image = new Image();
+      image.src = profileImagePreview;
+
+      await new Promise((resolve) => {
+        image.onload = resolve;
+      });
+
+      canvas.width = croppedAreaPixels.width;
+      canvas.height = croppedAreaPixels.height;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) return;
+
+      ctx.drawImage(
+        image,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
+        0,
+        0,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height
+      );
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, "image/jpeg");
+      });
+
+      // Create new file from blob
+      const croppedFile = new File([blob], "cropped-profile.jpg", {
+        type: "image/jpeg",
+      });
+
+      setProfileImage(croppedFile);
+      setProfileImagePreview(URL.createObjectURL(croppedFile));
+      setShowCropper(false);
+    } catch (error) {
+      console.error("Error cropping image:", error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <SideNav />
@@ -339,6 +481,123 @@ function CapperProfileContent() {
                       onClick={() => setIsEditingUsername(true)}
                     >
                       Edit Username
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Profile Picture</CardTitle>
+                <CardDescription>
+                  Add or update your profile picture
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!profileImagePreview ? (
+                  <div
+                    className={`w-40 h-40 border-2 border-dashed rounded-full mx-auto cursor-pointer transition-colors
+                      ${
+                        isDragging
+                          ? "border-[#4e43ff] bg-[#4e43ff]/10"
+                          : "border-gray-300 hover:border-[#4e43ff]"
+                      }`}
+                    onDragEnter={handleDragEnter}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() =>
+                      document.getElementById("profileImageInput")?.click()
+                    }
+                  >
+                    <div className="flex flex-col items-center justify-center h-full space-y-2">
+                      <div className="text-gray-600">
+                        <svg
+                          className="mx-auto h-8 w-8"
+                          stroke="currentColor"
+                          fill="none"
+                          viewBox="0 0 48 48"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col items-center text-sm text-gray-600">
+                        <span className="relative cursor-pointer rounded-md font-medium text-[#4e43ff] focus-within:outline-none">
+                          Click to upload
+                        </span>
+                        <p className="text-xs">or drag and drop</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          PNG, JPG, GIF up to 10MB
+                        </p>
+                      </div>
+                    </div>
+                    <input
+                      id="profileImageInput"
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-2 relative">
+                    {showCropper ? (
+                      <Dialog open={showCropper} onOpenChange={setShowCropper}>
+                        <DialogContent className="sm:max-w-[600px]">
+                          <DialogHeader>
+                            <DialogTitle>Adjust Profile Picture</DialogTitle>
+                          </DialogHeader>
+                          <div className="relative w-full h-[400px]">
+                            <Cropper
+                              image={profileImagePreview || ""}
+                              crop={crop}
+                              zoom={zoom}
+                              aspect={1}
+                              onCropChange={setCrop}
+                              onZoomChange={setZoom}
+                              onCropComplete={onCropComplete}
+                              cropShape="round"
+                              showGrid={false}
+                            />
+                          </div>
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => setShowCropper(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button onClick={createCroppedImage}>
+                              Save Crop
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    ) : (
+                      <div className="relative w-40 h-40">
+                        <img
+                          src={profileImagePreview}
+                          alt="Profile Preview"
+                          className="w-full h-full object-cover rounded-full border-2 border-gray-200"
+                        />
+                        <button
+                          onClick={handleRemoveImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 w-6 h-6 flex items-center justify-center"
+                          type="button"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                    <Button onClick={handleProfileImageUpdate} className="mt-4">
+                      Save Profile Picture
                     </Button>
                   </div>
                 )}

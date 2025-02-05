@@ -36,6 +36,7 @@ export async function GET(request: Request) {
             lastName: true,
             username: true,
             email: true,
+            imageUrl: true,
           },
         },
       },
@@ -58,6 +59,7 @@ export async function GET(request: Request) {
         lastName: capper.user.lastName,
         username: capper.user.username,
       },
+      profileImage: capper.profileImage,
       imageUrl: capper.imageUrl || undefined,
       tags: capper.tags || [],
     }));

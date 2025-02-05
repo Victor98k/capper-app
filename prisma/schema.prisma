@@ -24,7 +24,7 @@ model User {
   stripeConnectId        String?   // For Cappers' Stripe Connect accounts
   stripeConnectOnboarded Boolean   @default(false)
   payoutEnabled         Boolean   @default(false)
-  stripeConnectCountry  String?   // Add this field
+  stripeConnectCountry  String?   
   likedPosts        PostLike[]
 
   Subscription Subscription[]
@@ -47,6 +47,7 @@ model Capper {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   subscriptions Subscription[]
+  profileImage  String?
 }
   
 // TODO: Add SEO friendly fields. 

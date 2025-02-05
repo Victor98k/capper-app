@@ -27,6 +27,7 @@ export function SideNav() {
   const router = useRouter();
   const [isCapper, setIsCapper] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
     setUsername(localStorage.getItem("username") || "");
@@ -68,6 +69,27 @@ export function SideNav() {
       checkCapperStatus();
     }
   }, [user?.email]);
+
+  // Add this effect to fetch profile image
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await fetch("/api/cappers");
+        const data = await response.json();
+        const userProfile = data.find((c: any) => c.userId === user.id);
+
+        if (userProfile) {
+          setProfileImage(userProfile.profileImage);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user?.id]);
 
   // Handle the Logout
   const handleLogout = async () => {
@@ -149,12 +171,7 @@ export function SideNav() {
         <div className="border-t border-gray-700 pt-4 mt-auto">
           <div className="flex items-center space-x-3 mb-4">
             <Avatar className="h-10 w-10">
-              {" "}
-              {/* Larger for better touch */}
-              <AvatarImage
-                src="/placeholder.svg?height=32&width=32"
-                alt="@username"
-              />
+              <AvatarImage src={profileImage || ""} alt={username || "User"} />
               <AvatarFallback className="bg-[#4e43ff] text-base">
                 {username?.charAt(0)?.toUpperCase() || "UN"}
               </AvatarFallback>

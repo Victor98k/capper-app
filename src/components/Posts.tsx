@@ -36,8 +36,12 @@ interface PostProps {
     firstName: string;
     lastName: string;
     username: string;
-    imageUrl?: string;
+    profileImage?: string;
     isVerified?: boolean;
+  };
+  fallbackImage?: {
+    emoji: string;
+    profileImage: string;
   };
 }
 
@@ -72,9 +76,10 @@ function InstagramPost({
     firstName: "Anonymous",
     lastName: "User",
     username: "anonymous",
-    imageUrl: "",
+    profileImage: "",
     isVerified: false,
   },
+  fallbackImage,
 }: PostProps) {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -185,7 +190,10 @@ function InstagramPost({
       <div className="flex items-center justify-between p-2 border-b border-gray-800">
         <div className="flex items-center space-x-2">
           <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-gray-700">
-            <AvatarImage src={capperInfo.imageUrl} alt={capperInfo.username} />
+            <AvatarImage
+              src={capperInfo.profileImage || ""}
+              alt={capperInfo.username}
+            />
             <AvatarFallback className="bg-violet-600 text-white text-xs">
               {capperInfo.firstName[0]}
               {capperInfo.lastName[0]}
@@ -214,15 +222,26 @@ function InstagramPost({
       </div>
 
       {/* Image container */}
-      <div className="relative w-full aspect-square sm:aspect-[4/3] border-b border-gray-800">
-        <Image
-          src={imageUrl || "/placeholder-image.jpg"}
-          alt={title || "Post image"}
-          fill
-          className="object-cover"
-          sizes="(max-width: 468px) 100vw, (max-width: 768px) 75vw, 33vw"
-          priority
-        />
+      <div className="relative w-full h-48 md:h-64 overflow-hidden rounded-lg mb-4">
+        {imageUrl ? (
+          <Image src={imageUrl} alt={title} fill className="object-cover" />
+        ) : (
+          fallbackImage && (
+            <div className="w-full h-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-20 h-20 rounded-full overflow-hidden relative">
+                  <Image
+                    src={fallbackImage.profileImage || "/default-avatar.png"}
+                    alt="Capper avatar"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <span className="text-4xl">{fallbackImage.emoji}</span>
+              </div>
+            </div>
+          )
+        )}
       </div>
 
       {/* Bottom section */}

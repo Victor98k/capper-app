@@ -48,6 +48,7 @@ function NewPostPage() {
   const [newOdd, setNewOdd] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [profileImage, setProfileImage] = useState<string>("");
 
   const handleLogout = async () => {
     try {
@@ -156,7 +157,16 @@ function NewPostPage() {
       formData.append("username", username);
       formData.append("productId", selectedProduct);
 
-      if (image) {
+      // If no image is uploaded, create a fallback image
+      if (!image && tags.length > 0) {
+        // Find the selected sport emoji
+        const selectedSport = sportEmojis.find(
+          (item) => item.sport === tags[0]
+        );
+        formData.append("useFallback", "true");
+        formData.append("fallbackEmoji", selectedSport?.emoji || "⚽");
+        formData.append("profileImage", profileImage);
+      } else if (image) {
         formData.append("image", image);
       }
 
@@ -223,6 +233,27 @@ function NewPostPage() {
     };
 
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      try {
+        const username = localStorage.getItem("username");
+        if (!username) return;
+
+        const response = await fetch(`/api/cappers/${username}`);
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const data = await response.json();
+        if (data.profileImage) {
+          setProfileImage(data.profileImage);
+        }
+      } catch (error) {
+        console.error("Error fetching avatar:", error);
+      }
+    };
+
+    fetchUserAvatar();
   }, []);
 
   if (loading) {
@@ -533,7 +564,18 @@ function NewPostPage() {
                     lastName: user?.lastName || "",
                     username: localStorage.getItem("userName") || "",
                     isVerified: false,
+                    profileImage: profileImage,
                   }}
+                  fallbackImage={
+                    !imagePreview && tags.length > 0
+                      ? {
+                          emoji:
+                            sportEmojis.find((item) => item.sport === tags[0])
+                              ?.emoji || "⚽",
+                          profileImage: profileImage,
+                        }
+                      : undefined
+                  }
                 />
               </CardContent>
             </Card>
