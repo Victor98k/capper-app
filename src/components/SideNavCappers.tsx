@@ -126,10 +126,6 @@ export function SideNav() {
       <div className="pt-4 border-t border-gray-700">
         <div className="flex items-center space-x-3 mb-4">
           <Avatar>
-            <AvatarImage
-              src="/placeholder.svg?height=32&width=32"
-              alt="@username"
-            />
             <AvatarFallback>UN</AvatarFallback>
           </Avatar>
           <div className="flex-1">
