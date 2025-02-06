@@ -3,6 +3,7 @@
 import { SideNav } from "@/components/SideNav";
 import ExploreCapperCard from "@/components/exploreCapperCard";
 import { useEffect, useState } from "react";
+import Loader from "@/components/Loader";
 
 type Post = {
   _id: string;
@@ -40,7 +41,9 @@ export default function ExplorePage() {
         <div className="lg:mt-0 mt-8">
           <h1 className="text-5xl font-bold mb-6 mt-12">Explore our Cappers</h1>
           {loading ? (
-            <p className="text-center text-gray-400">Loading...</p>
+            <div className="flex items-center justify-center min-h-[calc(100vh-300px)]">
+              <Loader />
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 max-w-9xl mx-auto mt-12">
               {posts.map((post) => (

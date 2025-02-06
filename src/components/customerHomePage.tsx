@@ -5,6 +5,9 @@ import MyCappers from "@/app/My-cappers/page";
 import { CappersSidebar } from "@/components/CappersSidebar";
 import Image from "next/image";
 import logo from "@/images/Cappers Logga.png";
+import Loader from "@/components/Loader";
+import { Suspense } from "react";
+
 export function CustomerHomepageComponent() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -37,7 +40,9 @@ export function CustomerHomepageComponent() {
         <div className="flex-1 flex justify-center mr-0 lg:mr-72">
           <main className="w-full lg:max-w-3xl px-0 lg:px-4 py-6">
             <div className="mx-0 lg:mx-4">
-              <MyCappers />
+              <Suspense fallback={<Loader />}>
+                <MyCappers />
+              </Suspense>
             </div>
           </main>
         </div>

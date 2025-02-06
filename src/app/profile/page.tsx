@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
+import Loader from "@/components/Loader";
 
 // Add this at the top of your file with other imports
 const sportEmojiMap: { [key: string]: string } = {
@@ -271,7 +272,18 @@ function CapperProfileContent() {
 
   // Show loading state
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <div className="hidden lg:block">
+          <SideNav />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+            <Loader />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Redirect non-cappers
@@ -894,8 +906,21 @@ function CapperProfileContent() {
 }
 
 function CapperProfile() {
+  const LoadingLayout = (
+    <div className="flex min-h-screen bg-gray-100">
+      <div className="hidden lg:block">
+        <SideNav />
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+          <Loader />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={LoadingLayout}>
       <CapperProfileContent />
     </Suspense>
   );

@@ -32,6 +32,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import Loader from "@/components/Loader";
 
 // Add type for product
 interface Product {
@@ -334,7 +335,16 @@ function NewPostPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <SideNav />
+        <div className="flex-1">
+          <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+            <Loader />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!user?.isCapper) {

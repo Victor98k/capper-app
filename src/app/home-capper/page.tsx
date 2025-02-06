@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { CapperDashboard } from "@/components/capperDashboard";
 import { Suspense } from "react";
+import Loader from "@/components/Loader";
 
 function HomeCapperContent() {
   const searchParams = useSearchParams();
@@ -24,7 +25,13 @@ function HomeCapperContent() {
 
 export default function HomeCapper() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+          <Loader />
+        </div>
+      }
+    >
       <HomeCapperContent />
     </Suspense>
   );

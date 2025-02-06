@@ -31,8 +31,8 @@ import { use } from "react";
 import { SubscribeButton } from "@/components/SubscribeButton";
 import InstagramPost from "@/components/Posts";
 import { Input } from "@/components/ui/input";
-import { Loader } from "@/components/ui/loader";
 import { sportEmojiMap } from "@/lib/sportEmojiMap";
+import Loader from "@/components/Loader";
 
 type PriceRecurring = {
   interval?: "day" | "week" | "month" | "year" | null;
@@ -235,14 +235,12 @@ export default function CapperProfilePage({
   }, [capper?.id]);
 
   if (loading) {
-    // add loading component
     return (
       <div className="min-h-screen bg-gray-900 text-gray-100 flex">
         <SideNav />
-        <main className="flex-1 p-8 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Loader size="lg" />
-            <p className="text-gray-400">Loading...</p>
+        <main className="flex-1 p-8">
+          <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+            <Loader />
           </div>
         </main>
       </div>

@@ -3,6 +3,7 @@
 import { SideNav } from "@/components/SideNav";
 import { useEffect, useState } from "react";
 import Post from "@/components/Posts";
+import Loader from "@/components/Loader";
 
 type Post = {
   _id: string;
@@ -59,8 +60,8 @@ function MyCappers() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <div>Loading...</div>
+      <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+        <Loader />
       </div>
     );
   }

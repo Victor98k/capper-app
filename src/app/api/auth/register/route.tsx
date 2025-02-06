@@ -5,13 +5,38 @@ import { hashPassword } from "@/utils/bcrypt";
 import { JWTUserPayload, signJWT } from "@/utils/jwt";
 import { prisma } from "@/utils/prisma";
 
+function validatePassword(password: string): [boolean, string[]] {
+  const errors: string[] = [];
+
+  if (password.length < 7) {
+    errors.push("Password must be at least 7 characters long");
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Password must contain at least one uppercase letter");
+  }
+
+  return [errors.length > 0, errors];
+}
+
 export async function POST(request: Request) {
   try {
     const body: UserRegistrationData = await request.json();
     const [hasErrors, errors] = userRegistrationValidator(body);
 
-    if (hasErrors) {
-      return NextResponse.json({ errors }, { status: 400 });
+    // Add password validation
+    const [hasPasswordErrors, passwordErrors] = validatePassword(body.password);
+
+    if (hasErrors || hasPasswordErrors) {
+      return NextResponse.json(
+        {
+          errors: {
+            ...(hasErrors ? errors : {}),
+            password: passwordErrors,
+          },
+        },
+        { status: 400 }
+      );
     }
 
     const hashedPassword = await hashPassword(body.password);

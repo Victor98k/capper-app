@@ -77,11 +77,19 @@ export function Signup() {
       }
 
       if (!response.ok) {
-        setAlert({
-          type: "error",
-          message: "Sign-up failed",
-          description: data?.error || `Server error: ${response.status}`,
-        });
+        if (data.errors?.password) {
+          setAlert({
+            type: "error",
+            message: "Invalid Password",
+            description: data.errors.password.join(", "),
+          });
+        } else {
+          setAlert({
+            type: "error",
+            message: "Sign-up failed",
+            description: data?.error || `Server error: ${response.status}`,
+          });
+        }
         return;
       }
 
@@ -215,6 +223,10 @@ export function Signup() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <p className="text-sm text-muted-foreground">
+                  Password must be at least 7 characters long and contain at
+                  least one uppercase letter
+                </p>
               </div>
 
               {/* Removed capper option for now. */}

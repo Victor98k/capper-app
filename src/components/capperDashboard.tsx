@@ -30,6 +30,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import StripeProductDisplay from "./StripeProductDisplay";
+import Loader from "@/components/Loader";
 
 export function CapperDashboard() {
   const { user, loading } = useAuth();
@@ -125,7 +126,16 @@ export function CapperDashboard() {
 
   // Show loading state
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <SideNav />
+        <div className="flex-1">
+          <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+            <Loader />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Redirect non-cappers
