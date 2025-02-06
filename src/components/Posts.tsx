@@ -304,14 +304,16 @@ function InstagramPost({
               <div className="flex flex-col items-end">
                 <p className="text-xs font-semibold text-white mb-1">ODDS</p>
                 <div className="bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
-                  <div className="flex justify-end">
+                  <div className="flex justify-end items-center">
                     {odds.map((odd, index) => (
-                      <span
-                        key={index}
-                        className="text-2xl font-bold text-white px-1"
-                      >
-                        {odd}
-                      </span>
+                      <div key={index} className="flex items-center">
+                        <span className="text-2xl font-bold text-white px-1">
+                          {odd}
+                        </span>
+                        <span className="text-2xl font-bold text-white/80">
+                          x
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -359,12 +361,14 @@ function InstagramPost({
                   ODDS
                 </span>
                 {odds.map((odd, index) => (
-                  <span
-                    key={index}
-                    className="text-sm font-bold text-[#4e43ff]"
-                  >
-                    {odd}
-                  </span>
+                  <div key={index} className="flex items-center">
+                    <span className="text-sm font-bold text-[#4e43ff]">
+                      {odd}
+                    </span>
+                    <span className="text-sm font-bold text-[#4e43ff]/80">
+                      x
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>

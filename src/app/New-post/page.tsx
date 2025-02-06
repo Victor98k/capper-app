@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import Loader from "@/components/Loader";
 
 // Add type for product
@@ -40,6 +40,28 @@ interface Product {
   name: string;
   description?: string;
 }
+
+// Add these constants at the top with the other constants
+const MAX_TITLE_LENGTH = 60;
+const MAX_CONTENT_LENGTH = 200;
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const MAX_ODDS = 5;
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
+// Add this validation function near the top with other constants
+const isValidOdd = (odd: string): boolean => {
+  const number = parseFloat(odd);
+  return (
+    !isNaN(number) &&
+    (number % 1 === 0 || number % 1 === 0.5) && // Only whole numbers or .5
+    number >= 1
+  ); // Ensure odds are 1 or greater
+};
 
 function NewPostPage() {
   const { user, loading } = useAuth();
@@ -86,12 +108,29 @@ function NewPostPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImage(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-      setShowCropper(true);
+    if (!file) return;
+
+    // Validate file size
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error("Image too large", {
+        description: "Please select an image under 10MB",
+      });
+      return;
     }
+
+    // Validate file type
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description:
+          "Please select a valid image file (JPEG, PNG, GIF, or WebP)",
+      });
+      return;
+    }
+
+    setImage(file);
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+    setShowCropper(true);
   };
 
   const handleRemoveImage = () => {
@@ -122,11 +161,29 @@ function NewPostPage() {
     setIsDragging(false);
 
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setImage(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
+    if (!file) return;
+
+    // Validate file size
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error("Image too large", {
+        description: "Please select an image under 10MB",
+      });
+      return;
     }
+
+    // Validate file type
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description:
+          "Please select a valid image file (JPEG, PNG, GIF, or WebP)",
+      });
+      return;
+    }
+
+    setImage(file);
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+    setShowCropper(true);
   }, []);
 
   const handleAddBet = () => {
@@ -141,8 +198,26 @@ function NewPostPage() {
   };
 
   const handleAddOdd = () => {
-    if (newOdd.trim() && !odds.includes(newOdd.trim())) {
-      setOdds([...odds, newOdd.trim()]);
+    if (odds.length >= MAX_ODDS) {
+      toast.error("Maximum odds reached", {
+        description: `You can only add up to ${MAX_ODDS} odds per post`,
+      });
+      return;
+    }
+
+    const trimmedOdd = newOdd.trim();
+    if (!trimmedOdd) return;
+
+    if (!isValidOdd(trimmedOdd)) {
+      toast.error("Invalid odds format", {
+        description:
+          "Odds must be whole numbers or end with .5 (e.g., 1.5, 2, 2.5)",
+      });
+      return;
+    }
+
+    if (!odds.includes(trimmedOdd)) {
+      setOdds([...odds, trimmedOdd]);
       setNewOdd("");
     }
   };
@@ -151,8 +226,32 @@ function NewPostPage() {
     setOdds(odds.filter((odd) => odd !== oddToRemove));
   };
 
+  const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numbers and one decimal point
+    const value = e.target.value;
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setNewOdd(value);
+    }
+  };
+
   const handleSubmit = async () => {
     try {
+      // Validate title length
+      if (title.length > MAX_TITLE_LENGTH) {
+        toast.error("Title is too long", {
+          description: `Title must be ${MAX_TITLE_LENGTH} characters or less`,
+        });
+        return;
+      }
+
+      // Add content length validation
+      if (content.length > MAX_CONTENT_LENGTH) {
+        toast.error("Content is too long", {
+          description: `Content must be ${MAX_CONTENT_LENGTH} characters or less`,
+        });
+        return;
+      }
+
       // Validate required fields
       if (!title || !content || !selectedProduct) {
         toast.error("Please fill in all required fields", {
@@ -161,7 +260,8 @@ function NewPostPage() {
         return;
       }
 
-      toast.loading("Creating your post...");
+      // Show loading toast
+      const loadingToast = toast.loading("Creating your post...");
 
       // Get username from localStorage
       const username = localStorage.getItem("username") || "";
@@ -177,7 +277,6 @@ function NewPostPage() {
 
       // If no image is uploaded, create a fallback image
       if (!image && tags.length > 0) {
-        // Find the selected sport emoji
         const selectedSport = sportEmojis.find(
           (item) => item.sport === tags[0]
         );
@@ -199,12 +298,21 @@ function NewPostPage() {
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
       toast.success("Post created successfully!", {
         description: "Your post is now live and visible to your subscribers",
       });
 
-      console.log("Post created successfully:", data);
-      router.push("/home-capper");
+      // Clear the form after successful post
+      setTitle("");
+      setContent("");
+      setTags([]);
+      setBets([]);
+      setOdds([]);
+      setImage(null);
+      setImagePreview(null);
+      setSelectedProduct("");
     } catch (error) {
       console.error("Failed to create post:", error);
       toast.error("Failed to create post", {
@@ -355,6 +463,18 @@ function NewPostPage() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <SideNav />
+      <Toaster
+        position="top-right"
+        expand={true}
+        richColors
+        closeButton
+        style={{
+          zIndex: 9999,
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+        }}
+      />
       <div className="flex-1">
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
@@ -394,13 +514,30 @@ function NewPostPage() {
                     <label className="block text-sm font-medium text-gray-700">
                       Title
                     </label>
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="mt-1 w-full p-2 border rounded-md"
-                      placeholder="Enter post title..."
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => {
+                          // Limit input to MAX_TITLE_LENGTH characters
+                          if (e.target.value.length <= MAX_TITLE_LENGTH) {
+                            setTitle(e.target.value);
+                          }
+                        }}
+                        className="mt-1 w-full p-2 border rounded-md"
+                        placeholder="Enter post title..."
+                        maxLength={MAX_TITLE_LENGTH}
+                      />
+                      <span
+                        className={`absolute right-2 bottom-2 text-sm ${
+                          title.length === MAX_TITLE_LENGTH
+                            ? "text-red-500"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {title.length}/{MAX_TITLE_LENGTH}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Content Input */}
@@ -408,24 +545,30 @@ function NewPostPage() {
                     <label className="block text-sm font-medium text-gray-700">
                       Content
                     </label>
-                    <textarea
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="mt-1 w-full min-h-[200px] p-2 border rounded-md"
-                      placeholder="Write your post content..."
-                    />
+                    <div className="relative">
+                      <textarea
+                        value={content}
+                        onChange={(e) => {
+                          // Limit input to MAX_CONTENT_LENGTH characters
+                          if (e.target.value.length <= MAX_CONTENT_LENGTH) {
+                            setContent(e.target.value);
+                          }
+                        }}
+                        className="mt-1 w-full min-h-[200px] p-2 border rounded-md"
+                        placeholder="Write your post content..."
+                        maxLength={MAX_CONTENT_LENGTH}
+                      />
+                      <span
+                        className={`absolute right-2 bottom-2 text-sm ${
+                          content.length === MAX_CONTENT_LENGTH
+                            ? "text-red-500"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {content.length}/{MAX_CONTENT_LENGTH}
+                      </span>
+                    </div>
                   </div>
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Content
-                    </label>
-                    <textarea
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="mt-1 w-full min-h-[50px] p-1 border rounded-md"
-                      placeholder="Write your post content..."
-                    />
-                  </div> */}
 
                   {/* Image Input */}
                   <div>
@@ -472,7 +615,8 @@ function NewPostPage() {
                             <p className="pl-1">or drag and drop</p>
                           </div>
                           <p className="text-xs text-gray-500">
-                            PNG, JPG, GIF up to 10MB
+                            Accepted formats: JPEG, PNG, GIF, WebP (Max size:
+                            10MB)
                           </p>
                         </div>
                         <input
@@ -600,7 +744,7 @@ function NewPostPage() {
                   {/* Odds Section */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Odds
+                      Odds ({odds.length}/{MAX_ODDS})
                     </label>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {odds.map((odd) => (
@@ -622,12 +766,26 @@ function NewPostPage() {
                       <input
                         type="text"
                         value={newOdd}
-                        onChange={(e) => setNewOdd(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleAddOdd()}
-                        placeholder="Add odds (e.g., 1.75)..."
+                        onChange={handleOddChange}
+                        onKeyPress={(e) => {
+                          // Allow only numbers, decimal point, and Enter key
+                          if (!/[\d.]/.test(e.key) && e.key !== "Enter") {
+                            e.preventDefault();
+                          }
+                          if (e.key === "Enter") {
+                            handleAddOdd();
+                          }
+                        }}
+                        placeholder="Add odds (e.g., 1.5, 2)"
                         className="flex-1 p-2 border rounded-md"
+                        disabled={odds.length >= MAX_ODDS}
                       />
-                      <Button onClick={handleAddOdd}>Add Odds</Button>
+                      <Button
+                        onClick={handleAddOdd}
+                        disabled={odds.length >= MAX_ODDS}
+                      >
+                        Add Odds
+                      </Button>
                     </div>
                   </div>
 
