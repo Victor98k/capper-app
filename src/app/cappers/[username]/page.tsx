@@ -302,15 +302,10 @@ export default function CapperProfilePage({
                 <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-2 sm:gap-4">
                   <div>
                     {/* Name and Verification */}
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold flex items-center justify-center sm:justify-start gap-2">
-                      {capper?.user?.firstName} {capper?.user?.lastName}
+                    <h1 className="text-xl sm:text-2xl md:text-3xl pb-6 font-bold flex items-center justify-center sm:justify-start gap-2">
+                      @{capper?.user?.username}
                       <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
                     </h1>
-
-                    {/* Username */}
-                    <p className="text-lg sm:text-xl text-gray-400 mb-2">
-                      @{capper?.user?.username}
-                    </p>
 
                     {/* Title - if exists */}
                     {capper?.title && (
@@ -322,7 +317,7 @@ export default function CapperProfilePage({
 
                   {/* Subscription Status/Button */}
                   {isSubscribed ? (
-                    <div className="flex items-center gap-2 bg-green-500/10 text-green-500 px-3 py-1.5 rounded-full text-sm font-medium">
+                    <div className="flex items-center gap-2 bg-green-500/10 text-green-500 px-3 py-1.5 rounded-full text-sm font-medium mb-4 sm:mb-0">
                       <Check className="h-4 w-4" />
                       Subscribed Member
                     </div>
@@ -331,7 +326,7 @@ export default function CapperProfilePage({
                       capperId={capper.id}
                       isSubscribed={isSubscribed}
                       scrollToBundles={true}
-                      className="bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+                      className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 mb-4 sm:mb-0"
                     >
                       Subscribe
                     </SubscribeButton>
