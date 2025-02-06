@@ -32,6 +32,7 @@ import { SubscribeButton } from "@/components/SubscribeButton";
 import InstagramPost from "@/components/Posts";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
+import { sportEmojiMap } from "@/lib/sportEmojiMap";
 
 type PriceRecurring = {
   interval?: "day" | "week" | "month" | "year" | null;
@@ -343,9 +344,12 @@ export default function CapperProfilePage({
                     <Badge
                       key={tag}
                       variant="outline"
-                      className="bg-[#4e43ff] text-gray-300"
+                      className="bg-[#4e43ff] text-gray-300 flex items-center gap-2"
                     >
-                      {tag}
+                      <span className="text-lg">
+                        {sportEmojiMap[tag] || "🎯"}
+                      </span>
+                      <span>{tag}</span>
                     </Badge>
                   ))}
                 </div>

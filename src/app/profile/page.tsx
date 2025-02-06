@@ -25,6 +25,20 @@ import {
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 
+// Add this at the top of your file with other imports
+const sportEmojiMap: { [key: string]: string } = {
+  Football: "⚽",
+  Basketball: "🏀",
+  Tennis: "🎾",
+  "American Football": "🏈",
+  Baseball: "⚾",
+  Soccer: "⚽",
+  Hockey: "🏒",
+  Golf: "🏌️‍♂️",
+  MMA: "🥊",
+  Boxing: "🥊",
+};
+
 // Create a separate component for the parts that use useSearchParams
 function CapperProfileContent() {
   // 1. First all the context hooks
@@ -337,37 +351,39 @@ function CapperProfileContent() {
     }
   };
 
-  const handleAddTag = async () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      try {
-        const response = await fetch("/api/cappers", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user?.id,
-            tags: [newTag.trim()],
-          }),
-        });
+  const handleAddSport = async () => {
+    if (newTag && !tags.includes(newTag)) {
+      // Only allow sports from our sportEmojiMap
+      if (sportEmojiMap[newTag]) {
+        try {
+          const response = await fetch("/api/cappers", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user?.id,
+              tags: [newTag],
+            }),
+          });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          setTags([...tags, newTag]);
+          setNewTag("");
+          toast.success(`Added ${sportEmojiMap[newTag]} ${newTag}`);
+        } catch (error) {
+          console.error("Failed to add sport:", error);
+          toast.error("Failed to add sport. Please try again.");
         }
-
-        const data = await response.json();
-        // Only update UI after successful API call
-        setTags([...tags, newTag.trim()]);
-        setNewTag("");
-        toast.success("Tag added successfully");
-      } catch (error) {
-        console.error("Failed to add tag:", error);
-        toast.error("Failed to add tag. Please try again.");
       }
     }
   };
 
-  const handleRemoveTag = async (tagToRemove: string) => {
+  const handleRemoveSport = async (sport: string) => {
     try {
       const response = await fetch("/api/cappers", {
         method: "DELETE",
@@ -376,7 +392,7 @@ function CapperProfileContent() {
         },
         body: JSON.stringify({
           userId: user?.id,
-          tagToRemove,
+          tagToRemove: sport,
         }),
       });
 
@@ -385,12 +401,11 @@ function CapperProfileContent() {
       }
 
       const data = await response.json();
-      // Only update UI after successful API call
-      setTags(tags.filter((tag) => tag !== tagToRemove));
-      toast.success("Tag removed successfully");
+      setTags(tags.filter((tag) => tag !== sport));
+      toast.success(`Removed ${sportEmojiMap[sport]} ${sport}`);
     } catch (error) {
-      console.error("Failed to remove tag:", error);
-      toast.error("Failed to remove tag. Please try again.");
+      console.error("Failed to remove sport:", error);
+      toast.error("Failed to remove sport. Please try again.");
     }
   };
 
@@ -686,7 +701,61 @@ function CapperProfileContent() {
               </CardContent>
             </Card>
 
-            <Card className="col-span-full mt-5">
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Your Sports</CardTitle>
+                <CardDescription>
+                  Select the sports you specialize in
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((sport) => (
+                      <div
+                        key={sport}
+                        className="flex items-center bg-[#4e43ff]/10 text-[#4e43ff] px-3 py-1.5 rounded-lg group"
+                      >
+                        <span className="text-lg mr-2">
+                          {sportEmojiMap[sport] || "🎯"}
+                        </span>
+                        <span className="text-sm font-medium">{sport}</span>
+                        <button
+                          onClick={() => handleRemoveSport(sport)}
+                          className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      className="flex-1 p-2 rounded-md border border-gray-300 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] outline-none"
+                    >
+                      <option value="">Select a sport...</option>
+                      {Object.entries(sportEmojiMap).map(([sport, emoji]) => (
+                        <option key={sport} value={sport}>
+                          {emoji} {sport}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      onClick={handleAddSport}
+                      disabled={!newTag}
+                      className="bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
+                    >
+                      Add Sport
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Your Bio</CardTitle>
                 <CardDescription>
@@ -725,46 +794,6 @@ function CapperProfileContent() {
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Your Tags</CardTitle>
-                <CardDescription>
-                  Add tags to help users find your expertise
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <div
-                        key={tag}
-                        className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
-                      >
-                        <span className="text-[#4e43ff]">{tag}</span>
-                        <button
-                          onClick={() => handleRemoveTag(tag)}
-                          className="text-[#4e43ff]/70 hover:text-red-500"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
-                      placeholder="Add a tag..."
-                      className="flex-1 p-2 border rounded-md"
-                    />
-                    <Button onClick={handleAddTag}>Add Tag</Button>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 

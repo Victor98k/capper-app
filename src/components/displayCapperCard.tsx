@@ -7,6 +7,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { CheckCircle, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { sportEmojiMap } from "@/lib/sportEmojiMap";
 
 interface DisplayCapperCardProps {
   userId: string;
@@ -108,15 +109,15 @@ export function DisplayCapperCard({
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-4">
+        <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag) => (
-            <Badge
+            <span
               key={tag}
-              variant="outline"
-              className="text-violet-400 border-violet-400"
+              className="inline-flex items-center bg-[#4e43ff]/10 text-[#4e43ff] px-3 py-1.5 rounded-lg"
             >
-              {tag}
-            </Badge>
+              <span className="text-lg mr-2">{sportEmojiMap[tag] || "🎯"}</span>
+              <span className="text-sm font-medium">{tag}</span>
+            </span>
           ))}
         </div>
 
