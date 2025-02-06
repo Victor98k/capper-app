@@ -115,6 +115,8 @@ export default function CapperProfilePage({
   const [subscribedProducts, setSubscribedProducts] = useState<string[]>([]);
   const [calculatedAmount, setCalculatedAmount] = useState("0.00");
   const [showROICalculator, setShowROICalculator] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 3;
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -232,6 +234,7 @@ export default function CapperProfilePage({
   }, [capper?.id]);
 
   if (loading) {
+    // add loading component
     return (
       <div className="min-h-screen bg-gray-900 text-gray-100 flex">
         <SideNav />
@@ -533,7 +536,7 @@ export default function CapperProfilePage({
               </p>
             </div>
 
-            {/* First 3 Posts */}
+            {/* First 3 Posts (Always visible) */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
               {posts.slice(0, 3).map((post) => (
                 <InstagramPost
@@ -550,7 +553,7 @@ export default function CapperProfilePage({
               ))}
             </div>
 
-            {/* Paywall Section - Show only if there are more than 3 posts and user is not subscribed */}
+            {/* Paywall Section */}
             {posts.length > 3 && !isSubscribed && (
               <div className="relative my-12">
                 {/* Gradient Overlay */}
@@ -577,23 +580,58 @@ export default function CapperProfilePage({
               </div>
             )}
 
-            {/* Remaining Posts - Show only if subscribed */}
+            {/* Paginated Posts - Show only if subscribed */}
             {isSubscribed && posts.length > 3 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mt-8">
-                {posts.slice(3).map((post) => (
-                  <InstagramPost
-                    key={post._id}
-                    {...post}
-                    capperInfo={{
-                      firstName: capper.user.firstName,
-                      lastName: capper.user.lastName,
-                      username: capper.user.username,
-                      profileImage: capper.profileImage,
-                      isVerified: true,
-                    }}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mt-8">
+                  {posts
+                    .slice(3) // Skip the first 3 posts that are always shown
+                    .slice(
+                      (currentPage - 1) * postsPerPage,
+                      currentPage * postsPerPage
+                    )
+                    .map((post) => (
+                      <InstagramPost
+                        key={post._id}
+                        {...post}
+                        capperInfo={{
+                          firstName: capper.user.firstName,
+                          lastName: capper.user.lastName,
+                          username: capper.user.username,
+                          profileImage: capper.profileImage,
+                          isVerified: true,
+                        }}
+                      />
+                    ))}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex justify-center items-center gap-4 mt-8">
+                  <PaginationButton
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </PaginationButton>
+
+                  <span className="text-gray-400">
+                    Page {currentPage} of{" "}
+                    {Math.ceil((posts.length - 3) / postsPerPage)}
+                  </span>
+
+                  <PaginationButton
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    disabled={
+                      currentPage >=
+                      Math.ceil((posts.length - 3) / postsPerPage)
+                    }
+                  >
+                    Next
+                  </PaginationButton>
+                </div>
+              </>
             )}
 
             {/* No Posts Message */}
@@ -803,4 +841,23 @@ const PickCard = ({ sport, prediction, result, date, odds }: Pick) => (
       </div>
     </CardContent>
   </Card>
+);
+
+const PaginationButton = ({
+  onClick,
+  disabled,
+  children,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  children: React.ReactNode;
+}) => (
+  <Button
+    onClick={onClick}
+    disabled={disabled}
+    variant="outline"
+    className="bg-gray-800 border-gray-700 hover:bg-gray-700 disabled:opacity-50"
+  >
+    {children}
+  </Button>
 );
