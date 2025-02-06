@@ -22,6 +22,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Toaster } from "sonner";
+import { toast } from "sonner";
 
 // Create a separate component for the parts that use useSearchParams
 function CapperProfileContent() {
@@ -50,6 +52,7 @@ function CapperProfileContent() {
   const [zoom, setZoom] = useState(1);
   const [showCropper, setShowCropper] = useState(false);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [capperData, setCapperData] = useState<any>(null);
 
   // 3. All useCallback hooks together
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -109,13 +112,35 @@ function CapperProfileContent() {
     const fetchCapperProfile = async () => {
       if (user?.id) {
         try {
-          const response = await fetch("/api/cappers");
+          const token = localStorage.getItem("token");
+          const response = await fetch("/api/cappers", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Cache-Control": "no-cache",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch profile data");
+          }
+
           const data = await response.json();
           const capperData = data.find((c: any) => c.userId === user.id);
+
           if (capperData) {
-            setBio(capperData.bio || "");
+            console.log("Fetched capper data:", capperData);
+            setCapperData(capperData);
+            // Check if bio exists in the response
+            if ("bio" in capperData) {
+              setBio(capperData.bio || "");
+            } else {
+              console.warn("Bio field missing in capper data");
+              setBio(""); // Set default empty string if bio is missing
+            }
             setTags(capperData.tags || []);
-            setUsername(capperData.user.username || "");
+            setUsername(capperData.user?.username || "");
+          } else {
+            console.log("No capper data found for user:", user.id);
           }
         } catch (error) {
           console.error("Failed to fetch capper profile:", error);
@@ -147,12 +172,35 @@ function CapperProfileContent() {
       if (!profileImage || !user?.id) return;
 
       const formData = new FormData();
-      formData.append("profileImage", profileImage);
-      formData.append("userId", user.id);
+      formData.append("file", profileImage);
+      formData.append("upload_preset", "capperProfilePic"); // This will work after enabling unsigned uploads
 
+      const cloudinaryResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!cloudinaryResponse.ok) {
+        const errorData = await cloudinaryResponse.json();
+        console.error("Cloudinary error:", errorData);
+        throw new Error("Failed to upload image to Cloudinary");
+      }
+
+      const cloudinaryData = await cloudinaryResponse.json();
+
+      // Now update the user profile with the Cloudinary URL
       const response = await fetch("/api/cappers/profile-image", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          imageUrl: cloudinaryData.secure_url,
+        }),
       });
 
       if (!response.ok) {
@@ -162,15 +210,22 @@ function CapperProfileContent() {
       const data = await response.json();
 
       // Update the preview with the new image URL
-      setProfileImagePreview(data.imageUrl);
+      setProfileImagePreview(cloudinaryData.secure_url);
+
+      // Update capperData with new image URL
+      setCapperData((prev: any) => ({
+        ...prev,
+        profileImage: cloudinaryData.secure_url,
+      }));
 
       // Clear the file input
       setProfileImage(null);
 
-      console.log("Profile image updated successfully:", data);
+      // Show success toast
+      toast.success("Profile picture updated successfully");
     } catch (error) {
       console.error("Failed to update profile image:", error);
-      alert("Failed to update profile image. Please try again.");
+      toast.error("Failed to update profile image. Please try again.");
     }
   };
 
@@ -227,12 +282,15 @@ function CapperProfileContent() {
     try {
       if (!user?.id) return;
 
-      const response = await fetch(`/api/cappers/${user.id}`, {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/cappers`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          userId: user.id,
           bio: bio,
         }),
       });
@@ -243,11 +301,39 @@ function CapperProfileContent() {
       }
 
       const data = await response.json();
-      console.log("Bio updated successfully:", data);
+      console.log("Bio update response:", data); // Debug the update response
+
+      // Extract the updated bio from the response if available
+      if (data && "bio" in data) {
+        setBio(data.bio);
+      }
+
+      // Refetch the entire profile to ensure consistency
+      const fetchResponse = await fetch("/api/cappers", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Cache-Control": "no-cache",
+        },
+      });
+
+      if (fetchResponse.ok) {
+        const fetchData = await fetchResponse.json();
+        const updatedCapperData = fetchData.find(
+          (c: any) => c.userId === user.id
+        );
+        if (updatedCapperData) {
+          console.log("Refetched capper data:", updatedCapperData);
+          setBio(updatedCapperData.bio || "");
+          setTags(updatedCapperData.tags || []);
+          setUsername(updatedCapperData.user?.username || "");
+        }
+      }
+
       setIsEditingBio(false);
+      toast.success("Bio updated successfully");
     } catch (error) {
       console.error("Failed to update bio:", error);
-      // Optionally add user feedback here
+      toast.error("Failed to update bio. Please try again.");
     }
   };
 
@@ -273,8 +359,10 @@ function CapperProfileContent() {
         // Only update UI after successful API call
         setTags([...tags, newTag.trim()]);
         setNewTag("");
+        toast.success("Tag added successfully");
       } catch (error) {
         console.error("Failed to add tag:", error);
+        toast.error("Failed to add tag. Please try again.");
       }
     }
   };
@@ -299,21 +387,25 @@ function CapperProfileContent() {
       const data = await response.json();
       // Only update UI after successful API call
       setTags(tags.filter((tag) => tag !== tagToRemove));
+      toast.success("Tag removed successfully");
     } catch (error) {
       console.error("Failed to remove tag:", error);
+      toast.error("Failed to remove tag. Please try again.");
     }
   };
 
   const handleUsernameUpdate = async () => {
     try {
-      const response = await fetch("/api/cappers", {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/cappers/username", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId: user?.id,
-          username,
+          username: username,
         }),
       });
 
@@ -321,12 +413,17 @@ function CapperProfileContent() {
 
       if (!response.ok) {
         console.error("Failed to update username:", data.error);
+        toast.error("Failed to update username. Please try again.");
         return;
       }
 
+      // Update local state
+      setUsername(data.user.username);
       setIsEditingUsername(false);
+      toast.success("Username updated successfully");
     } catch (error) {
       console.error("Failed to update username:", error);
+      toast.error("Failed to update username. Please try again.");
     }
   };
 
@@ -383,6 +480,18 @@ function CapperProfileContent() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <SideNav />
+      <Toaster
+        position="top-right"
+        expand={true}
+        richColors
+        closeButton
+        style={{
+          zIndex: 9999,
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+        }}
+      />
 
       <div className="flex-1">
         <header className="bg-white shadow pl-16 lg:pl-0">
@@ -398,49 +507,6 @@ function CapperProfileContent() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">
               Your Profile information
             </h2>
-
-            {/* <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Total bets played</CardTitle>
-                  <CardDescription>Your bets played activity</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">28</div>
-                  <p className="text-sm text-muted-foreground">
-                    +2.5% from last month
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Revenue</CardTitle>
-                  <CardDescription>This month's earnings</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">$4,320</div>
-                  <p className="text-sm text-muted-foreground">
-                    +10% from last month
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Active Subscriptions</CardTitle>
-                  <CardDescription>
-                    Currently active subscriptions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">12</div>
-                  <p className="text-sm text-muted-foreground">
-                    3 new this week
-                  </p>
-                </CardContent>
-              </Card>
-            </div> */}
 
             <Card className="mt-6">
               <CardHeader>
@@ -497,7 +563,7 @@ function CapperProfileContent() {
               <CardContent>
                 {!profileImagePreview ? (
                   <div
-                    className={`w-40 h-40 border-2 border-dashed rounded-full mx-auto cursor-pointer transition-colors
+                    className={`w-40 h-40 border-2 border-dashed rounded-full mx-auto relative cursor-pointer transition-colors
                       ${
                         isDragging
                           ? "border-[#4e43ff] bg-[#4e43ff]/10"
@@ -511,33 +577,49 @@ function CapperProfileContent() {
                       document.getElementById("profileImageInput")?.click()
                     }
                   >
-                    <div className="flex flex-col items-center justify-center h-full space-y-2">
-                      <div className="text-gray-600">
-                        <svg
-                          className="mx-auto h-8 w-8"
-                          stroke="currentColor"
-                          fill="none"
-                          viewBox="0 0 48 48"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                    {capperData?.profileImage ? (
+                      <div className="relative w-full h-full group">
+                        <img
+                          src={capperData.profileImage}
+                          alt="Profile"
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                        {/* Overlay with change photo button */}
+                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-sm">
+                            Change Photo
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col items-center text-sm text-gray-600">
-                        <span className="relative cursor-pointer rounded-md font-medium text-[#4e43ff] focus-within:outline-none">
-                          Click to upload
-                        </span>
-                        <p className="text-xs">or drag and drop</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          PNG, JPG, GIF up to 10MB
-                        </p>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full space-y-2">
+                        <div className="text-gray-600">
+                          <svg
+                            className="mx-auto h-8 w-8"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col items-center text-sm text-gray-600">
+                          <span className="relative cursor-pointer rounded-md font-medium text-[#4e43ff] focus-within:outline-none">
+                            Click to upload
+                          </span>
+                          <p className="text-xs">or drag and drop</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            PNG, JPG, GIF up to 10MB
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <input
                       id="profileImageInput"
                       type="file"

@@ -54,6 +54,8 @@ export async function GET(request: Request) {
     const formattedCappers = cappers.map((capper) => ({
       id: capper.id,
       userId: capper.userId,
+      bio: capper.bio,
+
       user: {
         firstName: capper.user.firstName,
         lastName: capper.user.lastName,

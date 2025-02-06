@@ -96,13 +96,7 @@ export async function GET(
 
         // Fallback if no marketing features are found
         if (!marketing_features || marketing_features.length === 0) {
-          marketing_features = [
-            `Access to all ${product.name} picks`,
-            "Daily expert predictions",
-            "Performance tracking",
-            "Real-time updates",
-            "Expert analysis",
-          ];
+          marketing_features = [`Access to all ${product.name} picks`];
         }
 
         return {
