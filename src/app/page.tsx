@@ -325,8 +325,13 @@ export default function LandingPage() {
     gsap.registerPlugin(ScrollTrigger);
 
     const video = videoRef.current;
-    if (!video) return;
+    const topText = document.querySelector(".top-text");
+    const bottomText = document.querySelector(".bottom-text");
+    const buttonsContainer = document.querySelector(".hero-buttons");
 
+    if (!video || !topText || !bottomText || !buttonsContainer) return;
+
+    // Video animation
     gsap.fromTo(
       video,
       {
@@ -343,17 +348,11 @@ export default function LandingPage() {
         scrollTrigger: {
           trigger: ".hero-section",
           start: "top top",
-          end: "+=200%", // Increased from "bottom top" to "+=200%" to keep video longer
-          scrub: 1, // Added smooth scrubbing
+          end: "+=200%",
+          scrub: 1,
           pin: true,
           pinSpacing: true,
-          markers: false, // Helpful for debugging, remove in production
-          onEnter: () => {
-            // Optional: Add any effects when entering the full-screen state
-          },
-          onLeave: () => {
-            // Optional: Add any effects when leaving the full-screen state
-          },
+          markers: false,
         },
         width: "100vw",
         height: "100vh",
@@ -365,6 +364,41 @@ export default function LandingPage() {
         scale: 1.5,
       }
     );
+
+    // Updated text animations - removed opacity changes
+    gsap.to(topText, {
+      scrollTrigger: {
+        trigger: ".hero-section",
+        start: "top top",
+        end: "+=200%",
+        scrub: 1,
+      },
+      y: "-100vh", // Move up by full viewport height
+      ease: "power1.inOut",
+    });
+
+    gsap.to(bottomText, {
+      scrollTrigger: {
+        trigger: ".hero-section",
+        start: "top top",
+        end: "+=200%",
+        scrub: 1,
+      },
+      y: "100vh", // Move down by full viewport height
+      ease: "power1.inOut",
+    });
+
+    // Keep buttons visible but adjust their position
+    gsap.to(buttonsContainer, {
+      scrollTrigger: {
+        trigger: ".hero-section",
+        start: "top top",
+        end: "+=200%",
+        scrub: 1,
+      },
+      y: "40vh", // Adjusted to move from bottom position
+      scale: 1.2,
+    });
   }, []);
 
   return (
@@ -491,7 +525,7 @@ export default function LandingPage() {
           {/* Hero Content - adjusted margin */}
           <div className="text-center px-4 sm:px-6 lg:px-8 relative z-[2] max-w-[1400px] mx-auto h-full flex flex-col justify-between py-20">
             {/* Top text */}
-            <div className="-translate-y-15">
+            <div className="-translate-y-15 top-text">
               {" "}
               {/* Move main title up */}
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12">
@@ -515,16 +549,28 @@ export default function LandingPage() {
               </h1>
             </div>
 
-            {/* Bottom content */}
-            <div className="translate-y-10">
+            {/* Bottom content - Adjusted positioning */}
+            <div className="absolute bottom-14 left-0 right-0">
               {" "}
-              {/* Move subtitle and buttons down */}
-              <span className="text-gray-300 text-4xl hero-subtitle block mb-12">
+              {/* Changed from translate-y-10 to absolute positioning */}
+              <span className="text-gray-300 text-4xl hero-subtitle block mb-10 bottom-text">
                 Start earning today with our community
               </span>
+              <Link
+                href="/sign-up"
+                className="px-8 py-4 text-lg font-semibold rounded-full bg-[#4e43ff] text-white hover:bg-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50 w-64 sm:w-auto"
+              >
+                Get Started Free
+              </Link>
+              <Link
+                href="#cappers-section"
+                className="px-8 py-4 text-lg font-semibold rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff]/10 transform hover:scale-105 transition-all duration-200 w-64 sm:w-auto"
+              >
+                See Our Cappers
+              </Link>
               {/* Button container */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 hero-buttons">
-                <Link
+                {/* <Link
                   href="/sign-up"
                   className="px-8 py-4 text-lg font-semibold rounded-full bg-[#4e43ff] text-white hover:bg-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50 w-64 sm:w-auto"
                 >
@@ -535,7 +581,7 @@ export default function LandingPage() {
                   className="px-8 py-4 text-lg font-semibold rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff]/10 transform hover:scale-105 transition-all duration-200 w-64 sm:w-auto"
                 >
                   See Our Cappers
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
