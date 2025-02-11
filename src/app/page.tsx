@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import {
   LogIn,
   UserPlus,
@@ -15,6 +15,7 @@ import CappersLogo from "@/images/Cappers Logga.png";
 import gsap from "gsap";
 import DisplayCapperCard from "@/components/displayCapperCard";
 import Footer from "@/components/footer";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export default function LandingPage() {
   const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
@@ -297,24 +298,72 @@ export default function LandingPage() {
   );
 
   // Add this useLayoutEffect for the hero text animation
-  useLayoutEffect(() => {
-    // Create timeline for smoother sequence of animations
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+  // useLayoutEffect(() => {
+  //   // Create timeline for smoother sequence of animations
+  //   const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-    // Animate only the main heading text and subtitle
-    tl.from(".hero-title .text-reveal", {
-      y: 100,
-      opacity: 0,
-      duration: 1,
-      stagger: 0.2,
-    }).from(
-      ".hero-subtitle",
+  //   // Animate only the main heading text and subtitle
+  //   tl.from(".hero-title .text-reveal", {
+  //     y: 100,
+  //     opacity: 0,
+  //     duration: 1,
+  //     stagger: 0.2,
+  //   }).from(
+  //     ".hero-subtitle",
+  //     {
+  //       y: 20,
+  //       opacity: 0,
+  //       duration: 0.8,
+  //     },
+  //     "-=0.4"
+  //   );
+  // }, []);
+
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    gsap.fromTo(
+      video,
       {
-        y: 20,
-        opacity: 0,
-        duration: 0.8,
+        width: "700px",
+        height: "457.5px",
+        top: "40%",
+        left: "50%",
+        xPercent: -50,
+        yPercent: -50,
+        position: "absolute",
+        opacity: 1,
       },
-      "-=0.4"
+      {
+        scrollTrigger: {
+          trigger: ".hero-section",
+          start: "top top",
+          end: "+=200%", // Increased from "bottom top" to "+=200%" to keep video longer
+          scrub: 1, // Added smooth scrubbing
+          pin: true,
+          pinSpacing: true,
+          markers: false, // Helpful for debugging, remove in production
+          onEnter: () => {
+            // Optional: Add any effects when entering the full-screen state
+          },
+          onLeave: () => {
+            // Optional: Add any effects when leaving the full-screen state
+          },
+        },
+        width: "100vw",
+        height: "100vh",
+        top: "0%",
+        left: "0%",
+        xPercent: 0,
+        yPercent: 0,
+        opacity: 1,
+        scale: 1.5,
+      }
     );
   }, []);
 
@@ -421,74 +470,73 @@ export default function LandingPage() {
 
       <main className="flex-grow flex flex-col bg-gradient-to-br from-gray-900 to-black">
         {/* Hero Section - Reduced height on larger screens */}
-        <section className="min-h-[80vh] lg:min-h-[90vh] flex items-center justify-center relative overflow-hidden">
-          {/* Container for floating dollars */}
-          <div className="absolute inset-0 pointer-events-none">
-            {createFloatingDollars()}
-          </div>
-
-          {/* Comment out the wave SVG background
-          <div className="absolute inset-0 z-0">
-            <svg
-              className="w-full h-full opacity-20"
-              viewBox="0 0 1440 320"
-              preserveAspectRatio="none"
+        <section className="hero-section relative min-h-[100vh] lg:min-h-[110vh] flex items-center justify-center overflow-hidden">
+          {/* Video Background */}
+          <div ref={videoRef} className="absolute overflow-hidden rounded-xl">
+            <video
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
             >
-              <path
-                className="wave fill-[#4e43ff]"
-                d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-              />
-              <path
-                className="wave fill-[#4e43ff]/30"
-                d="M0,256L48,234.7C96,213,192,171,288,165.3C384,160,480,192,576,197.3C672,203,768,181,864,181.3C960,181,1056,203,1152,208C1248,213,1344,203,1392,197.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-              />
-            </svg>
+              <source src="/videos/capperLoginVid.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </div>
-          */}
 
-          {/* Existing content with updated z-index */}
-          <div className="text-center px-4 sm:px-6 lg:px-8 relative z-10">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12 lg:mb-12">
-              <span className="block sm:hidden">
-                <img
-                  src={CappersLogo.src}
-                  alt="Cappers Logo"
-                  className="h-16 w-auto mx-auto mb-4"
-                />
-              </span>
-              <span className="hidden sm:block hero-title">
-                <span className="text-white text-8xl">
-                  <span className="text-reveal inline-block">
-                    Want to start{" "}
-                  </span>
-                  <span className="text-reveal inline-block">
-                    earning from{" "}
-                  </span>
-                  <span className="text-reveal inline-block text-[#4e43ff]">
-                    sports bets?
+          {/* Overlay to help text readability - reduced opacity */}
+          <div className="absolute inset-0 bg-black/30 z-[1]"></div>
+
+          {/* Hero Content - adjusted margin */}
+          <div className="text-center px-4 sm:px-6 lg:px-8 relative z-[2] max-w-[1400px] mx-auto h-full flex flex-col justify-between py-20">
+            {/* Top text */}
+            <div className="-translate-y-15">
+              {" "}
+              {/* Move main title up */}
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mx-4 sm:mx-8 lg:mx-12">
+                <span className="block sm:hidden">
+                  <img
+                    src={CappersLogo.src}
+                    alt="Cappers Logo"
+                    className="h-16 w-auto mx-auto mb-4"
+                  />
+                </span>
+                <span className="hidden sm:block hero-title">
+                  <span className="text-white text-8xl">
+                    <span className="text-reveal inline-block">
+                      FIRST CLASS{" "}
+                    </span>
+                    <span className="text-reveal inline-block text-[#4e43ff]">
+                      SPORTSCONTENT
+                    </span>
                   </span>
                 </span>
-                <br />
-                <span className="text-gray-300 text-4xl hero-subtitle">
-                  Start earning today with our community
-                </span>
-                <br />
+              </h1>
+            </div>
+
+            {/* Bottom content */}
+            <div className="translate-y-10">
+              {" "}
+              {/* Move subtitle and buttons down */}
+              <span className="text-gray-300 text-4xl hero-subtitle block mb-12">
+                Start earning today with our community
               </span>
-            </h1>
-            {/* Button container */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 hero-buttons">
-              <Link
-                href="/sign-up"
-                className="px-8 py-4 text-lg font-semibold rounded-full bg-[#4e43ff] text-white hover:bg-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50 w-64 sm:w-auto"
-              >
-                Get Started Free
-              </Link>
-              <Link
-                href="#cappers-section"
-                className="px-8 py-4 text-lg font-semibold rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff]/10 transform hover:scale-105 transition-all duration-200 w-64 sm:w-auto"
-              >
-                See Our Cappers
-              </Link>
+              {/* Button container */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 hero-buttons">
+                <Link
+                  href="/sign-up"
+                  className="px-8 py-4 text-lg font-semibold rounded-full bg-[#4e43ff] text-white hover:bg-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50 w-64 sm:w-auto"
+                >
+                  Get Started Free
+                </Link>
+                <Link
+                  href="#cappers-section"
+                  className="px-8 py-4 text-lg font-semibold rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff]/10 transform hover:scale-105 transition-all duration-200 w-64 sm:w-auto"
+                >
+                  See Our Cappers
+                </Link>
+              </div>
             </div>
           </div>
         </section>
