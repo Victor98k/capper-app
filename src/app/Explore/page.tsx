@@ -4,26 +4,47 @@ import { SideNav } from "@/components/SideNav";
 import ExploreCapperCard from "@/components/exploreCapperCard";
 import { useEffect, useState } from "react";
 import Loader from "@/components/Loader";
+import SearchBar from "@/components/SearchBar";
 
 type Post = {
   _id: string;
-  imageUrl: string;
+  imageUrl: string | null;
   capperId: string;
+  title: string;
+  content: string;
+  tags: string[];
   capperInfo: {
     username: string;
+    profileImage?: string;
+    firstName?: string;
+    lastName?: string;
   };
+};
+
+// Fisher-Yates shuffle algorithm
+const shuffleArray = (array: Post[]) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 };
 
 export default function ExplorePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const response = await fetch("/api/posts");
         const data = await response.json();
-        setPosts(data);
+        const shuffledData = shuffleArray(data);
+        setAllPosts(shuffledData);
+        setPosts(shuffledData);
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
@@ -34,12 +55,33 @@ export default function ExplorePage() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setPosts(allPosts);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = allPosts.filter((post) => {
+      return post.tags?.some((tag) => tag.toLowerCase().includes(query));
+    });
+
+    setPosts(filtered);
+  }, [searchQuery, allPosts]);
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex">
       <SideNav />
       <main className="flex-1 p-4">
         <div className="lg:mt-0 mt-8">
           <h1 className="text-5xl font-bold mb-6 mt-12">Explore our Cappers</h1>
+
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            placeholder="Search by sport (e.g., Football, Basketball)"
+          />
+
           {loading ? (
             <div className="flex items-center justify-center min-h-[calc(100vh-300px)]">
               <Loader />
@@ -50,14 +92,20 @@ export default function ExplorePage() {
                 <ExploreCapperCard
                   key={post._id}
                   username={post.capperInfo.username}
-                  imageUrl={post.imageUrl}
+                  firstName={post.capperInfo.firstName}
+                  lastName={post.capperInfo.lastName}
+                  imageUrl={
+                    post.imageUrl || post.capperInfo.profileImage || undefined
+                  }
                 />
               ))}
             </div>
           )}
           {!loading && posts.length === 0 && (
             <p className="text-center text-gray-400 mt-8">
-              No posts found. Check back later!
+              {searchQuery
+                ? `No posts found for "${searchQuery}"`
+                : "No posts found. Check back later!"}
             </p>
           )}
         </div>
