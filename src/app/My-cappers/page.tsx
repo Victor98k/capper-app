@@ -4,6 +4,7 @@ import { SideNav } from "@/components/SideNav";
 import { useEffect, useState } from "react";
 import Post from "@/components/Posts";
 import Loader from "@/components/Loader";
+import { useAuth } from "@/hooks/useAuth";
 
 type Post = {
   _id: string;
@@ -19,12 +20,42 @@ type Post = {
   productId: string;
 };
 
-// push old code.
+type Subscription = {
+  capperId: string;
+  productId: string;
+};
 
 function MyCappers() {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await fetch("/api/subscriptions/user", {
+          headers: {
+            userId: user.id,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch subscriptions");
+        }
+
+        const data = await response.json();
+        setSubscriptions(data.subscriptions);
+      } catch (error) {
+        console.error("Error fetching subscriptions:", error);
+      }
+    };
+
+    fetchSubscriptions();
+  }, [user?.id]);
 
   useEffect(() => {
     let mounted = true;
@@ -36,8 +67,14 @@ function MyCappers() {
           throw new Error("Failed to fetch posts");
         }
         const data = await response.json();
+
         if (mounted) {
-          setPosts(data);
+          const subscribedCapperIds = subscriptions.map((sub) => sub.capperId);
+          const filteredPosts = data.filter((post: Post) =>
+            subscribedCapperIds.includes(post.capperId)
+          );
+
+          setPosts(filteredPosts);
         }
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -56,7 +93,7 @@ function MyCappers() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [subscriptions]);
 
   if (isLoading) {
     return (
@@ -70,6 +107,18 @@ function MyCappers() {
     return (
       <div className="flex justify-center items-center h-full">
         <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <div className="text-gray-400">
+          No posts from your subscribed cappers yet.
+          <br />
+          Subscribe to some cappers to see their content here!
+        </div>
       </div>
     );
   }
