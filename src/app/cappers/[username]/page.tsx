@@ -533,9 +533,9 @@ export default function CapperProfilePage({
               </p>
             </div>
 
-            {/* First 3 Posts (Always visible) */}
+            {/* First 6 Posts (Always visible) */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
-              {posts.slice(0, 3).map((post) => (
+              {posts.slice(0, 6).map((post) => (
                 <InstagramPost
                   key={post._id}
                   {...post}
@@ -550,85 +550,192 @@ export default function CapperProfilePage({
               ))}
             </div>
 
-            {/* Paywall Section */}
-            {posts.length > 3 && !isSubscribed && (
-              <div className="relative my-12">
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 pointer-events-none" />
+            {/* Subscription Packages Section */}
+            <div className="mt-12" id="subscription-plans">
+              <h2 className="text-2xl font-semibold text-white mb-6">
+                Subscription Plans
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {capper.products.length > 0 ? (
+                  capper.products.map((product) => {
+                    const isSubscribedToProduct = subscribedProducts.includes(
+                      product.id
+                    );
+                    console.log("Product subscription status:", {
+                      productId: product.id,
+                      isSubscribed: isSubscribedToProduct,
+                      subscribedProducts,
+                    });
 
-                {/* Paywall Content */}
-                <div className="relative bg-gray-800/50 rounded-xl p-8 text-center backdrop-blur-sm border border-violet-500/20">
-                  <h3 className="text-2xl font-bold mb-4">
-                    Subscribe to See More Posts
-                  </h3>
-                  <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                    Get access to all of {capper.user.firstName}'s exclusive
-                    content, picks, and analysis
-                  </p>
-                  <SubscribeButton
-                    capperId={capper.id}
-                    isSubscribed={isSubscribed}
-                    scrollToBundles={true}
-                    className="bg-violet-500 hover:bg-violet-600"
-                  >
-                    Subscribe Now
-                  </SubscribeButton>
-                </div>
+                    return (
+                      <Card
+                        key={product.id}
+                        className={`bg-gray-800 border-2 flex flex-col relative p-4 sm:p-6 ${
+                          isSubscribedToProduct
+                            ? "border-green-500 shadow-lg shadow-green-500/20"
+                            : "border-gray-700"
+                        }`}
+                      >
+                        <CardHeader className="p-0 sm:p-4">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-xl sm:text-2xl font-semibold text-white">
+                              {product.name}
+                            </CardTitle>
+                            {isSubscribedToProduct && (
+                              <span className="flex items-center gap-1 text-sm text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
+                                <Check className="h-4 w-4" />
+                                Active
+                              </span>
+                            )}
+                          </div>
+                          <CardDescription className="text-sm sm:text-base text-gray-300">
+                            {product.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow">
+                          <div className="flex flex-col items-center">
+                            <span className="text-5xl font-extrabold text-white">
+                              {product.default_price.unit_amount === 0
+                                ? "Free"
+                                : new Intl.NumberFormat("en-US", {
+                                    style: "decimal",
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }).format(
+                                    product.default_price.unit_amount / 100
+                                  )}
+                            </span>
+                            {product.default_price.unit_amount > 0 && (
+                              <>
+                                <span className="text-sm font-medium text-gray-400 mt-1">
+                                  {product.default_price.currency.toUpperCase()}
+                                </span>
+                                <span className="text-xl font-medium text-gray-300">
+                                  {
+                                    product.default_price?.type === "one_time"
+                                      ? " one-time"
+                                      : product.default_price?.recurring
+                                          ?.interval
+                                      ? `/${product.default_price.recurring.interval}`
+                                      : "/month" // fallback to /month if no interval specified
+                                  }
+                                  {product.default_price?.recurring
+                                    ?.interval_count &&
+                                  product.default_price.recurring
+                                    .interval_count > 1
+                                    ? ` (${product.default_price.recurring.interval_count} ${product.default_price.recurring.interval}s)`
+                                    : ""}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <ul className="mt-8 space-y-4">
+                            {Array.isArray(product.marketing_features) &&
+                            product.marketing_features.length > 0 ? (
+                              product.marketing_features.map(
+                                (feature, index) => (
+                                  <li key={index} className="flex items-start">
+                                    <div className="flex-shrink-0">
+                                      <Check className="h-6 w-6 text-green-400" />
+                                    </div>
+                                    <p className="ml-3 text-base text-gray-300">
+                                      {feature}
+                                    </p>
+                                  </li>
+                                )
+                              )
+                            ) : (
+                              <li className="flex items-start">
+                                <div className="flex-shrink-0">
+                                  <Check className="h-6 w-6 text-green-400" />
+                                </div>
+                                <p className="ml-3 text-base text-gray-300">
+                                  No features specified
+                                </p>
+                              </li>
+                            )}
+                          </ul>
+                        </CardContent>
+                        <CardFooter className="mt-auto pt-6">
+                          <SubscribeButton
+                            capperId={capper.id}
+                            productId={product.id}
+                            priceId={product.default_price.id}
+                            stripeAccountId={capper.user.stripeConnectId}
+                            isSubscribed={isSubscribedToProduct}
+                            className={`w-full ${
+                              isSubscribedToProduct
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-violet-500 hover:bg-violet-600"
+                            }`}
+                          >
+                            {isSubscribedToProduct
+                              ? "Unsubscribe"
+                              : "Subscribe"}
+                          </SubscribeButton>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-gray-400">
+                      This capper hasn't created any subscription plans yet.
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
 
-            {/* Paginated Posts - Show only if subscribed */}
-            {isSubscribed && posts.length > 3 && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mt-8">
-                  {posts
-                    .slice(3) // Skip the first 3 posts that are always shown
-                    .slice(
-                      (currentPage - 1) * postsPerPage,
-                      currentPage * postsPerPage
-                    )
-                    .map((post) => (
-                      <InstagramPost
-                        key={post._id}
-                        {...post}
-                        capperInfo={{
-                          firstName: capper.user.firstName,
-                          lastName: capper.user.lastName,
-                          username: capper.user.username,
-                          profileImage: capper.profileImage,
-                          isVerified: true,
-                        }}
-                      />
-                    ))}
-                </div>
-
-                {/* Pagination Controls */}
-                <div className="flex justify-center items-center gap-4 mt-8">
-                  <PaginationButton
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </PaginationButton>
-
-                  <span className="text-gray-400">
-                    Page {currentPage} of{" "}
-                    {Math.ceil((posts.length - 3) / postsPerPage)}
-                  </span>
-
-                  <PaginationButton
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                    disabled={
-                      currentPage >=
-                      Math.ceil((posts.length - 3) / postsPerPage)
-                    }
-                  >
-                    Next
-                  </PaginationButton>
-                </div>
-              </>
+            {/* Remaining Posts Section */}
+            {posts.length > 6 && (
+              <div className="mt-12">
+                {!isSubscribed ? (
+                  // Paywall for non-subscribers
+                  <div className="relative my-12">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 pointer-events-none" />
+                    <div className="relative bg-gray-800/50 rounded-xl p-8 text-center backdrop-blur-sm border border-violet-500/20">
+                      <h3 className="text-2xl font-bold mb-4">
+                        Subscribe to See More Posts
+                      </h3>
+                      <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+                        Get access to all of {capper.user.firstName}'s exclusive
+                        content, picks, and analysis
+                      </p>
+                      <SubscribeButton
+                        capperId={capper.id}
+                        isSubscribed={isSubscribed}
+                        scrollToBundles={true}
+                        className="bg-violet-500 hover:bg-violet-600"
+                      >
+                        Subscribe Now
+                      </SubscribeButton>
+                    </div>
+                  </div>
+                ) : (
+                  // Show remaining posts for subscribers
+                  <>
+                    <h3 className="text-xl font-semibold text-white mb-6">
+                      More Posts
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                      {posts.slice(6).map((post) => (
+                        <InstagramPost
+                          key={post._id}
+                          {...post}
+                          capperInfo={{
+                            firstName: capper.user.firstName,
+                            lastName: capper.user.lastName,
+                            username: capper.user.username,
+                            profileImage: capper.profileImage,
+                            isVerified: true,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
 
             {/* No Posts Message */}
@@ -637,138 +744,6 @@ export default function CapperProfilePage({
                 <p className="text-gray-400">No posts available yet.</p>
               </div>
             )}
-          </div>
-
-          {/* Subscription Packages Section */}
-          <div className="mt-12" id="subscription-plans">
-            <h2 className="text-2xl font-semibold text-white mb-6">
-              Subscription Plans
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {capper.products.length > 0 ? (
-                capper.products.map((product) => {
-                  const isSubscribedToProduct = subscribedProducts.includes(
-                    product.id
-                  );
-                  console.log("Product subscription status:", {
-                    productId: product.id,
-                    isSubscribed: isSubscribedToProduct,
-                    subscribedProducts,
-                  });
-
-                  return (
-                    <Card
-                      key={product.id}
-                      className={`bg-gray-800 border-2 flex flex-col relative p-4 sm:p-6 ${
-                        isSubscribedToProduct
-                          ? "border-green-500 shadow-lg shadow-green-500/20"
-                          : "border-gray-700"
-                      }`}
-                    >
-                      <CardHeader className="p-0 sm:p-4">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-xl sm:text-2xl font-semibold text-white">
-                            {product.name}
-                          </CardTitle>
-                          {isSubscribedToProduct && (
-                            <span className="flex items-center gap-1 text-sm text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
-                              <Check className="h-4 w-4" />
-                              Active
-                            </span>
-                          )}
-                        </div>
-                        <CardDescription className="text-sm sm:text-base text-gray-300">
-                          {product.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <div className="flex flex-col items-center">
-                          <span className="text-5xl font-extrabold text-white">
-                            {product.default_price.unit_amount === 0
-                              ? "Free"
-                              : new Intl.NumberFormat("en-US", {
-                                  style: "decimal",
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                }).format(
-                                  product.default_price.unit_amount / 100
-                                )}
-                          </span>
-                          {product.default_price.unit_amount > 0 && (
-                            <>
-                              <span className="text-sm font-medium text-gray-400 mt-1">
-                                {product.default_price.currency.toUpperCase()}
-                              </span>
-                              <span className="text-xl font-medium text-gray-300">
-                                {
-                                  product.default_price?.type === "one_time"
-                                    ? " one-time"
-                                    : product.default_price?.recurring?.interval
-                                    ? `/${product.default_price.recurring.interval}`
-                                    : "/month" // fallback to /month if no interval specified
-                                }
-                                {product.default_price?.recurring
-                                  ?.interval_count &&
-                                product.default_price.recurring.interval_count >
-                                  1
-                                  ? ` (${product.default_price.recurring.interval_count} ${product.default_price.recurring.interval}s)`
-                                  : ""}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <ul className="mt-8 space-y-4">
-                          {Array.isArray(product.marketing_features) &&
-                          product.marketing_features.length > 0 ? (
-                            product.marketing_features.map((feature, index) => (
-                              <li key={index} className="flex items-start">
-                                <div className="flex-shrink-0">
-                                  <Check className="h-6 w-6 text-green-400" />
-                                </div>
-                                <p className="ml-3 text-base text-gray-300">
-                                  {feature}
-                                </p>
-                              </li>
-                            ))
-                          ) : (
-                            <li className="flex items-start">
-                              <div className="flex-shrink-0">
-                                <Check className="h-6 w-6 text-green-400" />
-                              </div>
-                              <p className="ml-3 text-base text-gray-300">
-                                No features specified
-                              </p>
-                            </li>
-                          )}
-                        </ul>
-                      </CardContent>
-                      <CardFooter className="mt-auto pt-6">
-                        <SubscribeButton
-                          capperId={capper.id}
-                          productId={product.id}
-                          priceId={product.default_price.id}
-                          stripeAccountId={capper.user.stripeConnectId}
-                          isSubscribed={isSubscribedToProduct}
-                          className={`w-full ${
-                            isSubscribedToProduct
-                              ? "bg-red-500 hover:bg-red-600"
-                              : "bg-violet-500 hover:bg-violet-600"
-                          }`}
-                        >
-                          {isSubscribedToProduct ? "Unsubscribe" : "Subscribe"}
-                        </SubscribeButton>
-                      </CardFooter>
-                    </Card>
-                  );
-                })
-              ) : (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-gray-400">
-                    This capper hasn't created any subscription plans yet.
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </main>
