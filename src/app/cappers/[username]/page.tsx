@@ -434,13 +434,6 @@ export default function CapperProfilePage({
                     <Star className="w-4 h-4 mr-2 inline-block" />
                     Reviews
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="about"
-                    className="relative px-1 pb-4 text-sm sm:text-base font-medium data-[state=active]:text-violet-400 data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-0.5 data-[state=active]:after:bg-violet-400 transition-all whitespace-nowrap"
-                  >
-                    <User className="w-4 h-4 mr-2 inline-block" />
-                    About
-                  </TabsTrigger>
                 </TabsList>
               </div>
 
