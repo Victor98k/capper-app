@@ -9,7 +9,11 @@ if (!process.env.RESEND_API_KEY) {
   console.error("RESEND_API_KEY is not set in environment variables");
 }
 if (!process.env.NEXT_PUBLIC_APP_URL) {
-  console.error("NEXT_PUBLIC_APP_URL is not set in environment variables");
+  // Fallback to a default URL in development
+  process.env.NEXT_PUBLIC_APP_URL =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "https://your-domain.com"; // Replace with your production domain
 }
 
 export async function POST(request: Request) {
