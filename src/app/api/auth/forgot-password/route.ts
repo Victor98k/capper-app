@@ -9,8 +9,7 @@ if (!process.env.RESEND_API_KEY) {
   console.error("RESEND_API_KEY is not set in environment variables");
 }
 if (!process.env.NEXT_PUBLIC_APP_URL) {
-  // Fallback to a default URL in development
-  process.env.NEXT_PUBLIC_APP_URL;
+  console.error("NEXT_PUBLIC_APP_URL is not set in environment variables");
 }
 
 export async function POST(request: Request) {
@@ -54,7 +53,9 @@ export async function POST(request: Request) {
     });
 
     // Create reset URL
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+    // const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${resetToken}`;
+
     console.log("Reset URL generated:", resetUrl);
 
     try {
