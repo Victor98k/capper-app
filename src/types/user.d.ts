@@ -18,6 +18,7 @@ export interface UserRegistrationData {
   email: string;
   password: string;
   isCapper?: boolean;
+  isSuperUser?: boolean;
 }
 
 export type UserLoginData = {

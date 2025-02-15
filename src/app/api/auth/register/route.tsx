@@ -52,6 +52,7 @@ export async function POST(request: Request) {
         lastName: body.lastName,
         email: body.email,
         password: hashedPassword,
+        isSuperUser: body.isSuperUser || false,
         isCapper: body.isCapper || false,
       },
     });
