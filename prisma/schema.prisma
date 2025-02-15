@@ -26,6 +26,8 @@ model User {
   payoutEnabled         Boolean   @default(false)
   stripeConnectCountry  String?   
   likedPosts        PostLike[]
+  resetToken       String?
+  resetTokenExpiry DateTime?
 
   Subscription Subscription[]
 }

@@ -22,6 +22,8 @@ import { Loader } from "@/components/ui/loader";
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const [alert, setAlert] = useState<{
     type: "success" | "error" | "loading";
     message: string;
@@ -83,6 +85,45 @@ export function Login() {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsResettingPassword(true);
+
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAlert({
+          type: "success",
+          message: "Check your email",
+          description:
+            "If an account exists with this email, you will receive reset instructions",
+        });
+        setResetEmail("");
+      } else {
+        setAlert({
+          type: "error",
+          message: "Reset failed",
+          description: data.error || "Failed to send reset email",
+        });
+      }
+    } catch (error) {
+      setAlert({
+        type: "error",
+        message: "Reset failed",
+        description: "An error occurred. Please try again.",
+      });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Left side with video */}
@@ -122,8 +163,8 @@ export function Login() {
               alert.type === "error"
                 ? "bg-destructive text-destructive-foreground"
                 : alert.type === "success"
-                ? "bg-primary text-primary-foreground"
-                : ""
+                  ? "bg-primary text-primary-foreground"
+                  : ""
             }`}
           >
             <AlertTitle>{alert.message}</AlertTitle>
@@ -141,55 +182,80 @@ export function Login() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <label
-                  htmlFor="remember"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            {!isResettingPassword ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="remember" />
+                  <label
+                    htmlFor="remember"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Remember me
+                  </label>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-[#4e43ff] text-white hover:bg-[#3d35cc]"
+                  disabled={isLoading}
                 >
-                  Remember me
-                </label>
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-[#4e43ff] text-white hover:bg-[#3d35cc]"
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader size="sm" /> : "Log in"}
-              </Button>
-            </form>
-            {/* <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div> */}
+                  {isLoading ? <Loader size="sm" /> : "Log in"}
+                </Button>
+                <Button
+                  variant="link"
+                  type="button"
+                  className="w-full text-xs md:text-sm text-muted-foreground"
+                  onClick={() => setIsResettingPassword(true)}
+                >
+                  Forgot password?
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handlePasswordReset} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="resetEmail">Email</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    placeholder="m@example.com"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? <Loader size="sm" /> : "Send Reset Link"}
+                </Button>
+                <Button
+                  variant="link"
+                  type="button"
+                  className="w-full text-xs md:text-sm text-muted-foreground"
+                  onClick={() => setIsResettingPassword(false)}
+                >
+                  Back to login
+                </Button>
+              </form>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <Button variant="outline">
                 <Mail className="mr-2 h-4 w-4" /> Google
@@ -198,14 +264,6 @@ export function Login() {
                 <Facebook className="mr-2 h-4 w-4" /> Facebook
               </Button>
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
-            <Button
-              variant="link"
-              className="w-full text-xs md:text-sm text-muted-foreground"
-            >
-              Forgot password?
-            </Button>
             <Button
               variant="link"
               className="w-full text-xs md:text-sm text-muted-foreground"
@@ -213,6 +271,21 @@ export function Login() {
             >
               Don't have an account? Sign up
             </Button>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            {/* <Button
+              variant="link"
+              className="w-full text-xs md:text-sm text-muted-foreground"
+            >
+              Forgot password?
+            </Button> */}
+            {/* <Button
+              variant="link"
+              className="w-full text-xs md:text-sm text-muted-foreground"
+              onClick={() => router.push("/sign-up")}
+            >
+              Don't have an account? Sign up
+            </Button> */}
           </CardFooter>
         </Card>
       </div>
