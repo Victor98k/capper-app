@@ -10,10 +10,7 @@ if (!process.env.RESEND_API_KEY) {
 }
 if (!process.env.NEXT_PUBLIC_APP_URL) {
   // Fallback to a default URL in development
-  process.env.NEXT_PUBLIC_APP_URL =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : "https://your-domain.com"; // Replace with your production domain
+  process.env.NEXT_PUBLIC_APP_URL;
 }
 
 export async function POST(request: Request) {
