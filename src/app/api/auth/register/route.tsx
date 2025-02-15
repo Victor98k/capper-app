@@ -4,6 +4,10 @@ import { userRegistrationValidator } from "@/utils/validators/userValidator";
 import { hashPassword } from "@/utils/bcrypt";
 import { JWTUserPayload, signJWT } from "@/utils/jwt";
 import { prisma } from "@/utils/prisma";
+import { Resend } from "resend";
+import { CappersWelcomeEmail } from "@/emails/WelcomeEmail";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function validatePassword(password: string): [boolean, string[]] {
   const errors: string[] = [];
@@ -51,6 +55,20 @@ export async function POST(request: Request) {
         isCapper: body.isCapper || false,
       },
     });
+
+    // Send welcome email
+    try {
+      await resend.emails.send({
+        from: "Cappers Platform <onboarding@resend.dev>",
+        to: "victorgustav98@gmail.com", // Temporarily use your email for testing
+        // to: user.email  // Send to the actual user's email
+        subject: "Welcome to Cappers Platform!",
+        react: CappersWelcomeEmail({ userFirstname: user.firstName }),
+      });
+    } catch (emailError) {
+      // Log the error but don't fail the registration
+      console.error("Failed to send welcome email:", emailError);
+    }
 
     if (body.isCapper) {
       await prisma.capper.create({
