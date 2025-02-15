@@ -29,6 +29,7 @@ model User {
   likedPosts        PostLike[]
   resetToken       String?
   resetTokenExpiry DateTime?
+  capperApplications CapperApplication[]
 
   Subscription Subscription[]
 }
@@ -104,5 +105,20 @@ model PostLike {
   @@unique([userId, postId])
   @@index([userId])
   @@index([postId])
+}
+
+model CapperApplication {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id])
+  sport           String
+  experience      String
+  monthlyBetAmount String
+  yearlyROI       String
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
 }
   
