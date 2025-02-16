@@ -8,18 +8,11 @@ import { signJWT } from "@/utils/jwt";
 console.log("Resend API Key configured:", !!process.env.RESEND_API_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Test email sending
-try {
-  await resend.emails.send({
-    from: "Cappers Platform <onboarding@resend.dev>",
-    to: "your-test-email@example.com",
-    subject: "Test Email",
-    text: "This is a test email",
-  });
-  console.log("Test email sent successfully");
-} catch (error) {
-  console.error("Error sending test email:", error);
-}
+const fromEmail = process.env.RESEND_FROM_EMAIL;
+const testEmail = process.env.RESEND_TEST_EMAIL;
+
+// Define test email - this ensures we have a fallback
+const TEST_EMAIL = "victorgustav98@gmail.com";
 
 export async function GET(request: Request) {
   try {
@@ -128,8 +121,8 @@ export async function POST(request: Request) {
 
     // Send confirmation email
     await resend.emails.send({
-      from: "Cappers Platform <notifications@cappersports.co>",
-      to: user.email,
+      from: "Cappers Platform <onboarding@resend.dev>",
+      to: TEST_EMAIL, // Always send to test email
       subject: "Application Received - Cappers Platform",
       react: CapperApplicationEmail({
         userFirstName: user.firstName,
@@ -229,7 +222,7 @@ export async function PUT(request: Request) {
         console.log("Sending approval email to:", application.user.email); // Debug log
         const emailResponse = await resend.emails.send({
           from: "Cappers Platform <onboarding@resend.dev>",
-          to: application.user.email,
+          to: TEST_EMAIL, // Always send to test email
           subject: "Your Capper Application has been Approved!",
           react: CapperApplicationEmail({
             userFirstName: application.user.firstName,
@@ -238,6 +231,15 @@ export async function PUT(request: Request) {
           }),
         });
         console.log("Email response:", emailResponse); // Debug log
+
+        // Add debug logging
+        console.log("Email sending environment:", process.env.NODE_ENV);
+        console.log(
+          "Email recipient:",
+          process.env.NODE_ENV === "development"
+            ? "victorgustav98@gmail.com"
+            : application.user.email
+        );
       } catch (emailError) {
         console.error("Error in approval process:", emailError);
         // Continue with the response even if email fails
@@ -246,7 +248,7 @@ export async function PUT(request: Request) {
       // Update rejection email as well
       await resend.emails.send({
         from: "Cappers Platform <onboarding@resend.dev>",
-        to: application.user.email,
+        to: TEST_EMAIL, // Always send to test email
         subject: "Update on Your Capper Application",
         react: CapperApplicationEmail({
           userFirstName: application.user.firstName,
