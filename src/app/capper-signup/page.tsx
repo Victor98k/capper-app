@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-export default function CapperSignup() {
+function CapperSignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
@@ -142,5 +143,13 @@ export default function CapperSignup() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CapperSignup() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CapperSignupContent />
+    </Suspense>
   );
 }
