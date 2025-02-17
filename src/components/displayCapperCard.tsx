@@ -14,7 +14,6 @@ interface DisplayCapperCardProps {
   firstName: string;
   lastName: string;
   username: string;
-  bio?: string;
   title?: string;
   imageUrl?: string;
   tags: string[];
@@ -27,7 +26,6 @@ export function DisplayCapperCard({
   firstName,
   lastName,
   username,
-  bio,
   title,
   imageUrl,
   tags,
@@ -37,24 +35,24 @@ export function DisplayCapperCard({
   const router = useRouter();
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  useEffect(() => {
-    const checkSubscriptionStatus = async () => {
-      try {
-        if (typeof window !== "undefined") {
-          // Check if we're in the browser
-          const response = await fetch(
-            `/api/subscriptions/check?capperId=${userId}`
-          );
-          const data = await response.json();
-          setIsSubscribed(data.isSubscribed);
-        }
-      } catch (error) {
-        console.error("Error checking subscription status:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const checkSubscriptionStatus = async () => {
+  //     try {
+  //       if (typeof window !== "undefined") {
+  //         // Check if we're in the browser
+  //         const response = await fetch(
+  //           `/api/subscriptions/check?capperId=${userId}`
+  //         );
+  //         const data = await response.json();
+  //         setIsSubscribed(data.isSubscribed);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error checking subscription status:", error);
+  //     }
+  //   };
 
-    checkSubscriptionStatus();
-  }, [userId]);
+  //   checkSubscriptionStatus();
+  // }, [userId]);
 
   const handleSubscribe = async () => {
     try {
@@ -77,39 +75,36 @@ export function DisplayCapperCard({
   return (
     <Card className="overflow-hidden bg-gray-800 border-gray-700 hover:border-violet-500/50 transition-all duration-300">
       <CardContent className="p-6">
-        <div className="flex items-center space-x-4">
-          <Avatar className="h-12 w-12 border-2 border-violet-500">
+        <div className="flex flex-col items-center mb-6">
+          <Avatar className="h-32 w-32 border-4 border-violet-500 mb-4">
             <AvatarImage src={imageUrl} />
-            <AvatarFallback className="bg-violet-600 text-white">
+            <AvatarFallback className="bg-violet-600 text-white text-3xl">
               {firstName.charAt(0)}
               {lastName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold flex items-center text-white">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold flex items-center justify-center text-white mb-1">
               {firstName} {lastName}
               {isVerified && (
-                <CheckCircle className="h-4 w-4 text-blue-400 ml-1" />
+                <CheckCircle className="h-5 w-5 text-blue-400 ml-2" />
               )}
             </h3>
-            <p className="text-sm text-gray-400">@{username}</p>
-          </div>
-          <div className="flex items-center text-sm text-gray-400">
-            <Users className="h-4 w-4 mr-1" />
-            {subscriberIds?.length || 0}
+            <p className="text-sm text-gray-400 mb-2">@{username}</p>
+            <div className="flex items-center justify-center text-sm text-gray-400">
+              <Users className="h-4 w-4 mr-1" />
+              <span>{subscriberIds?.length || 0} Subscribers</span>
+            </div>
           </div>
         </div>
 
-        {(title || bio) && (
-          <div className="mt-4">
-            {title && (
-              <h4 className="font-medium text-violet-400 mb-1">{title}</h4>
-            )}
-            {bio && <p className="text-gray-300 text-sm">{bio}</p>}
+        {title && (
+          <div className="text-center mb-6">
+            <h4 className="font-medium text-violet-400 mb-2">{title}</h4>
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
           {tags.map((tag) => (
             <span
               key={tag}
@@ -121,12 +116,12 @@ export function DisplayCapperCard({
           ))}
         </div>
 
-        <div className="mt-6 flex justify-between items-center">
+        <div className="flex justify-center">
           <Button
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white"
-            onClick={() => router.push(`/cappers/${username}`)}
+            className="w-full max-w-xs bg-violet-600 hover:bg-violet-700 text-white"
+            onClick={() => router.push("/sign-up")}
           >
-            View Profile
+            Get Started
           </Button>
         </div>
       </CardContent>
