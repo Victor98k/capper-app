@@ -14,6 +14,7 @@ interface DisplayCapperCardProps {
   firstName: string;
   lastName: string;
   username: string;
+  bio?: string;
   title?: string;
   imageUrl?: string;
   tags: string[];
