@@ -336,8 +336,7 @@ export default function CapperProfilePage({
                   {capper.tags.map((tag) => (
                     <Badge
                       key={tag}
-                      variant="outline"
-                      className="bg-[#4e43ff] text-gray-300 flex items-center gap-2"
+                      className="bg-[#4e43ff] text-gray-300 flex items-center gap-2 border-0"
                     >
                       <span className="text-lg">
                         {sportEmojiMap[tag] || "🎯"}
