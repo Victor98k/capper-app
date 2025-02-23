@@ -80,18 +80,19 @@ model CapperPost {
 }
 
 model Subscription {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String   @db.ObjectId
-  capperId     String   @db.ObjectId
-  productId    String   // Store the specific bundle/product ID
-  priceId      String   // Store the price ID for the bundle
-  status       String   // "active" or "cancelled"
-  subscribedAt DateTime @default(now())
-  expiresAt    DateTime? // Add expiration date
-  cancelledAt  DateTime? // Add this field
-  capper       Capper   @relation(fields: [capperId], references: [id])
-  user         User     @relation(fields: [userId], references: [id])
+  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String    @db.ObjectId
+  capperId             String    @db.ObjectId
+  productId            String    // Store the specific bundle/product ID
+  priceId              String    // Store the price ID for the bundle
+  status               String    // "active" or "cancelled"
+  subscribedAt         DateTime  @default(now())
+  expiresAt            DateTime? // Add expiration date
+  cancelledAt          DateTime? // Add this field
+  capper               Capper    @relation(fields: [capperId], references: [id])
+  user                 User      @relation(fields: [userId], references: [id])
   stripeSubscriptionId String?
+  stripeCustomerId     String?   // Add this field
 }
 
 model PostLike {
