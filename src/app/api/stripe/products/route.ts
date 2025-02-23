@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { verifyJWT } from "@/utils/jwt";
+import Stripe from "stripe";
 
 export async function GET(req: Request) {
   try {
@@ -43,15 +44,17 @@ export async function GET(req: Request) {
     );
 
     // Transform the products data
-    const transformedProducts = products.data.map((product) => ({
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      default_price: product.default_price,
-      unit_amount: (product.default_price as any)?.unit_amount,
-      currency: (product.default_price as any)?.currency,
-      features: product.marketing_features || [],
-    }));
+    const transformedProducts = products.data.map(
+      (product: Stripe.Product) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        default_price: product.default_price,
+        unit_amount: (product.default_price as Stripe.Price)?.unit_amount,
+        currency: (product.default_price as Stripe.Price)?.currency,
+        features: product.marketing_features || [],
+      })
+    );
 
     return NextResponse.json(transformedProducts);
   } catch (error) {
