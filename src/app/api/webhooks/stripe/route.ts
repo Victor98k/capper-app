@@ -31,6 +31,21 @@ export async function POST(req: Request) {
       });
 
       try {
+        // First check if subscription already exists
+        const existingSubscription = await prisma.subscription.findFirst({
+          where: {
+            stripeSubscriptionId: session.subscription,
+            userId: session.metadata.userId,
+            capperId: session.metadata.capperId,
+          },
+        });
+
+        if (existingSubscription) {
+          console.log("Subscription already exists:", existingSubscription.id);
+          return NextResponse.json({ received: true });
+        }
+
+        // Create new subscription
         const subscription = await prisma.subscription.create({
           data: {
             userId: session.metadata.userId,
@@ -53,8 +68,29 @@ export async function POST(req: Request) {
           userId: subscription.userId,
           productId: subscription.productId,
         });
+
+        // Update capper's subscriberIds
+        await prisma.capper.update({
+          where: { id: session.metadata.capperId },
+          data: {
+            subscriberIds: {
+              push: session.metadata.userId,
+            },
+          },
+        });
+
+        console.log("Updated capper's subscriberIds");
       } catch (dbError) {
         console.error("Failed to create subscription in database:", dbError);
+        // Log more details about the error
+        console.error("Error details:", {
+          message: dbError instanceof Error ? dbError.message : "Unknown error",
+          code:
+            dbError instanceof Error && "code" in dbError
+              ? dbError.code
+              : undefined,
+          metadata: session.metadata,
+        });
         throw dbError;
       }
     }
@@ -64,6 +100,7 @@ export async function POST(req: Request) {
     console.error("Webhook error:", {
       error: error instanceof Error ? error.message : "Unknown error",
       type: event?.type,
+      stack: error instanceof Error ? error.stack : undefined,
     });
     return NextResponse.json(
       { error: "Webhook handler failed" },
