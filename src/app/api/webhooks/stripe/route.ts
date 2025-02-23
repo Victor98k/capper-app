@@ -7,103 +7,64 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
   const body = await req.text();
-  const sig = (await headers()).get("stripe-signature");
+  const sig = req.headers.get("stripe-signature");
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig!, endpointSecret);
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err);
-    return NextResponse.json({ error: "Webhook Error" }, { status: 400 });
-  }
+    console.log("Webhook received - Starting processing");
 
-  try {
-    // Handle the event
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object;
-        const metadata = session.metadata as {
-          userId: string;
-          capperId: string;
-          productId: string;
-          priceId: string;
-          priceType: string;
-        };
+    // Verify webhook signature
+    event = stripe.webhooks.constructEvent(body, sig!, webhookSecret!);
 
-        try {
-          // For both subscription and one-time payments
-          await prisma.subscription.create({
-            data: {
-              userId: metadata.userId,
-              capperId: metadata.capperId,
-              status: "active",
-              subscribedAt: new Date(),
-              productId: metadata.productId,
-              priceId: metadata.priceId,
-              // Set stripeSubscriptionId only for recurring payments
-              ...(session.subscription && {
-                stripeSubscriptionId: session.subscription as string,
-              }),
-              // Set expiration for one-time payments (e.g., 1 year from purchase)
-              ...(metadata.priceType === "one_time" && {
-                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
-              }),
-            },
-          });
+    console.log("Webhook signature verified, event type:", event.type);
 
-          // Update capper's subscriberIds
-          await prisma.capper.update({
-            where: { id: metadata.capperId },
-            data: {
-              subscriberIds: {
-                push: metadata.userId,
-              },
-            },
-          });
-        } catch (error) {
-          console.error("Failed to create subscription:", {
-            error,
-            sessionId: session.id,
-            subscriptionId: session.subscription,
-            metadata: session.metadata,
-          });
-          throw error;
-        }
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
 
-        break;
-      }
+      console.log("Checkout session completed. Session data:", {
+        id: session.id,
+        metadata: session.metadata,
+        customer: session.customer,
+        subscription: session.subscription,
+      });
 
-      case "customer.subscription.deleted":
-      case "customer.subscription.updated": {
-        const subscription = event.data.object;
-
-        console.log("Webhook subscription event:", {
-          type: event.type,
-          subscriptionId: subscription.id,
-          status: subscription.status,
-        });
-
-        // Update subscription status in database
-        await prisma.subscription.updateMany({
-          where: {
-            stripeSubscriptionId: subscription.id,
-          },
+      try {
+        const subscription = await prisma.subscription.create({
           data: {
-            status: subscription.status === "active" ? "active" : "inactive",
-            ...(subscription.status !== "active" && {
-              cancelledAt: new Date(),
-            }),
+            userId: session.metadata.userId,
+            capperId: session.metadata.capperId,
+            productId: session.metadata.productId,
+            priceId: session.metadata.priceId,
+            status: "active",
+            stripeSubscriptionId: session.subscription,
+            stripeCustomerId: session.customer,
+            subscribedAt: new Date(),
+            expiresAt:
+              session.metadata.priceType === "recurring"
+                ? null
+                : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           },
         });
 
-        break;
+        console.log("Successfully created subscription in database:", {
+          id: subscription.id,
+          userId: subscription.userId,
+          productId: subscription.productId,
+        });
+      } catch (dbError) {
+        console.error("Failed to create subscription in database:", dbError);
+        throw dbError;
       }
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Error processing webhook:", error);
+    console.error("Webhook error:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      type: event?.type,
+    });
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 }

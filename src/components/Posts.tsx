@@ -147,7 +147,6 @@ function InstagramPost({
   useEffect(() => {
     const checkSubscription = async () => {
       try {
-        // console.log("Checking subscription for post:", { capperId, productId });
         const response = await fetch(
           `/api/subscriptions/check?capperId=${capperId}&productId=${productId}`,
           {
@@ -157,25 +156,14 @@ function InstagramPost({
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Subscription check response:", data);
-
-          // Check specifically if we have access to this product
-          const hasAccessToProduct =
-            data.subscribedProducts.includes(productId);
+          // Handle case where subscribedProducts might be undefined
+          const subscribedProducts = data.subscribedProducts || [];
+          const hasAccessToProduct = subscribedProducts.includes(productId);
           setIsSubscribed(hasAccessToProduct);
-
-          // Debug logging
-          // console.log("Subscription status:", {
-          //   isSubscribed: hasAccessToProduct,
-          //   subscribedProducts: data.subscribedProducts,
-          //   currentProductId: productId,
-          //   debug: data.debug,
-          // });
-        } else {
-          console.error("Subscription check failed:", await response.text());
         }
       } catch (error) {
         console.error("Error checking subscription:", error);
+        setIsSubscribed(false); // Default to false on error
       }
     };
 

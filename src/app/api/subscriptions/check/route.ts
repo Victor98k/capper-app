@@ -1,127 +1,64 @@
 import { NextResponse } from "next/server";
-import { verifyJWT } from "@/utils/jwt";
 import { prisma } from "@/lib/prisma";
+import { verifyJWT } from "@/utils/jwt";
 
-export async function GET(req: Request) {
+export async function GET(request: Request) {
   try {
-    const url = new URL(req.url);
+    const url = new URL(request.url);
     const capperId = url.searchParams.get("capperId");
     const productId = url.searchParams.get("productId");
 
-    if (!capperId) {
-      return NextResponse.json({ error: "Missing capperId" }, { status: 400 });
-    }
-
-    // Get and verify token
-    const cookies = req.headers.get("cookie");
+    // Get user from token
+    const cookies = request.headers.get("cookie");
     const token = cookies
       ?.split(";")
       .find((c) => c.trim().startsWith("token="))
       ?.split("=")[1];
 
     if (!token) {
-      return NextResponse.json({ isSubscribed: false });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = await verifyJWT(token).catch(() => null);
+    const payload = await verifyJWT(token);
     if (!payload?.userId) {
-      return NextResponse.json({ isSubscribed: false });
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // At the start of the try block, after getting the payload
-    console.log("Checking subscriptions for:", {
-      authenticatedUserId: payload?.userId,
-      requestedCapperId: capperId,
-      requestedProductId: productId,
-      tokenPresent: !!token,
-    });
-
-    // First, let's find any subscription regardless of status
-    const allSubscriptions = await prisma.subscription.findMany({
-      where: {
-        userId: payload.userId,
-        capperId: capperId,
-        ...(productId && { productId }),
-      },
-    });
-
-    // Log ALL found subscriptions with full details
-    console.log(
-      "All found subscriptions (raw):",
-      JSON.stringify(allSubscriptions, null, 2)
-    );
-
-    // Then check for active subscriptions with detailed logging
-    console.log("Searching for active subscriptions with criteria:", {
-      userId: payload.userId,
-      capperId: capperId,
-      status: "active",
-      productIdFilter: productId ? { productId } : "none",
-    });
-
+    // Check for active subscriptions
     const activeSubscriptions = await prisma.subscription.findMany({
       where: {
         userId: payload.userId,
-        capperId: capperId,
-        status: "active",
+        capperId: capperId!,
         ...(productId && { productId }),
-      },
-      include: {
-        capper: {
-          include: {
-            user: {
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
+        status: "active",
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
     });
 
-    // Log the active subscriptions found
-    console.log(
-      "Active subscriptions found:",
-      JSON.stringify(activeSubscriptions, null, 2)
-    );
+    // Extract product IDs from active subscriptions
+    const subscribedProducts = activeSubscriptions.map((sub) => sub.productId);
 
-    // Log the exact query being used
-    console.log("Query parameters:", {
+    console.log("Subscription check details:", {
       userId: payload.userId,
       capperId,
       productId,
-      exactQuery: {
-        userId: payload.userId,
-        capperId: capperId,
-        status: "active",
-        ...(productId && { productId }),
-      },
+      activeCount: activeSubscriptions.length,
+      totalCount: activeSubscriptions.length,
+      currentTime: new Date().toISOString(),
+      activeSubscriptions,
+      subscribedProducts,
     });
-
-    // Add debug log for the current date
-    console.log("Current date for comparison:", new Date().toISOString());
 
     return NextResponse.json({
       isSubscribed: activeSubscriptions.length > 0,
-      subscribedProducts: activeSubscriptions.map((sub) => sub.productId),
-      debug: {
-        userId: payload.userId,
-        capperId,
-        productId,
-        subscriptionsFound: activeSubscriptions.length,
-        allSubscriptionsFound: allSubscriptions.length,
-        activeSubscriptions: activeSubscriptions.map((sub) => ({
-          id: sub.id,
-          status: sub.status,
-          subscribedAt: sub.subscribedAt,
-          expiresAt: sub.expiresAt,
-          cancelledAt: sub.cancelledAt,
-          capperUsername: sub.capper.user.username,
-        })),
-      },
+      subscriptions: activeSubscriptions,
+      subscribedProducts: subscribedProducts,
     });
   } catch (error) {
-    console.error("Subscription check error:", error);
-    return NextResponse.json({ isSubscribed: false }, { status: 500 });
+    console.error("Error checking subscription:", error);
+    return NextResponse.json(
+      { error: "Failed to check subscription status" },
+      { status: 500 }
+    );
   }
 }

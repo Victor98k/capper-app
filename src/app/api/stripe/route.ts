@@ -11,42 +11,9 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    // Get token from cookies
-    const cookies = req.headers.get("cookie");
-    const cookiesArray =
-      cookies?.split(";").map((cookie) => cookie.trim()) || [];
-    const tokenCookie = cookiesArray.find((cookie) =>
-      cookie.startsWith("token=")
-    );
-    const token = tokenCookie?.split("=")[1];
-
-    if (!token) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    // Verify token and get userId
-    const payload = await verifyJWT(token);
-    if (!payload?.userId) {
-      return NextResponse.json(
-        { error: "Invalid authentication" },
-        { status: 401 }
-      );
-    }
-
     const { priceId, capperId, productId } = await req.json();
-    console.log("Stripe checkout request:", { priceId, capperId, productId });
 
-    if (!priceId || !capperId || !productId) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
-    }
-
-    // Get the capper's Stripe Connect ID and username
+    // Get the capper's Stripe account ID and username
     const capper = await prisma.capper.findUnique({
       where: { id: capperId },
       include: {
@@ -59,25 +26,33 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!capper?.user?.stripeConnectId) {
+    if (!capper?.user?.stripeConnectId || !capper?.user?.username) {
       return NextResponse.json(
-        { error: "Capper Stripe account not found" },
+        { error: "Capper account information not found" },
         { status: 400 }
       );
     }
 
-    // Retrieve the price to check if it's recurring or one-time
-    const price = await stripe.prices.retrieve(priceId, {
-      stripeAccount: capper.user.stripeConnectId,
-    });
+    // Get user from token
+    const cookies = req.headers.get("cookie");
+    const token = cookies
+      ?.split(";")
+      .find((c) => c.trim().startsWith("token="))
+      ?.split("=")[1];
 
-    // Ensure we have the base URL
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // Create Stripe checkout session with the connected account
+    const payload = await verifyJWT(token);
+    if (!payload?.userId) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    // Create the checkout session
     const session = await stripe.checkout.sessions.create(
       {
+        mode: "subscription",
         payment_method_types: ["card"],
         line_items: [
           {
@@ -85,39 +60,26 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        mode: price.type === "recurring" ? "subscription" : "payment",
-        success_url: `${baseUrl}/cappers/${capper.user.username}?success=true`,
-        cancel_url: `${baseUrl}/cappers/${capper.user.username}?canceled=true`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
         metadata: {
           userId: payload.userId,
           capperId: capperId,
           productId: productId,
           priceId: priceId,
-          priceType: price.type,
+          priceType: "recurring",
         },
-        // Add payment_intent_data for one-time payments
-        ...(price.type === "one_time" && {
-          payment_intent_data: {
-            metadata: {
-              userId: payload.userId,
-              capperId: capperId,
-              productId: productId,
-              priceId: priceId,
-              priceType: price.type,
-            },
-          },
-        }),
       },
       {
-        stripeAccount: capper.user.stripeConnectId,
+        stripeAccount: capper.user.stripeConnectId, // Important: Include the connected account
       }
     );
 
     console.log("Created checkout session:", {
       id: session.id,
       metadata: session.metadata,
-      mode: price.type === "recurring" ? "subscription" : "payment",
-      success_url: `${baseUrl}/cappers/${capper.user.username}`,
+      mode: session.mode,
+      success_url: session.success_url,
     });
 
     return NextResponse.json({
@@ -125,7 +87,7 @@ export async function POST(req: Request) {
       accountId: capper.user.stripeConnectId,
     });
   } catch (error) {
-    console.error("Stripe API error:", error);
+    console.error("Error creating checkout session:", error);
     return NextResponse.json(
       { error: "Failed to create checkout session" },
       { status: 500 }

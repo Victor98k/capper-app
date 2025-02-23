@@ -608,9 +608,9 @@ export default function CapperProfilePage({
                                     product.default_price?.type === "one_time"
                                       ? " one-time"
                                       : product.default_price?.recurring
-                                          ?.interval
-                                      ? `/${product.default_price.recurring.interval}`
-                                      : "/month" // fallback to /month if no interval specified
+                                            ?.interval
+                                        ? `/${product.default_price.recurring.interval}`
+                                        : "/month" // fallback to /month if no interval specified
                                   }
                                   {product.default_price?.recurring
                                     ?.interval_count &&

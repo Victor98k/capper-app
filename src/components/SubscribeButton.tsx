@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -42,6 +42,7 @@ export function SubscribeButton({
   scrollToBundles = false,
 }: SubscribeButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isDebouncing, setIsDebouncing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const router = useRouter();
 
@@ -81,87 +82,63 @@ export function SubscribeButton({
     }
   };
 
-  const handleSubscription = async () => {
-    if (scrollToBundles && !isSubscribed) {
-      const bundlesSection = document.getElementById("subscription-plans");
-      if (bundlesSection) {
-        bundlesSection.scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-    }
+  const handleSubscription = useCallback(async () => {
+    if (isLoading || isDebouncing) return;
 
-    if (isSubscribed) {
-      setShowConfirmDialog(true);
-      return;
-    }
-
-    // Check if user is logged in
-    const cookies = document.cookie;
-    const cookieObj = cookies.split(";").reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split("=");
-      acc[key.trim()] = value;
-      return acc;
-    }, {} as Record<string, string>);
-
-    if (!cookieObj.token) {
-      toast.error("Please login to subscribe");
-      router.push("/login");
-      return;
-    }
-
-    // If this is a specific product subscription, redirect directly to Stripe checkout
-    if (productId && priceId) {
+    try {
       setIsLoading(true);
-      try {
-        const response = await fetch("/api/stripe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            priceId,
-            capperId,
-            productId,
-            stripeAccountId,
-          }),
-        });
+      setIsDebouncing(true);
 
-        if (!response.ok) {
-          throw new Error("Failed to create checkout session");
-        }
+      const response = await fetch("/api/stripe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          priceId,
+          capperId,
+          productId,
+        }),
+      });
 
-        const { sessionId, accountId } = await response.json();
-
-        // Initialize Stripe with the connected account
-        const stripe = await loadStripe(
-          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-          {
-            stripeAccount: accountId,
-          }
-        );
-
-        if (!stripe) {
-          throw new Error("Stripe failed to initialize");
-        }
-
-        const result = await stripe.redirectToCheckout({
-          sessionId,
-        });
-
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        toast.error("Failed to initiate checkout");
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create checkout session");
       }
-    } else {
-      // If no specific product, redirect to general paywall
-      router.push("/paywall");
+
+      const { sessionId, accountId } = await response.json();
+
+      // Initialize Stripe with the connected account ID
+      const stripe = await loadStripe(
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+        {
+          stripeAccount: accountId,
+        }
+      );
+
+      if (!stripe) throw new Error("Stripe failed to load");
+
+      const result = await stripe.redirectToCheckout({
+        sessionId,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      // Add a small delay and refresh the page to update subscription status
+      setTimeout(() => {
+        router.refresh();
+      }, 2000);
+    } catch (error) {
+      console.error("Subscription error:", error);
+      toast.error("Failed to start subscription process");
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => setIsDebouncing(false), 2000);
     }
-  };
+  }, [capperId, productId, priceId, isLoading, isDebouncing, router]);
 
   return (
     <>

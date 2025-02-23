@@ -250,65 +250,65 @@ export default function LandingPage() {
   }, []);
 
   // Function to create the floating dollar signs
-  const createFloatingDollars = () => {
-    const dollarSigns = [];
-    // Create 6 dollar signs (reduced from 8 for better performance)
-    for (let i = 0; i < 6; i++) {
-      dollarSigns.push(
-        <div
-          key={i}
-          // transform-gpu enables hardware acceleration for smoother animations
-          className={`floating-dollar absolute text-[#4e43ff] opacity-0 transform-gpu`}
-          style={{
-            left: `${Math.random() * 100}%`, // Random horizontal position
-            bottom: "-20px", // Start below the viewport
-            fontSize: `${Math.random() * 15 + 20}px`, // Random size between 20-35px
-            filter: "blur(0.5px) brightness(1.2)", // Slight glow effect
-            willChange: "transform", // Optimization hint for browsers
-          }}
-        >
-          $
-        </div>
-      );
-    }
-    return dollarSigns;
-  };
+  // const createFloatingDollars = () => {
+  //   const dollarSigns = [];
+  //   // Create 6 dollar signs (reduced from 8 for better performance)
+  //   for (let i = 0; i < 6; i++) {
+  //     dollarSigns.push(
+  //       <div
+  //         key={i}
+  //         // transform-gpu enables hardware acceleration for smoother animations
+  //         className={`floating-dollar absolute text-[#4e43ff] opacity-0 transform-gpu`}
+  //         style={{
+  //           left: `${Math.random() * 100}%`, // Random horizontal position
+  //           bottom: "-20px", // Start below the viewport
+  //           fontSize: `${Math.random() * 15 + 20}px`, // Random size between 20-35px
+  //           filter: "blur(0.5px) brightness(1.2)", // Slight glow effect
+  //           willChange: "transform", // Optimization hint for browsers
+  //         }}
+  //       >
+  //         $
+  //       </div>
+  //     );
+  //   }
+  //   return dollarSigns;
+  // };
 
   // Animation setup using GSAP
-  useLayoutEffect(() => {
-    // Create a timeline for better performance and control
-    const tl = gsap.timeline({
-      defaults: {
-        ease: "none", // Linear movement for smoother animation
-      },
-    });
+  // useLayoutEffect(() => {
+  //   // Create a timeline for better performance and control
+  //   const tl = gsap.timeline({
+  //     defaults: {
+  //       ease: "none", // Linear movement for smoother animation
+  //     },
+  //   });
 
-    // Main floating animation
-    gsap.to(".floating-dollar", {
-      y: "-70vh", // Float up 70% of viewport height
-      opacity: 0.8, // Fade in to 80% opacity
-      duration: 6, // Animation takes 6 seconds
-      stagger: {
-        each: 0.8, // 0.8 second delay between each dollar
-        repeat: -1, // Infinite repeat
-        repeatDelay: 0.5, // Half second delay before repeating
-      },
-      ease: "power1.out", // Slight easing for natural movement
-      onComplete: function () {
-        // Reset position when animation completes
-        gsap.set(this.targets(), {
-          y: 0,
-          opacity: 0,
-          left: `random(0, 100)%`, // New random horizontal position
-        });
-      },
-    });
+  //   // Main floating animation
+  //   gsap.to(".floating-dollar", {
+  //     y: "-70vh", // Float up 70% of viewport height
+  //     opacity: 0.8, // Fade in to 80% opacity
+  //     duration: 6, // Animation takes 6 seconds
+  //     stagger: {
+  //       each: 0.8, // 0.8 second delay between each dollar
+  //       repeat: -1, // Infinite repeat
+  //       repeatDelay: 0.5, // Half second delay before repeating
+  //     },
+  //     ease: "power1.out", // Slight easing for natural movement
+  //     onComplete: function () {
+  //       // Reset position when animation completes
+  //       gsap.set(this.targets(), {
+  //         y: 0,
+  //         opacity: 0,
+  //         left: `random(0, 100)%`, // New random horizontal position
+  //       });
+  //     },
+  //   });
 
-    // Cleanup function
-    return () => {
-      tl.kill(); // Stop animation when component unmounts
-    };
-  }, []);
+  //   // Cleanup function
+  //   return () => {
+  //     tl.kill(); // Stop animation when component unmounts
+  //   };
+  // }, []);
 
   const renderCarousel = () => (
     <div className="w-full max-w-7xl mx-auto mt-12 px-4">
