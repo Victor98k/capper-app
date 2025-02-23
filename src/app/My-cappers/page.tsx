@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import Post from "@/components/Posts";
 import Loader from "@/components/Loader";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Trophy } from "lucide-react";
 
 type Post = {
   _id: string;
@@ -113,11 +116,29 @@ function MyCappers() {
 
   if (posts.length === 0) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <div className="text-gray-400">
-          No posts from your subscribed cappers yet.
-          <br />
-          Subscribe to some cappers to see their content here!
+      <div className="flex flex-col items-center justify-center min-h-[80vh] p-4">
+        <div className="bg-gray-800/50 rounded-xl p-8 max-w-md w-full text-center space-y-6 border border-gray-700">
+          <div className="bg-[#4e43ff]/10 p-4 rounded-full w-fit mx-auto">
+            <Trophy className="w-12 h-12 text-[#4e43ff]" />
+          </div>
+
+          <h3 className="text-2xl font-bold text-white">No Posts Yet</h3>
+
+          <p className="text-gray-400 text-lg">
+            Subscribe to some cappers to see their exclusive content and picks
+            right here!
+          </p>
+
+          <Link href="/Explore" className="block">
+            <Button className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white px-8 py-4 rounded-lg w-full">
+              Discover Cappers
+            </Button>
+          </Link>
+
+          <p className="text-sm text-gray-500">
+            Once you subscribe, their posts will appear in your feed
+            automatically
+          </p>
         </div>
       </div>
     );
