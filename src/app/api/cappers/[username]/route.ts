@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
 import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 
 export async function PUT(request: NextRequest) {
   try {
@@ -83,8 +84,8 @@ export async function GET(
         }
       );
 
-      products = stripeProducts.data.map((product) => {
-        const price = product.default_price as any;
+      products = stripeProducts.data.map((product: Stripe.Product) => {
+        const price = product.default_price as Stripe.Price;
         let marketing_features = [];
 
         // Extract marketing features from the product
