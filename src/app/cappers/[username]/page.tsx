@@ -325,6 +325,14 @@ export default function CapperProfilePage({
                       isSubscribed={isSubscribed}
                       scrollToBundles={true}
                       className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 mb-4 sm:mb-0"
+                      onClick={() => {
+                        document
+                          .getElementById("subscription-plans")
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          });
+                      }}
                     >
                       Subscribe
                     </SubscribeButton>

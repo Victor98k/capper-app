@@ -28,6 +28,7 @@ interface SubscribeButtonProps {
   disabled?: boolean;
   children?: React.ReactNode;
   scrollToBundles?: boolean;
+  onClick?: () => void;
 }
 
 export function SubscribeButton({
@@ -40,6 +41,7 @@ export function SubscribeButton({
   disabled,
   children,
   scrollToBundles = false,
+  onClick,
 }: SubscribeButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDebouncing, setIsDebouncing] = useState(false);
@@ -140,10 +142,20 @@ export function SubscribeButton({
     }
   }, [capperId, productId, priceId, isLoading, isDebouncing, router]);
 
+  const handleClick = async (e: React.MouseEvent) => {
+    if (onClick) {
+      onClick();
+    }
+    if (!productId) {
+      return; // Don't trigger subscription if no productId (top button case)
+    }
+    await handleSubscription();
+  };
+
   return (
     <>
       <Button
-        onClick={handleSubscription}
+        onClick={handleClick}
         disabled={disabled || isLoading}
         className={cn(
           "relative",
