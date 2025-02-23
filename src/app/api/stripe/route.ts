@@ -49,6 +49,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
+    // Get the base URL - add a fallback for production
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://app.cappersports.co";
+
+    // Log the URL being constructed
+    console.log("Constructing URLs with base:", baseUrl);
+
     // Create the checkout session
     const session = await stripe.checkout.sessions.create(
       {
@@ -60,8 +67,9 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cappers/${capper.user.username}`,
+        // Ensure URLs are properly constructed
+        success_url: `${baseUrl}/cappers/${capper.user.username}`,
+        cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
         metadata: {
           userId: payload.userId,
           capperId: capperId,
@@ -71,15 +79,16 @@ export async function POST(req: Request) {
         },
       },
       {
-        stripeAccount: capper.user.stripeConnectId, // Important: Include the connected account
+        stripeAccount: capper.user.stripeConnectId,
       }
     );
 
+    // Log the created session for debugging
     console.log("Created checkout session:", {
       id: session.id,
-      metadata: session.metadata,
-      mode: session.mode,
       success_url: session.success_url,
+      cancel_url: session.cancel_url,
+      metadata: session.metadata,
     });
 
     return NextResponse.json({
