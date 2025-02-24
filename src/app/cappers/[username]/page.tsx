@@ -117,7 +117,7 @@ export default function CapperProfilePage({
   const [calculatedAmount, setCalculatedAmount] = useState("0.00");
   const [showROICalculator, setShowROICalculator] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 3;
+  const postsPerPage = 6;
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -428,22 +428,99 @@ export default function CapperProfilePage({
               </p>
             </div>
 
-            {/* First 6 Posts (Always visible) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
-              {posts.slice(0, 6).map((post) => (
-                <InstagramPost
-                  key={post._id}
-                  {...post}
-                  capperInfo={{
-                    firstName: capper.user.firstName,
-                    lastName: capper.user.lastName,
-                    username: capper.user.username,
-                    profileImage: capper.profileImage,
-                    isVerified: true,
-                  }}
-                />
-              ))}
-            </div>
+            {/* Show preview posts for non-subscribers */}
+            {!isSubscribed && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  {posts.slice(0, 4).map((post) => (
+                    <InstagramPost
+                      key={post._id}
+                      {...post}
+                      capperInfo={{
+                        firstName: capper.user.firstName,
+                        lastName: capper.user.lastName,
+                        username: capper.user.username,
+                        profileImage: capper.profileImage,
+                        isVerified: true,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Subscription prompt */}
+                {posts.length > 4 && (
+                  <div className="relative my-12">
+                    <div className="relative bg-gray-800/50 rounded-xl p-8 text-center backdrop-blur-sm border border-violet-500/20">
+                      <h3 className="text-2xl font-bold mb-4">
+                        Subscribe to See More Posts
+                      </h3>
+                      <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+                        Get access to all of {capper.user.firstName}'s exclusive
+                        content, picks, and analysis
+                      </p>
+                      <SubscribeButton
+                        capperId={capper.id}
+                        isSubscribed={isSubscribed}
+                        scrollToBundles={true}
+                        className="bg-violet-500 hover:bg-violet-600"
+                      >
+                        Subscribe Now
+                      </SubscribeButton>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Show all paginated posts for subscribers */}
+            {isSubscribed && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {posts
+                    .slice(
+                      (currentPage - 1) * postsPerPage,
+                      currentPage * postsPerPage
+                    )
+                    .map((post) => (
+                      <InstagramPost
+                        key={post._id}
+                        {...post}
+                        capperInfo={{
+                          firstName: capper.user.firstName,
+                          lastName: capper.user.lastName,
+                          username: capper.user.username,
+                          profileImage: capper.profileImage,
+                          isVerified: true,
+                        }}
+                      />
+                    ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {posts.length > postsPerPage && (
+                  <div className="flex justify-center gap-4 mt-8">
+                    <PaginationButton
+                      onClick={() => setCurrentPage((prev) => prev - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </PaginationButton>
+                    <span className="flex items-center text-gray-400">
+                      Page {currentPage} of{" "}
+                      {Math.ceil(posts.length / postsPerPage)}
+                    </span>
+                    <PaginationButton
+                      onClick={() => setCurrentPage((prev) => prev + 1)}
+                      disabled={
+                        currentPage === Math.ceil(posts.length / postsPerPage)
+                      }
+                    >
+                      Next
+                    </PaginationButton>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Subscription Packages Section */}
             <div className="mt-12" id="subscription-plans">
@@ -456,11 +533,11 @@ export default function CapperProfilePage({
                     const isSubscribedToProduct = subscribedProducts.includes(
                       product.id
                     );
-                    console.log("Product subscription status:", {
-                      productId: product.id,
-                      isSubscribed: isSubscribedToProduct,
-                      subscribedProducts,
-                    });
+                    // console.log("Product subscription status:", {
+                    //   productId: product.id,
+                    //   isSubscribed: isSubscribedToProduct,
+                    //   subscribedProducts,
+                    // });
 
                     return (
                       <Card
@@ -581,57 +658,6 @@ export default function CapperProfilePage({
                 )}
               </div>
             </div>
-
-            {/* Remaining Posts Section */}
-            {posts.length > 6 && (
-              <div className="mt-12">
-                {!isSubscribed ? (
-                  // Paywall for non-subscribers
-                  <div className="relative my-12">
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 pointer-events-none" />
-                    <div className="relative bg-gray-800/50 rounded-xl p-8 text-center backdrop-blur-sm border border-violet-500/20">
-                      <h3 className="text-2xl font-bold mb-4">
-                        Subscribe to See More Posts
-                      </h3>
-                      <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-                        Get access to all of {capper.user.firstName}'s exclusive
-                        content, picks, and analysis
-                      </p>
-                      <SubscribeButton
-                        capperId={capper.id}
-                        isSubscribed={isSubscribed}
-                        scrollToBundles={true}
-                        className="bg-violet-500 hover:bg-violet-600"
-                      >
-                        Subscribe Now
-                      </SubscribeButton>
-                    </div>
-                  </div>
-                ) : (
-                  // Show remaining posts for subscribers
-                  <>
-                    <h3 className="text-xl font-semibold text-white mb-6">
-                      More Posts
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                      {posts.slice(6).map((post) => (
-                        <InstagramPost
-                          key={post._id}
-                          {...post}
-                          capperInfo={{
-                            firstName: capper.user.firstName,
-                            lastName: capper.user.lastName,
-                            username: capper.user.username,
-                            profileImage: capper.profileImage,
-                            isVerified: true,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
 
             {/* No Posts Message */}
             {posts.length === 0 && (

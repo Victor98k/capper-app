@@ -58,6 +58,58 @@ const sportEmojiMap: { [key: string]: string } = {
   Boxing: "🥊",
 };
 
+// First, let's create a reusable BetDialog component at the top of the file
+const BetDialog = ({
+  bets,
+  isSubscribed,
+  capperInfo,
+  router,
+}: {
+  bets: string[];
+  isSubscribed: boolean;
+  capperInfo: { username: string };
+  router: any;
+}) => (
+  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
+    {isSubscribed ? (
+      <>
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold mb-4">
+            Bet Details
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          {bets.map((bet, index) => (
+            <div key={index} className="p-3 bg-gray-800/50 rounded-lg text-sm">
+              {bet}
+            </div>
+          ))}
+        </div>
+      </>
+    ) : (
+      <>
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold mb-4">
+            Subscribe to View Bets
+          </DialogTitle>
+          <DialogDescription className="text-gray-400">
+            Subscribe to {capperInfo.username}'s picks to view their betting
+            details and more exclusive content.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            onClick={() => router.push(`/cappers/${capperInfo.username}`)}
+            className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
+          >
+            View Subscription Plans
+          </Button>
+        </DialogFooter>
+      </>
+    )}
+  </DialogContent>
+);
+
 function InstagramPost({
   _id,
   title,
@@ -221,8 +273,46 @@ function InstagramPost({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-6">
+          <div className="w-full h-full bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center relative">
+            {/* Blurred background with profile image */}
+            <div className="absolute inset-0 overflow-hidden">
+              <Image
+                src={
+                  fallbackImage?.profileImage ||
+                  capperInfo.profileImage ||
+                  "/default-avatar.png"
+                }
+                alt="Background"
+                fill
+                className="object-cover blur-xl opacity-20"
+                sizes="100vw"
+              />
+
+              {/* Mock preview text */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="max-w-lg text-center space-y-6 select-none">
+                  <div className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                      🎯 Match Winner
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                      📊 Over/Under 2.5
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                      ⚡ Special Picks
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                      🔥 Exclusive Tips
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                      💫 Premium Analysis
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-8 relative z-10">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden relative shadow-lg">
                 <Image
                   src={
@@ -236,11 +326,26 @@ function InstagramPost({
                   sizes="(max-width: 768px) 128px, 160px"
                 />
               </div>
-              <span className="text-5xl md:text-6xl">
-                {fallbackImage?.emoji ||
-                  (tags[0] && sportEmojiMap[tags[0]]) ||
-                  "⚽"}
-              </span>
+
+              {/* See Bet Button in fallback image */}
+              {bets.length > 0 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-6 py-3 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                    >
+                      See Bet 🎯
+                    </Button>
+                  </DialogTrigger>
+                  <BetDialog
+                    bets={bets}
+                    isSubscribed={isSubscribed}
+                    capperInfo={capperInfo}
+                    router={router}
+                  />
+                </Dialog>
+              )}
             </div>
           </div>
         )}
@@ -375,51 +480,12 @@ function InstagramPost({
                   See Bet 🎯
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
-                {isSubscribed ? (
-                  // Show bets if subscribed
-                  <>
-                    <DialogHeader>
-                      <DialogTitle className="text-lg font-bold mb-4">
-                        Bet Details
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-2">
-                      {bets.map((bet, index) => (
-                        <div
-                          key={index}
-                          className="p-3 bg-gray-800/50 rounded-lg text-sm"
-                        >
-                          {bet}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  // Show subscription prompt if not subscribed
-                  <>
-                    <DialogHeader>
-                      <DialogTitle className="text-lg font-bold mb-4">
-                        Subscribe to View Bets
-                      </DialogTitle>
-                      <DialogDescription className="text-gray-400">
-                        Subscribe to {capperInfo.username}'s picks to view their
-                        betting details and more exclusive content.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        onClick={() =>
-                          router.push(`/cappers/${capperInfo.username}`)
-                        }
-                        className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90"
-                      >
-                        View Subscription Plans
-                      </Button>
-                    </DialogFooter>
-                  </>
-                )}
-              </DialogContent>
+              <BetDialog
+                bets={bets}
+                isSubscribed={isSubscribed}
+                capperInfo={capperInfo}
+                router={router}
+              />
             </Dialog>
           </div>
         )}

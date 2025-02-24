@@ -18,7 +18,10 @@ type Post = {
     profileImage?: string;
     firstName?: string;
     lastName?: string;
+    subscribersCount?: number;
+    sport?: string;
   };
+  likes: number;
 };
 
 // Fisher-Yates shuffle algorithm
@@ -94,9 +97,10 @@ export default function ExplorePage() {
                   username={post.capperInfo.username}
                   firstName={post.capperInfo.firstName}
                   lastName={post.capperInfo.lastName}
-                  imageUrl={
-                    post.imageUrl || post.capperInfo.profileImage || undefined
-                  }
+                  imageUrl={post.imageUrl || undefined}
+                  profileImage={post.capperInfo.profileImage}
+                  sport={post.tags[0]}
+                  likes={post.likes}
                 />
               ))}
             </div>

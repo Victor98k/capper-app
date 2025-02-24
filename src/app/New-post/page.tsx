@@ -24,13 +24,7 @@ import {
 
 import Post from "@/components/Posts";
 import CapperDashboard from "@/components/capperDashboard";
-import Cropper from "react-easy-crop";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+// import Cropper from "react-easy-crop";
 import { toast, Toaster } from "sonner";
 import Loader from "@/components/Loader";
 
@@ -43,7 +37,7 @@ interface Product {
 
 // Add these constants at the top with the other constants
 const MAX_TITLE_LENGTH = 60;
-const MAX_CONTENT_LENGTH = 200;
+const MAX_CONTENT_LENGTH = 400;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 const MAX_ODDS = 5;
 const ALLOWED_IMAGE_TYPES = [
@@ -80,10 +74,10 @@ function NewPostPage() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [showCropper, setShowCropper] = useState(false);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  // const [crop, setCrop] = useState({ x: 0, y: 0 });
+  // const [zoom, setZoom] = useState(1);
+  // const [showCropper, setShowCropper] = useState(false);
+  // const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
   const handleLogout = async () => {
     try {
@@ -130,7 +124,6 @@ function NewPostPage() {
     setImage(file);
     const previewUrl = URL.createObjectURL(file);
     setImagePreview(previewUrl);
-    setShowCropper(true);
   };
 
   const handleRemoveImage = () => {
@@ -183,7 +176,6 @@ function NewPostPage() {
     setImage(file);
     const previewUrl = URL.createObjectURL(file);
     setImagePreview(previewUrl);
-    setShowCropper(true);
   }, []);
 
   const handleAddBet = () => {
@@ -385,63 +377,6 @@ function NewPostPage() {
     fetchUserAvatar();
   }, []);
 
-  const onCropComplete = useCallback(
-    (croppedArea: any, croppedAreaPixels: any) => {
-      setCroppedAreaPixels(croppedAreaPixels);
-    },
-    []
-  );
-
-  const createCroppedImage = async () => {
-    try {
-      if (!imagePreview || !croppedAreaPixels) return;
-
-      const canvas = document.createElement("canvas");
-      const image = new Image();
-      image.src = imagePreview;
-
-      await new Promise((resolve) => {
-        image.onload = resolve;
-      });
-
-      canvas.width = croppedAreaPixels.width;
-      canvas.height = croppedAreaPixels.height;
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx) return;
-
-      ctx.drawImage(
-        image,
-        croppedAreaPixels.x,
-        croppedAreaPixels.y,
-        croppedAreaPixels.width,
-        croppedAreaPixels.height,
-        0,
-        0,
-        croppedAreaPixels.width,
-        croppedAreaPixels.height
-      );
-
-      // Convert canvas to blob
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-        }, "image/jpeg");
-      });
-
-      // Create new file from blob
-      const croppedFile = new File([blob], "cropped-post.jpg", {
-        type: "image/jpeg",
-      });
-
-      setImage(croppedFile);
-      setImagePreview(URL.createObjectURL(croppedFile));
-      setShowCropper(false);
-    } catch (error) {
-      console.error("Error cropping image:", error);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-100">
@@ -629,55 +564,20 @@ function NewPostPage() {
                       </div>
                     ) : (
                       <div className="mt-2 relative">
-                        {showCropper ? (
-                          <Dialog
-                            open={showCropper}
-                            onOpenChange={setShowCropper}
+                        <div className="relative">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="max-w-xs h-auto rounded-md"
+                          />
+                          <button
+                            onClick={handleRemoveImage}
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                            type="button"
                           >
-                            <DialogContent className="sm:max-w-[600px]">
-                              <DialogHeader>
-                                <DialogTitle>Adjust Image</DialogTitle>
-                              </DialogHeader>
-                              <div className="relative w-full h-[400px]">
-                                <Cropper
-                                  image={imagePreview}
-                                  crop={crop}
-                                  zoom={zoom}
-                                  aspect={16 / 9}
-                                  onCropChange={setCrop}
-                                  onZoomChange={setZoom}
-                                  onCropComplete={onCropComplete}
-                                />
-                              </div>
-                              <div className="flex justify-end space-x-2">
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setShowCropper(false)}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button onClick={createCroppedImage}>
-                                  Save Crop
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        ) : (
-                          <div className="relative">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              className="max-w-xs h-auto rounded-md"
-                            />
-                            <button
-                              onClick={handleRemoveImage}
-                              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                              type="button"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )}
+                            ×
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
