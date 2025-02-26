@@ -21,6 +21,8 @@ export const CapperApplicationEmail = ({
   setupUrl,
 }: CapperApplicationEmailProps) => {
   const isApproved = status === "APPROVED";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const fullSetupUrl = setupUrl ? `${baseUrl}${setupUrl}` : undefined;
 
   return (
     <Html>
@@ -52,7 +54,7 @@ export const CapperApplicationEmail = ({
               <Text style={text}>
                 Click the button below to complete your Capper profile setup:
               </Text>
-              <Link href={setupUrl} style={button}>
+              <Link href={fullSetupUrl} style={button}>
                 Complete Your Profile
               </Link>
             </>
