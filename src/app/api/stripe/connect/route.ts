@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { verifyJWT } from "@/utils/jwt";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {
@@ -127,6 +128,18 @@ export async function GET(req: Request) {
     const payload = await verifyJWT(token);
     if (!payload || !payload.userId) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    // Check rate limit
+    const { isAllowed, remaining } = await rateLimit(payload.userId);
+    if (!isAllowed) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          retryAfter: 60,
+        },
+        { status: 429 }
+      );
     }
 
     const user = await prisma.user.findUnique({

@@ -19,12 +19,15 @@ function CapperSignupContent() {
     const verifyToken = async () => {
       const token = searchParams.get("token");
       if (!token) {
+        console.error("Missing token in URL");
         toast.error("Invalid signup link");
         router.push("/");
         return;
       }
 
       try {
+        console.log("Verifying token:", token.substring(0, 20) + "...");
+
         const response = await fetch("/api/verify-capper-token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -32,11 +35,14 @@ function CapperSignupContent() {
         });
 
         if (!response.ok) {
+          const error = await response.json();
+          console.error("Token verification failed:", error);
           throw new Error("Invalid token");
         }
 
         setTokenValid(true);
       } catch (error) {
+        console.error("Token verification error:", error);
         toast.error("Invalid or expired signup link");
         router.push("/");
       } finally {

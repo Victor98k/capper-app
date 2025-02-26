@@ -187,8 +187,17 @@ export async function PUT(request: Request) {
         });
         console.log("Token generated successfully"); // Debug log
 
-        const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/capper-signup?token=${signupToken}`;
-        console.log("Signup URL:", signupUrl); // Debug log
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_URL || "https://app.cappersports.co";
+        // Ensure the URL is properly formatted
+        const formattedBaseUrl = baseUrl.startsWith("http")
+          ? baseUrl
+          : `https://${baseUrl}`;
+        const signupUrl = `${formattedBaseUrl}/capper-signup?token=${signupToken}`;
+
+        // Add debug logging
+        console.log("Base URL:", formattedBaseUrl);
+        console.log("Generated signup URL:", signupUrl);
 
         await prisma.user.update({
           where: { id: application.userId },

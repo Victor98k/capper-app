@@ -27,6 +27,11 @@ export function SideNav() {
   const router = useRouter();
   const [isCapper, setIsCapper] = useState<boolean>(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [dashboardCache, setDashboardCache] = useState<{
+    url: string;
+    timestamp: number;
+  } | null>(null);
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   // Fetch cappers to check status
   useEffect(() => {
@@ -95,6 +100,15 @@ export function SideNav() {
 
     const openStripeDashboard = async () => {
       try {
+        // Check cache first
+        if (
+          dashboardCache &&
+          Date.now() - dashboardCache.timestamp < CACHE_DURATION
+        ) {
+          window.open(dashboardCache.url, "_blank");
+          return;
+        }
+
         const response = await fetch("/api/stripe/connect", {
           headers: {
             "Content-Type": "application/json",
@@ -105,6 +119,11 @@ export function SideNav() {
         const data = await response.json();
 
         if (data.url) {
+          // Cache the URL
+          setDashboardCache({
+            url: data.url,
+            timestamp: Date.now(),
+          });
           window.open(data.url, "_blank");
         } else {
           switch (data.code) {
