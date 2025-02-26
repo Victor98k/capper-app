@@ -96,6 +96,7 @@ export function SideNav() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       router.push("/");
+      // router.push("https://www.cappersports.co/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -119,6 +120,17 @@ export function SideNav() {
               <Home className="h-5 w-5 mr-3" />
               Home
             </Button>
+
+            {isCapper && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start py-4 px-2 text-base border border-white/20 hover:border-white/40 transition-colors duration-200"
+                onClick={() => router.push("/home-capper")}
+              >
+                <LineChart className="h-5 w-5 mr-3" />
+                Capper Dashboard
+              </Button>
+            )}
 
             <Button
               variant="ghost"
@@ -180,17 +192,6 @@ export function SideNav() {
               <p className="text-base font-medium">{username}</p>
             </div>
           </div>
-
-          {isCapper && (
-            <Button
-              variant="secondary"
-              onClick={() => router.push("/home-capper")}
-              className="w-full mb-2 py-3 text-base"
-            >
-              <LineChart className="h-5 w-5 mr-2" />
-              Capper Dashboard
-            </Button>
-          )}
 
           <Button
             variant="destructive"

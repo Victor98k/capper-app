@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 
 interface CapperApplication {
   id: string;
-  name: string;
-  username: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  username: string;
   sport: string;
   experience: string;
   monthlyBetAmount: string;
@@ -21,6 +22,7 @@ interface CapperApplication {
 export function SuperUserDashboard() {
   const { user } = useAuth();
   const [applications, setApplications] = useState<CapperApplication[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchApplications();
@@ -28,13 +30,19 @@ export function SuperUserDashboard() {
 
   const fetchApplications = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch("/api/capper-applications");
       if (response.ok) {
         const data = await response.json();
         setApplications(data);
+      } else {
+        toast.error("Failed to fetch applications");
       }
     } catch (error) {
       console.error("Error fetching applications:", error);
+      toast.error("Error loading applications");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,64 +145,93 @@ export function SuperUserDashboard() {
           Super User Dashboard
         </h1>
 
-        <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
+        <div className="bg-gray-800/50 rounded-xl p-8 backdrop-blur-sm">
           <h2 className="text-xl font-semibold text-white mb-4">
             Capper Applications
           </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-white">
-              <thead className="text-gray-300 border-b border-gray-700">
-                <tr>
-                  <th className="py-3 px-4 text-left">Name</th>
-                  <th className="py-3 px-4 text-left">Username</th>
-                  <th className="py-3 px-4 text-left">Email</th>
-                  <th className="py-3 px-4 text-left">Sport</th>
-                  <th className="py-3 px-4 text-left">Experience</th>
-                  <th className="py-3 px-4 text-left">Monthly Bets</th>
-                  <th className="py-3 px-4 text-left">ROI</th>
-                  <th className="py-3 px-4 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((application) => (
-                  <tr
-                    key={application.id}
-                    className="border-b border-gray-700/50"
-                  >
-                    <td className="py-3 px-4">{application.name}</td>
-                    <td className="py-3 px-4">{application.username}</td>
-                    <td className="py-3 px-4">{application.email}</td>
-                    <td className="py-3 px-4">{application.sport}</td>
-                    <td className="py-3 px-4">{application.experience}</td>
-                    <td className="py-3 px-4">
-                      {application.monthlyBetAmount}
-                    </td>
-                    <td className="py-3 px-4">{application.yearlyROI}</td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => handleAccept(application.id)}
-                        className="bg-green-600 text-white px-3 py-1 rounded-md mr-2 hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={application.status !== "PENDING"}
-                      >
-                        {application.status === "APPROVED"
-                          ? "Approved"
-                          : "Accept"}
-                      </button>
-                      <button
-                        onClick={() => handleDeny(application.id)}
-                        className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={application.status !== "PENDING"}
-                      >
-                        {application.status === "REJECTED"
-                          ? "Rejected"
-                          : "Reject"}
-                      </button>
-                    </td>
+
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="text-white">Loading applications...</div>
+            </div>
+          ) : applications.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-gray-400">No applications found</div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-white">
+                <thead className="text-gray-300 border-b border-gray-700">
+                  <tr>
+                    <th className="py-3 px-4 text-left">Name</th>
+                    <th className="py-3 px-4 text-left">Username</th>
+                    <th className="py-3 px-4 text-left">Email</th>
+                    <th className="py-3 px-4 text-left">Sport</th>
+                    <th className="py-3 px-4 text-left">Experience</th>
+                    <th className="py-3 px-4 text-left">Monthly Bets</th>
+                    <th className="py-3 px-4 text-left">ROI</th>
+                    <th className="py-3 px-4 text-left">Status</th>
+                    <th className="py-3 px-4 text-left">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {applications.map((application) => (
+                    <tr
+                      key={application.id}
+                      className="border-b border-gray-700/50"
+                    >
+                      <td className="py-3 px-4">
+                        {application.firstName} {application.lastName}
+                      </td>
+                      <td className="py-3 px-4">{application.username}</td>
+                      <td className="py-3 px-4">{application.email}</td>
+                      <td className="py-3 px-4">{application.sport}</td>
+                      <td className="py-3 px-4">{application.experience}</td>
+                      <td className="py-3 px-4">
+                        {application.monthlyBetAmount}
+                      </td>
+                      <td className="py-3 px-4">{application.yearlyROI}</td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            application.status === "PENDING"
+                              ? "bg-yellow-500/20 text-yellow-300"
+                              : application.status === "APPROVED"
+                                ? "bg-green-500/20 text-green-300"
+                                : "bg-red-500/20 text-red-300"
+                          }`}
+                        >
+                          {application.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleAccept(application.id)}
+                            className="bg-green-600 text-white px-3 py-1 rounded-md mr-2 hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={application.status !== "PENDING"}
+                          >
+                            {application.status === "APPROVED"
+                              ? "Approved"
+                              : "Accept"}
+                          </button>
+                          <button
+                            onClick={() => handleDeny(application.id)}
+                            className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={application.status !== "PENDING"}
+                          >
+                            {application.status === "REJECTED"
+                              ? "Rejected"
+                              : "Reject"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

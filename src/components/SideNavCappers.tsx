@@ -16,9 +16,11 @@ import {
   Settings,
   Menu,
   LineChart,
+  ExternalLink,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { toast } from "sonner";
 
 export function SideNav() {
   const { user } = useAuth();
@@ -91,6 +93,44 @@ export function SideNav() {
     const storedUsername =
       typeof window !== "undefined" ? localStorage.getItem("username") : null;
 
+    const openStripeDashboard = async () => {
+      try {
+        const response = await fetch("/api/stripe/connect", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        const data = await response.json();
+
+        if (data.url) {
+          window.open(data.url, "_blank");
+        } else {
+          switch (data.code) {
+            case "NO_STRIPE_ACCOUNT":
+              toast.error("You need to connect your Stripe account first");
+              break;
+            case "ONBOARDING_INCOMPLETE":
+              toast.error("Please complete your Stripe account setup first");
+              break;
+            case "ACCOUNT_INVALID":
+              toast.error(
+                "Your Stripe account needs attention. Please check your email for instructions."
+              );
+              break;
+            default:
+              toast.error(
+                "Unable to access Stripe dashboard. Please try again later."
+              );
+          }
+        }
+      } catch (error) {
+        console.error("Error opening Stripe dashboard:", error);
+        toast.error("Failed to open Stripe dashboard");
+      }
+    };
+
     return (
       <nav className="space-y-4">
         <Button
@@ -102,6 +142,35 @@ export function SideNav() {
           <Home className="h-5 w-5 mr-3" />
           Home Dashboard
         </Button>
+
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          size="lg"
+          onClick={() => router.push("/home-capper")}
+        >
+          <BarChart3 className="h-5 w-5 mr-3" />
+          Capper Dashboard
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start border border-white/20 hover:border-white/40 transition-colors duration-200"
+          size="lg"
+          onClick={openStripeDashboard}
+        >
+          <ExternalLink className="h-5 w-5 mr-3" />
+          Subs Dashboard
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start border border-white/20 hover:border-white/40 transition-colors duration-200"
+          size="lg"
+          onClick={openStripeDashboard}
+        >
+          <ExternalLink className="h-5 w-5 mr-3" />
+          Stripe Dashboard
+        </Button>
+
         <Button
           variant="ghost"
           className="w-full justify-start"
@@ -129,15 +198,14 @@ export function SideNav() {
           <TicketIcon className="h-5 w-5 mr-3" />
           My Posts
         </Button>
-
         <Button
           variant="ghost"
           className="w-full justify-start"
           size="lg"
-          onClick={() => router.push("/Settings")}
+          onClick={() => router.push("/My-bets")}
         >
           <Settings className="h-5 w-5 mr-3" />
-          Settings
+          My profile
         </Button>
 
         <div className="pt-4 border-t border-gray-700">

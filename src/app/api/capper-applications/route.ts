@@ -14,52 +14,31 @@ const testEmail = process.env.RESEND_TEST_EMAIL;
 // Define test email - this ensures we have a fallback
 const TEST_EMAIL = "victorgustav98@gmail.com";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    // Get token from cookies
-    const cookies = request.headers.get("cookie");
-    const token = cookies
-      ?.split(";")
-      .find((c) => c.trim().startsWith("token="))
-      ?.split("=")[1];
-
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const payload = await verifyJWT(token);
-    if (!payload?.userId) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    // Check if user is a super user
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
-      select: { isSuperUser: true },
-    });
-
-    if (!user?.isSuperUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const applications = await prisma.capperApplication.findMany({
       include: {
         user: {
           select: {
             firstName: true,
             lastName: true,
-            username: true,
             email: true,
+            username: true,
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
+    // Transform the data to match our frontend interface
     const formattedApplications = applications.map((app) => ({
       id: app.id,
-      name: `${app.user.firstName} ${app.user.lastName}`,
-      username: app.user.username,
+      firstName: app.user.firstName,
+      lastName: app.user.lastName,
       email: app.user.email,
+      username: app.user.username,
       sport: app.sport,
       experience: app.experience,
       monthlyBetAmount: app.monthlyBetAmount,
@@ -71,7 +50,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error fetching applications:", error);
     return NextResponse.json(
-      { error: "Error fetching applications" },
+      { error: "Failed to fetch applications" },
       { status: 500 }
     );
   }

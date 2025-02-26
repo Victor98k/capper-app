@@ -16,6 +16,7 @@ export default function BecomeCapper() {
     monthlyBetAmount: "",
     yearlyROI: "",
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +45,55 @@ export default function BecomeCapper() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-gray-800/50 rounded-xl p-8 backdrop-blur-sm">
-          <h1 className="text-3xl font-bold text-white mb-8 text-center">
-            Become a Capper
+      <div className="max-w-4xl mx-auto">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Become a Professional Capper
           </h1>
+          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+            Join our elite community of sports betting experts. Share your
+            insights, build your following, and earn from your expertise.
+          </p>
+        </div>
+
+        {/* Benefits Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {[
+            {
+              title: "Build Your Brand",
+              description: "Create your profile and grow your following",
+              icon: "💎",
+            },
+            {
+              title: "Share Your Expertise",
+              description: "Help others succeed with your betting insights",
+              icon: "🎯",
+            },
+            {
+              title: "Earn Rewards",
+              description: "Get compensated for your successful predictions",
+              icon: "💰",
+            },
+          ].map((benefit) => (
+            <div
+              key={benefit.title}
+              className="bg-gray-800/30 rounded-xl p-6 backdrop-blur-sm hover:bg-gray-800/50 transition duration-300"
+            >
+              <div className="text-4xl mb-4">{benefit.icon}</div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {benefit.title}
+              </h3>
+              <p className="text-gray-300">{benefit.description}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Application Form */}
+        <div className="bg-gray-800/50 rounded-xl p-8 backdrop-blur-sm">
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">
+            Application Form
+          </h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -205,13 +250,56 @@ export default function BecomeCapper() {
               />
             </div>
 
+            {/* Terms and Conditions Checkbox */}
+            <div className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-300"
+                required
+              />
+              <label htmlFor="terms" className="text-sm text-gray-300">
+                I agree to the{" "}
+                <a
+                  href="/terms"
+                  className="text-blue-400 hover:text-blue-300 underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    router.push("/terms");
+                  }}
+                >
+                  Terms and Conditions
+                </a>{" "}
+                and confirm that all information provided is accurate. I
+                understand that false information may result in application
+                rejection.
+              </label>
+            </div>
+
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
+              disabled={!acceptedTerms}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed"
             >
               Submit Application
             </button>
           </form>
+        </div>
+
+        {/* Requirements Section */}
+        <div className="mt-12 bg-gray-800/30 rounded-xl p-6 backdrop-blur-sm">
+          <h3 className="text-xl font-semibold text-white mb-4">
+            Requirements to Become a Capper
+          </h3>
+          <ul className="list-disc list-inside text-gray-300 space-y-2">
+            <li>Proven track record of successful sports betting</li>
+            <li>Detailed understanding of sports analytics</li>
+            <li>Strong communication skills</li>
+            <li>Commitment to providing quality insights</li>
+            <li>Professional conduct and integrity</li>
+          </ul>
         </div>
       </div>
     </div>
