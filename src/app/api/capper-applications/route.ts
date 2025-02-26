@@ -190,8 +190,10 @@ export async function PUT(request: Request) {
         });
         console.log("Token generated successfully"); // Debug log
 
-        const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/capper-signup?token=${signupToken}`;
-        console.log("Signup URL:", signupUrl); // Debug log
+        // Get the base URL with a fallback
+        const baseUrl =
+          process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+        const signupUrl = `${baseUrl}/capper-signup?token=${signupToken}`;
 
         await prisma.user.update({
           where: { id: application.userId },
@@ -210,7 +212,7 @@ export async function PUT(request: Request) {
             userFirstName: application.user.firstName,
             status: "APPROVED",
             setupUrl: signupUrl,
-            baseUrl: process.env.NEXT_PUBLIC_APP_URL || "",
+            baseUrl: baseUrl, // Use the same baseUrl here
           }),
         });
         console.log("Email response:", emailResponse); // Debug log
