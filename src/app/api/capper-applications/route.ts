@@ -190,9 +190,9 @@ export async function PUT(request: Request) {
         });
         console.log("Token generated successfully"); // Debug log
 
-        // Get the base URL with a fallback
-        const baseUrl = "https://app.cappersports.co";
-        const signupUrl = `${baseUrl}/capper-signup?token=${signupToken}`;
+        // Fix the URL construction
+        const signupUrl = `https://app.cappersports.co/capper-signup?token=${signupToken}`;
+        console.log("Signup URL:", signupUrl); // Debug log
 
         await prisma.user.update({
           where: { id: application.userId },
@@ -200,7 +200,6 @@ export async function PUT(request: Request) {
             isCapper: false,
           },
         });
-        console.log("User updated successfully"); // Debug log
 
         console.log("Sending approval email to:", application.user.email); // Debug log
         const emailResponse = await resend.emails.send({
@@ -211,10 +210,9 @@ export async function PUT(request: Request) {
             userFirstName: application.user.firstName,
             status: "APPROVED",
             setupUrl: signupUrl,
-            baseUrl: baseUrl, // Use the same baseUrl here
+            baseUrl: "https://app.cappersports.co",
           }),
         });
-        console.log("Email response:", emailResponse); // Debug log
 
         // Add debug logging
         console.log("Email sending environment:", process.env.NODE_ENV);
