@@ -191,8 +191,7 @@ export async function PUT(request: Request) {
         console.log("Token generated successfully"); // Debug log
 
         // Get the base URL with a fallback
-        const baseUrl =
-          process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+        const baseUrl = "https://app.cappersports.co";
         const signupUrl = `${baseUrl}/capper-signup?token=${signupToken}`;
 
         await prisma.user.update({
