@@ -23,7 +23,9 @@ export const CapperApplicationEmail = ({
   baseUrl,
 }: CapperApplicationEmailProps) => {
   const isApproved = status === "APPROVED";
-  const fullSetupUrl = setupUrl ? `${baseUrl}${setupUrl}` : undefined;
+  const fullSetupUrl = setupUrl
+    ? `${baseUrl}/capper-signup?token=${setupUrl}`
+    : undefined;
 
   return (
     <Html>

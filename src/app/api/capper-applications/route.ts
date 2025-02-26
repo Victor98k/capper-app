@@ -190,10 +190,6 @@ export async function PUT(request: Request) {
         });
         console.log("Token generated successfully"); // Debug log
 
-        // Fix the URL construction
-        const signupUrl = `https://app.cappersports.co/capper-signup?token=${signupToken}`;
-        console.log("Signup URL:", signupUrl); // Debug log
-
         await prisma.user.update({
           where: { id: application.userId },
           data: {
@@ -204,13 +200,13 @@ export async function PUT(request: Request) {
         console.log("Sending approval email to:", application.user.email); // Debug log
         const emailResponse = await resend.emails.send({
           from: "Cappers Platform <onboarding@resend.dev>",
-          to: TEST_EMAIL, // Always send to test email
+          to: TEST_EMAIL,
           subject: "Your Capper Application has been Approved!",
           react: CapperApplicationEmail({
             userFirstName: application.user.firstName,
             status: "APPROVED",
-            setupUrl: signupUrl,
-            baseUrl: "https://app.cappersports.co",
+            setupUrl: signupToken, // Just pass the token
+            baseUrl: "https://app.cappersports.co", // Base URL without trailing slash
           }),
         });
 
