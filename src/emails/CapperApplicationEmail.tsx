@@ -13,15 +13,16 @@ interface CapperApplicationEmailProps {
   userFirstName: string;
   status: "APPROVED" | "REJECTED" | "PENDING";
   setupUrl?: string;
+  baseUrl: string;
 }
 
 export const CapperApplicationEmail = ({
   userFirstName,
   status,
   setupUrl,
+  baseUrl,
 }: CapperApplicationEmailProps) => {
   const isApproved = status === "APPROVED";
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const fullSetupUrl = setupUrl ? `${baseUrl}${setupUrl}` : undefined;
 
   return (

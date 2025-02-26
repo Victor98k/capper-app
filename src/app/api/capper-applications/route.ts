@@ -108,6 +108,7 @@ export async function POST(request: Request) {
       react: CapperApplicationEmail({
         userFirstName: user.firstName,
         status: "PENDING",
+        baseUrl: process.env.NEXT_PUBLIC_APP_URL || "",
       }),
     });
 
@@ -209,6 +210,7 @@ export async function PUT(request: Request) {
             userFirstName: application.user.firstName,
             status: "APPROVED",
             setupUrl: signupUrl,
+            baseUrl: process.env.NEXT_PUBLIC_APP_URL || "",
           }),
         });
         console.log("Email response:", emailResponse); // Debug log
@@ -234,6 +236,7 @@ export async function PUT(request: Request) {
         react: CapperApplicationEmail({
           userFirstName: application.user.firstName,
           status: "REJECTED",
+          baseUrl: process.env.NEXT_PUBLIC_APP_URL || "",
         }),
       });
     }
