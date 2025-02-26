@@ -17,34 +17,36 @@ const TEST_EMAIL = "victorgustav98@gmail.com";
 export async function GET() {
   try {
     const applications = await prisma.capperApplication.findMany({
-      include: {
+      where: {
         user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true,
-            username: true,
+          id: {
+            not: undefined,
           },
         },
+      },
+      include: {
+        user: true,
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    // Transform the data to match our frontend interface
-    const formattedApplications = applications.map((app) => ({
-      id: app.id,
-      firstName: app.user.firstName,
-      lastName: app.user.lastName,
-      email: app.user.email,
-      username: app.user.username,
-      sport: app.sport,
-      experience: app.experience,
-      monthlyBetAmount: app.monthlyBetAmount,
-      yearlyROI: app.yearlyROI,
-      status: app.status,
-    }));
+    // Transform and filter out any applications with missing users
+    const formattedApplications = applications
+      .filter((app) => app.user)
+      .map((app) => ({
+        id: app.id,
+        firstName: app.user.firstName,
+        lastName: app.user.lastName,
+        email: app.user.email,
+        username: app.user.username,
+        sport: app.sport,
+        experience: app.experience,
+        monthlyBetAmount: app.monthlyBetAmount,
+        yearlyROI: app.yearlyROI,
+        status: app.status,
+      }));
 
     return NextResponse.json(formattedApplications);
   } catch (error) {
@@ -187,17 +189,8 @@ export async function PUT(request: Request) {
         });
         console.log("Token generated successfully"); // Debug log
 
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL || "https://app.cappersports.co";
-        // Ensure the URL is properly formatted
-        const formattedBaseUrl = baseUrl.startsWith("http")
-          ? baseUrl
-          : `https://${baseUrl}`;
-        const signupUrl = `${formattedBaseUrl}/capper-signup?token=${signupToken}`;
-
-        // Add debug logging
-        console.log("Base URL:", formattedBaseUrl);
-        console.log("Generated signup URL:", signupUrl);
+        const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/capper-signup?token=${signupToken}`;
+        console.log("Signup URL:", signupUrl); // Debug log
 
         await prisma.user.update({
           where: { id: application.userId },
