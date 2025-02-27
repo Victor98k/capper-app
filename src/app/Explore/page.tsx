@@ -1,31 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+// Components
 import { SideNav } from "@/components/SideNav";
 import ExploreCapperCard from "@/components/exploreCapperCard";
-import { useEffect, useState } from "react";
+
 import Loader from "@/components/Loader";
 import SearchBar from "@/components/SearchBar";
-
-type Post = {
-  _id: string;
-  imageUrl: string | null;
-  capperId: string;
-  title: string;
-  content: string;
-  tags: string[];
-  capperInfo: {
-    username: string;
-    profileImage?: string;
-    firstName?: string;
-    lastName?: string;
-    subscribersCount?: number;
-    sport?: string;
-  };
-  likes: number;
-};
+// Types
+import { ExplorePost } from "@/types/capperPost";
 
 // Fisher-Yates shuffle algorithm
-const shuffleArray = (array: Post[]) => {
+const shuffleArray = (array: ExplorePost[]) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -35,10 +22,10 @@ const shuffleArray = (array: Post[]) => {
 };
 
 export default function ExplorePage() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<ExplorePost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [allPosts, setAllPosts] = useState<ExplorePost[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {

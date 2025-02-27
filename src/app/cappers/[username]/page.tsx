@@ -6,7 +6,7 @@ import { SideNav } from "@/components/SideNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// UI
 import {
   Card,
   CardContent,
@@ -15,6 +15,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
+// Icons
 import {
   CheckCircle,
   Trophy,
@@ -28,79 +29,17 @@ import {
   Calculator,
 } from "lucide-react";
 import { use } from "react";
+// Components
 import { SubscribeButton } from "@/components/SubscribeButton";
 import InstagramPost from "@/components/Posts";
 import { Input } from "@/components/ui/input";
 import { sportEmojiMap } from "@/lib/sportEmojiMap";
 import Loader from "@/components/Loader";
-
-type PriceRecurring = {
-  interval?: "day" | "week" | "month" | "year" | null;
-  interval_count?: number;
-};
-
-type CapperProfile = {
-  id: string;
-  userId: string;
-  user: {
-    firstName: string;
-    lastName: string;
-    username: string;
-    stripeConnectId: string;
-  };
-  bio?: string;
-  title?: string;
-  imageUrl?: string;
-  profileImage?: string;
-  tags: string[];
-  subscriberIds: string[];
-  socialLinks?: Record<string, string>;
-  products: {
-    id: string;
-    name: string;
-    description: string | null;
-    default_price: {
-      id: string;
-      recurring: PriceRecurring | null;
-      unit_amount: number;
-      currency: string;
-      type: "one_time" | "recurring";
-    };
-    marketing_features: string[];
-  }[];
-};
-
-type Pick = {
-  id: string;
-  sport: string;
-  prediction: string;
-  result: "win" | "loss" | "pending";
-  date: string;
-  odds: number;
-};
-
-type Post = {
-  _id: string;
-  title: string;
-  content: string;
-  imageUrl: string;
-  odds: string[];
-  bets: string[];
-  tags: string[];
-  capperId: string;
-  productId: string;
-  createdAt: string;
-  updatedAt: string;
-  likes?: number;
-  comments?: number;
-  capperInfo?: {
-    firstName: string;
-    lastName: string;
-    username: string;
-    imageUrl?: string;
-    isVerified?: boolean;
-  };
-};
+// Types
+import { PriceRecurring } from "@/types/priceRecurring";
+import { CapperProfile } from "@/types/capperProfile";
+import { Pick } from "@/types/betPickForCapperProfile";
+import { Post } from "@/types/capperPost";
 
 export default function CapperProfilePage({
   params,

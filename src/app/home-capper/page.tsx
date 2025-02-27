@@ -2,6 +2,8 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+
+// Components
 import { CapperDashboard } from "@/components/capperDashboard";
 import { Suspense } from "react";
 import Loader from "@/components/Loader";
@@ -13,7 +15,7 @@ function HomeCapperContent() {
 
   useEffect(() => {
     if (success) {
-      console.log("Successfully connected Stripe account!");
+      // console.log("Successfully connected Stripe account!");
     }
     if (refresh) {
       window.location.reload();
