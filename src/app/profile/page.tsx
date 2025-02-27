@@ -327,7 +327,7 @@ function CapperProfileContent() {
       }
 
       const data = await response.json();
-      console.log("Bio update response:", data); // Debug the update response
+      // console.log("Bio update response:", data); // Debug the update response
 
       // Extract the updated bio from the response if available
       if (data && "bio" in data) {

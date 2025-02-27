@@ -74,7 +74,7 @@ export function CapperDashboard() {
         isLoading: false,
       });
 
-      console.log("Stripe status check:", data);
+      // console.log("Stripe status check:", data);
     } catch (error) {
       console.error("Failed to fetch Stripe status:", error);
       setStripeStatus({
@@ -87,7 +87,7 @@ export function CapperDashboard() {
   // Check Stripe status on initial load
   useEffect(() => {
     if (user?.isCapper && !loading) {
-      console.log("Checking Stripe status for capper:", user.id);
+      // console.log("Checking Stripe status for capper:", user.id);
       checkStripeStatus();
     }
   }, [user, loading]);
@@ -95,9 +95,9 @@ export function CapperDashboard() {
   // Add another useEffect to handle the success parameter
   useEffect(() => {
     if (success === "true" && user?.isCapper) {
-      console.log(
-        "Detected successful Stripe onboarding, rechecking status..."
-      );
+      // console.log(
+      //   "Detected successful Stripe onboarding, rechecking status..."
+      // );
       checkStripeStatus();
     }
   }, [success, user]);

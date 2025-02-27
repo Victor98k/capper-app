@@ -47,7 +47,6 @@ const ALLOWED_IMAGE_TYPES = [
   "image/webp",
 ];
 
-// Add this validation function near the top with other constants
 const isValidOdd = (odd: string): boolean => {
   const number = parseFloat(odd);
   return (
@@ -96,9 +95,9 @@ function NewPostPage() {
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
+  // const handleRemoveTag = (tagToRemove: string) => {
+  //   setTags(tags.filter((tag) => tag !== tagToRemove));
+  // };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

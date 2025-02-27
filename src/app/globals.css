@@ -85,7 +85,7 @@ html {
 }
 
 video {
-  padding-top: 100px;
+  /* padding-top: 100px; */
   transition: all 0.5s ease-out;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;

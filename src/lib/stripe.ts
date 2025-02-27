@@ -7,7 +7,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 // Add retry logic for rate limits
 const stripeWithRetry = (stripeInstance: Stripe) => {
   const maxRetries = 3;
-  const baseDelay = 1000; // 1 second
+  const baseDelay = 1000;
 
   const handler = {
     get(target: any, prop: string) {

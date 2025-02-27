@@ -15,21 +15,14 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe } from "@stripe/react-stripe-js";
 import { toast } from "sonner";
 import { Loader } from "@/components/ui/loader";
+import { Product, PaywallComponentProps } from "@/types/stripe";
+
+// NOT USED ATM
 
 // Initialize Stripe
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
-
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  default_price: string;
-  unit_amount: number;
-  currency: string;
-  features: string[];
-}
 
 function CheckoutButton({
   product,
@@ -94,11 +87,6 @@ function CheckoutButton({
       )}
     </Button>
   );
-}
-
-interface PaywallComponentProps {
-  productId?: string | null;
-  capperId?: string | null;
 }
 
 export default function PaywallComponent({
