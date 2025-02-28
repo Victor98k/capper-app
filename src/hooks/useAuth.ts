@@ -9,7 +9,7 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  isCapper: boolean; // Indicates if user is a sports handicapper
+  isCapper: boolean; // Indicates if user is a capper
   stripeConnectOnboarded: boolean; // Indicates if user has completed Stripe onboarding
   isSuperUser: boolean; // Indicates admin privileges
 }
