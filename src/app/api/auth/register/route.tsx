@@ -67,7 +67,6 @@ export async function POST(request: Request) {
         react: CappersWelcomeEmail({ userFirstname: user.firstName }),
       });
     } catch (emailError) {
-      // Log the error but don't fail the registration
       console.error("Failed to send welcome email:", emailError);
     }
 

@@ -2,21 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { SimplifiedCapperCard } from "@/components/SimplifiedCapperCard";
-
-type Capper = {
-  id: string;
-  userId: string;
-  user: {
-    firstName: string;
-    lastName: string;
-    username: string;
-  };
-  imageUrl?: string;
-  tags: string[];
-};
+import { SidebarCapper } from "@/types/capper";
 
 export function CappersSidebar() {
-  const [cappers, setCappers] = useState<Capper[]>([]);
+  const [cappers, setCappers] = useState<SidebarCapper[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

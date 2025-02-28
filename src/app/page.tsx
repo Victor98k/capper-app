@@ -25,23 +25,9 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { AnimatePresence, motion } from "framer-motion";
+import { CapperCarouselCard } from "@/types/capper";
 
-interface Capper {
-  userId: string;
-  user?: {
-    firstName: string;
-    lastName: string;
-    username: string;
-  };
-  bio?: string;
-  tags: string[];
-  subscriberIds: string[];
-  isVerified: boolean;
-  profileImage?: string;
-  imageUrl?: string;
-}
-
-const mockCappers: Capper[] = [
+const mockCappers: CapperCarouselCard[] = [
   {
     userId: "mock1",
     user: {
@@ -170,7 +156,7 @@ export default function LandingPage() {
   const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCard, setActiveCard] = useState(0);
-  const [cappers, setCappers] = useState<Capper[]>(mockCappers);
+  const [cappers, setCappers] = useState<CapperCarouselCard[]>(mockCappers);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-
+import { DisplayCapperCardPropsExplorePage } from "@/types/capper";
 const sportEmojiMap: { [key: string]: string } = {
   Football: "⚽",
   Basketball: "🏀",
@@ -17,16 +17,6 @@ const sportEmojiMap: { [key: string]: string } = {
   Boxing: "🥊",
 };
 
-interface DisplayCapperCardProps {
-  username: string;
-  imageUrl?: string;
-  firstName?: string;
-  lastName?: string;
-  profileImage?: string;
-  sport?: string;
-  likes?: number;
-}
-
 export function ExploreCapperCard({
   username,
   imageUrl,
@@ -35,7 +25,7 @@ export function ExploreCapperCard({
   profileImage,
   sport,
   likes = 0,
-}: DisplayCapperCardProps) {
+}: DisplayCapperCardPropsExplorePage) {
   const router = useRouter();
 
   return (
