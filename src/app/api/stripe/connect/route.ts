@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       details_submitted: platform.details_submitted,
     });
 
-    // Ensure we have the base URL with proper format
+    // Ensure we have the base URL with proper format for general use
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
     const websiteUrl = baseUrl.startsWith("http")
@@ -81,11 +81,14 @@ export async function POST(req: Request) {
       data: { stripeConnectId: account.id },
     });
 
-    // Create initial onboarding link
+    // Always use the main domain for redirect URLs
+    const redirectDomain = "https://app.cappersports.co";
+
+    // Create initial onboarding link with fixed redirect URLs
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${websiteUrl}/home-capper?refresh=true`, // Use the properly formatted URL
-      return_url: `${websiteUrl}/home-capper?success=true`,
+      refresh_url: `${redirectDomain}/home-capper?refresh=true`,
+      return_url: `${redirectDomain}/home-capper?success=true`,
       type: "account_onboarding",
       collect: "eventually_due",
     });
