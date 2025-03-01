@@ -117,6 +117,7 @@ model CapperApplication {
   experience      String
   monthlyBetAmount String
   yearlyROI       String
+  roiVerificationImages String[]
   status          String   @default("PENDING")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

@@ -14,6 +14,21 @@ const testEmail = process.env.RESEND_TEST_EMAIL;
 // Define test email - this ensures we have a fallback
 const TEST_EMAIL = "victorgustav98@gmail.com";
 
+// Add this interface
+interface CapperApplication {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  sport: string;
+  experience: string;
+  monthlyBetAmount: string;
+  yearlyROI: string;
+  status: string;
+  roiVerificationImages?: string[]; // Add this field
+}
+
 export async function GET() {
   try {
     const applications = await prisma.capperApplication.findMany({
@@ -46,6 +61,7 @@ export async function GET() {
         monthlyBetAmount: app.monthlyBetAmount,
         yearlyROI: app.yearlyROI,
         status: app.status,
+        roiVerificationImages: app.roiVerificationImages || [], // Add this field
       }));
 
     return NextResponse.json(formattedApplications);
@@ -60,7 +76,20 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const formData = await request.formData();
+    const imageUrls: string[] = [];
+
+    // Extract basic form data
+    const data = {
+      email: formData.get("email") as string,
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      username: formData.get("username") as string,
+      sport: formData.get("sport") as string,
+      experience: formData.get("experience") as string,
+      monthlyBetAmount: formData.get("monthlyBetAmount") as string,
+      yearlyROI: formData.get("yearlyROI") as string,
+    };
 
     // Basic validation
     if (!data.email || !data.firstName || !data.lastName || !data.username) {
@@ -68,6 +97,25 @@ export async function POST(request: Request) {
         { error: "Missing required fields" },
         { status: 400 }
       );
+    }
+
+    // Handle image uploads
+    const imageFiles: Blob[] = [];
+    formData.forEach((value, key) => {
+      if (key.startsWith("image") && value instanceof Blob) {
+        imageFiles.push(value);
+      }
+    });
+
+    // Convert images to base64 strings
+    for (const file of imageFiles) {
+      if (file.size > 0) {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const base64String = buffer.toString("base64");
+        const dataUrl = `data:${file.type};base64,${base64String}`;
+        imageUrls.push(dataUrl);
+      }
     }
 
     // Create user if they don't exist
@@ -82,13 +130,13 @@ export async function POST(request: Request) {
           firstName: data.firstName,
           lastName: data.lastName,
           username: data.username,
-          password: "", // They'll set this later if approved
+          password: "",
           isCapper: false,
         },
       });
     }
 
-    // Create the application
+    // Create the application with base64 image strings
     const application = await prisma.capperApplication.create({
       data: {
         userId: user.id,
@@ -97,6 +145,7 @@ export async function POST(request: Request) {
         monthlyBetAmount: data.monthlyBetAmount,
         yearlyROI: data.yearlyROI,
         status: "PENDING",
+        roiVerificationImages: imageUrls, // Store base64 strings
       },
     });
 

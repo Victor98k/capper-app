@@ -60,24 +60,25 @@ export function CappersSidebar() {
 
   return (
     <div className="w-[300px] min-w-[300px] pt-10 mt-10 p-4">
-      <h2 className="text-l font-bold mb-4">Popular Cappers</h2>
+      <h2 className="text-2xl font-bold mb-6">Popular Cappers</h2>
       {loading ? (
-        <p className="text-gray-400">Loading cappers...</p>
+        <p className="text-gray-400 text-lg">Loading cappers...</p>
       ) : error ? (
-        <p className="text-red-400">{error}</p>
+        <p className="text-red-400 text-lg">{error}</p>
       ) : cappers.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {cappers.map((capper) => (
-            <SimplifiedCapperCard
-              key={capper.id}
-              username={capper.user.username}
-              imageUrl={capper.imageUrl}
-              tags={capper.tags}
-            />
+            <div key={capper.id} className="p-3">
+              <SimplifiedCapperCard
+                username={capper.user.username}
+                imageUrl={capper.imageUrl}
+                tags={capper.tags}
+              />
+            </div>
           ))}
         </div>
       ) : (
-        <p className="text-gray-400">No cappers found</p>
+        <p className="text-gray-400 text-lg">No cappers found</p>
       )}
     </div>
   );

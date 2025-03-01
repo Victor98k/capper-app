@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
+
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
 
 export default function BecomeCapper() {
   const router = useRouter();
@@ -17,17 +25,29 @@ export default function BecomeCapper() {
     yearlyROI: "",
   });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
+      const formDataToSend = new FormData();
+
+      // Add all form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSend.append(key, value);
+      });
+
+      // Add images
+      images.forEach((image, index) => {
+        formDataToSend.append(`image${index}`, image);
+      });
+
       const response = await fetch("/api/capper-applications", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        body: formDataToSend, // Send as FormData instead of JSON
       });
 
       if (response.ok) {
@@ -43,8 +63,70 @@ export default function BecomeCapper() {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    handleNewImages(files);
+  };
+
+  const handleNewImages = (files: File[]) => {
+    for (const file of files) {
+      // Validate file size
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error("Image too large", {
+          description: "Please select an image under 10MB",
+        });
+        continue;
+      }
+
+      // Validate file type
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        toast.error("Invalid file type", {
+          description:
+            "Please select a valid image file (JPEG, PNG, GIF, or WebP)",
+        });
+        continue;
+      }
+
+      setImages((prev) => [...prev, file]);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreviews((prev) => [...prev, previewUrl]);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    handleNewImages(files);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" expand={true} richColors closeButton />
       <div className="max-w-4xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-12">
@@ -248,6 +330,85 @@ export default function BecomeCapper() {
                 className="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-white text-sm font-medium mb-2">
+                ROI Verification Screenshots
+              </label>
+              <p className="text-gray-300 text-sm mb-4">
+                Upload screenshots of your betting history to verify your ROI
+                claims
+              </p>
+
+              {/* Image upload area */}
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors mb-4
+                  ${isDragging ? "border-blue-500 bg-blue-500/10" : "border-gray-600 hover:border-blue-500"}`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById("imageInput")?.click()}
+              >
+                <div className="space-y-2">
+                  <div className="text-gray-400">
+                    <svg
+                      className="mx-auto h-12 w-12"
+                      stroke="currentColor"
+                      fill="none"
+                      viewBox="0 0 48 48"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex text-sm text-gray-400 justify-center">
+                    <span className="relative cursor-pointer rounded-md font-medium text-blue-400 focus-within:outline-none">
+                      Click to upload
+                    </span>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Accepted formats: JPEG, PNG, GIF, WebP (Max size: 10MB)
+                  </p>
+                </div>
+                <input
+                  id="imageInput"
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </div>
+
+              {/* Image previews */}
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => handleRemoveImage(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Terms and Conditions Checkbox */}

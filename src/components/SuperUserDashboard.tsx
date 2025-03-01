@@ -5,6 +5,7 @@ import { SideNav } from "./SideNavCappers";
 import { useState, useEffect } from "react";
 import { toast, Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 interface CapperApplication {
   id: string;
@@ -17,6 +18,7 @@ interface CapperApplication {
   monthlyBetAmount: string;
   yearlyROI: string;
   status: string;
+  roiVerificationImages?: string[];
 }
 
 export function SuperUserDashboard() {
@@ -170,6 +172,7 @@ export function SuperUserDashboard() {
                     <th className="py-3 px-4 text-left">Experience</th>
                     <th className="py-3 px-4 text-left">Monthly Bets</th>
                     <th className="py-3 px-4 text-left">ROI</th>
+                    <th className="py-3 px-4 text-left">ROI Verification</th>
                     <th className="py-3 px-4 text-left">Status</th>
                     <th className="py-3 px-4 text-left">Actions</th>
                   </tr>
@@ -191,6 +194,43 @@ export function SuperUserDashboard() {
                         {application.monthlyBetAmount}
                       </td>
                       <td className="py-3 px-4">{application.yearlyROI}</td>
+                      <td className="py-3 px-4">
+                        {application.roiVerificationImages?.length ? (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                View Images (
+                                {application.roiVerificationImages.length})
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl">
+                              <div className="grid grid-cols-2 gap-4 p-4">
+                                {application.roiVerificationImages.map(
+                                  (url, index) => (
+                                    <div key={index} className="relative">
+                                      <img
+                                        src={url}
+                                        alt={`ROI Verification ${index + 1}`}
+                                        className="w-full rounded-lg"
+                                      />
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-sm hover:bg-black/70"
+                                      >
+                                        Open Full Size
+                                      </a>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : (
+                          <span className="text-gray-400">No images</span>
+                        )}
+                      </td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
