@@ -33,6 +33,7 @@ interface PostProps {
   updatedAt: string;
   likes?: number;
   comments?: number;
+  isOwnPost?: boolean;
   capperInfo?: {
     firstName: string;
     lastName: string;
@@ -63,6 +64,7 @@ const sportEmojiMap: { [key: string]: string } = {
 const BetDialog = ({
   bets,
   isSubscribed,
+  isOwnPost,
   capperInfo,
   router,
   title,
@@ -73,6 +75,7 @@ const BetDialog = ({
 }: {
   bets: string[];
   isSubscribed: boolean;
+  isOwnPost?: boolean;
   capperInfo: { username: string };
   router: any;
   title: string;
@@ -82,7 +85,7 @@ const BetDialog = ({
   bookmaker?: string;
 }) => (
   <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
-    {isSubscribed ? (
+    {isSubscribed || isOwnPost ? (
       <>
         <DialogHeader>
           {/* Title and Bookmaker Section */}
@@ -259,6 +262,7 @@ function InstagramPost({
     isVerified: false,
   },
   fallbackImage,
+  isOwnPost,
 }: PostProps) {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -468,6 +472,7 @@ function InstagramPost({
                   <BetDialog
                     bets={bets}
                     isSubscribed={isSubscribed}
+                    isOwnPost={isOwnPost}
                     capperInfo={capperInfo}
                     router={router}
                     title={title}
@@ -609,6 +614,7 @@ function InstagramPost({
               <BetDialog
                 bets={bets}
                 isSubscribed={isSubscribed}
+                isOwnPost={isOwnPost}
                 capperInfo={capperInfo}
                 router={router}
                 title={title}

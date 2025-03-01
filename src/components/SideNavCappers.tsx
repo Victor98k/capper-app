@@ -212,20 +212,20 @@ export function SideNav() {
           variant="ghost"
           className="w-full justify-start"
           size="lg"
-          onClick={() => router.push("/My-bets")}
+          onClick={() => router.push("/my-posts")}
         >
           <TicketIcon className="h-5 w-5 mr-3" />
-          My Posts
+          My Profile
         </Button>
-        <Button
+        {/* <Button
           variant="ghost"
           className="w-full justify-start"
           size="lg"
-          onClick={() => router.push("/My-bets")}
+          onClick={() => router.push("/my-bets")}
         >
           <Settings className="h-5 w-5 mr-3" />
           My profile
-        </Button>
+        </Button> */}
 
         <div className="pt-4 border-t border-gray-700">
           <div className="flex items-center space-x-3 mb-4">

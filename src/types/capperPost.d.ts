@@ -49,3 +49,8 @@ export type ExplorePost = {
   };
   likes: number;
 };
+
+export type PostProps = {
+  // ... existing props ...
+  isOwnPost?: boolean;
+};
