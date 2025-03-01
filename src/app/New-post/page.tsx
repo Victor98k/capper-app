@@ -46,6 +46,17 @@ const ALLOWED_IMAGE_TYPES = [
   "image/gif",
   "image/webp",
 ];
+const BOOKMAKERS = [
+  "Bet365",
+  "William Hill",
+  "Unibet",
+  "Betway",
+  "888sport",
+  "Ladbrokes",
+  "Coral",
+  "Paddy Power",
+  "Other",
+] as const;
 
 const isValidOdd = (odd: string): boolean => {
   const number = parseFloat(odd);
@@ -73,6 +84,7 @@ function NewPostPage() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
+  const [selectedBookmaker, setSelectedBookmaker] = useState<string>("");
   // const [crop, setCrop] = useState({ x: 0, y: 0 });
   // const [zoom, setZoom] = useState(1);
   // const [showCropper, setShowCropper] = useState(false);
@@ -227,6 +239,23 @@ function NewPostPage() {
 
   const handleSubmit = async () => {
     try {
+      // Add bookmaker validation
+      if (!selectedBookmaker) {
+        toast.error("Please select a bookmaker", {
+          description: "Bookmaker selection is required",
+        });
+        return;
+      }
+
+      // Validate required fields
+      if (!title || !content || !selectedProduct || !selectedBookmaker) {
+        toast.error("Please fill in all required fields", {
+          description:
+            "Title, content, bookmaker, and bundle selection are required",
+        });
+        return;
+      }
+
       // Validate title length
       if (title.length > MAX_TITLE_LENGTH) {
         toast.error("Title is too long", {
@@ -243,14 +272,6 @@ function NewPostPage() {
         return;
       }
 
-      // Validate required fields
-      if (!title || !content || !selectedProduct) {
-        toast.error("Please fill in all required fields", {
-          description: "Title, content, and bundle selection are required",
-        });
-        return;
-      }
-
       // Show loading toast
       const loadingToast = toast.loading("Creating your post...");
 
@@ -263,6 +284,7 @@ function NewPostPage() {
       formData.append("tags", JSON.stringify(tags));
       formData.append("bets", JSON.stringify(bets));
       formData.append("odds", JSON.stringify(odds));
+      formData.append("bookmaker", selectedBookmaker);
       formData.append("username", username);
       formData.append("productId", selectedProduct);
 
@@ -304,6 +326,7 @@ function NewPostPage() {
       setImage(null);
       setImagePreview(null);
       setSelectedProduct("");
+      setSelectedBookmaker("");
     } catch (error) {
       console.error("Failed to create post:", error);
       toast.error("Failed to create post", {
@@ -686,6 +709,36 @@ function NewPostPage() {
                         Add Odds
                       </Button>
                     </div>
+                  </div>
+
+                  {/* Bookmaker Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bookmaker <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                      value={selectedBookmaker}
+                      onValueChange={setSelectedBookmaker}
+                      required
+                    >
+                      <SelectTrigger
+                        className={`w-full ${!selectedBookmaker ? "border-red-300" : ""}`}
+                      >
+                        <SelectValue placeholder="Select bookmaker" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BOOKMAKERS.map((bookmaker) => (
+                          <SelectItem key={bookmaker} value={bookmaker}>
+                            {bookmaker}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {!selectedBookmaker && (
+                      <p className="mt-1 text-xs text-red-500">
+                        Please select a bookmaker
+                      </p>
+                    )}
                   </div>
 
                   {/* Submit Button */}

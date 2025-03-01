@@ -65,6 +65,7 @@ model CapperPost {
   tags          String[]
   bets          String[]
   odds          String[]
+  bookmaker     String?  // Add this field
   capperId      String   @db.ObjectId
   productId     String?   // Add this field to link post to a specific product
   // productId     String   @default("default_product")

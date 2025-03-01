@@ -19,6 +19,7 @@ const PostSchema = z.object({
   tags: z.array(z.string()),
   bets: z.array(z.string()),
   odds: z.array(z.string()),
+  bookmaker: z.string().min(1, "Bookmaker is required"),
   productId: z.string().min(1, "Product ID is required"),
 });
 
@@ -127,6 +128,7 @@ export async function GET(req: Request) {
           odds: post.odds,
           bets: post.bets,
           tags: post.tags,
+          bookmaker: post.bookmaker,
           capperId: post.capperId,
           productId: post.productId || "",
           productName,
@@ -210,6 +212,7 @@ export async function POST(req: Request) {
     const oddsString = formData.get("odds");
     const username = formData.get("username");
     const productId = formData.get("productId");
+    const bookmaker = formData.get("bookmaker");
 
     if (
       !title ||
@@ -218,7 +221,8 @@ export async function POST(req: Request) {
       !betsString ||
       !oddsString ||
       !username ||
-      !productId
+      !productId ||
+      !bookmaker
     ) {
       return NextResponse.json(
         { error: "Missing required fields" },
@@ -349,6 +353,7 @@ export async function POST(req: Request) {
             tags,
             bets,
             odds,
+            bookmaker: (bookmaker as string) || null,
             capperId: capperProfile.id,
             productId: productId as string,
             likes: 0,
@@ -372,6 +377,7 @@ export async function POST(req: Request) {
           odds: post.odds,
           bets: post.bets,
           tags: post.tags,
+          bookmaker: post.bookmaker,
           capperId: post.capperId,
           createdAt: post.createdAt.toISOString(),
           updatedAt: post.updatedAt.toISOString(),
