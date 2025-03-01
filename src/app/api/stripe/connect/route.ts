@@ -40,15 +40,9 @@ export async function POST(req: Request) {
       details_submitted: platform.details_submitted,
     });
 
-    // Use only the configured app URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-
-    if (!baseUrl) {
-      throw new Error(
-        "NEXT_PUBLIC_APP_URL environment variable is not configured"
-      );
-    }
-
+    // Ensure we have the base URL with proper format
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
     const websiteUrl = baseUrl.startsWith("http")
       ? baseUrl
       : `https://${baseUrl}`;
