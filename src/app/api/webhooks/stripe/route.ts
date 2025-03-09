@@ -80,9 +80,10 @@ export async function POST(req: Request) {
         });
 
         console.log("Updated capper's subscriberIds");
+
+        return NextResponse.json({ received: true });
       } catch (dbError) {
         console.error("Failed to create subscription in database:", dbError);
-        // Log more details about the error
         console.error("Error details:", {
           message: dbError instanceof Error ? dbError.message : "Unknown error",
           code:

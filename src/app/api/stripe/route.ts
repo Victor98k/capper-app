@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       process.env.NEXT_PUBLIC_APP_URL || "https://app.cappersports.co";
 
     // Log the URL being constructed
-    console.log("Constructing URLs with base:", baseUrl);
+    // console.log("Constructing URLs with base:", baseUrl);
 
     // Create the checkout session
     const session = await stripe.checkout.sessions.create(
@@ -67,7 +67,6 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        // Ensure URLs are properly constructed
         success_url: `${baseUrl}/cappers/${capper.user.username}`,
         cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
         metadata: {
@@ -84,12 +83,12 @@ export async function POST(req: Request) {
     );
 
     // Log the created session for debugging
-    console.log("Created checkout session:", {
-      id: session.id,
-      success_url: session.success_url,
-      cancel_url: session.cancel_url,
-      metadata: session.metadata,
-    });
+    // console.log("Created checkout session:", {
+    //   id: session.id,
+    //   success_url: session.success_url,
+    //   cancel_url: session.cancel_url,
+    //   metadata: session.metadata,
+    // });
 
     return NextResponse.json({
       sessionId: session.id,
