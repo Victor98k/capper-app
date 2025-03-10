@@ -3,7 +3,19 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
+// Add more detailed environment logging
+console.log("Available environment variables:", {
+  hasWebhookSecretLive: !!process.env.STRIPE_WEBHOOK_SECRET_LIVE,
+  webhookSecretLiveValue:
+    process.env.STRIPE_WEBHOOK_SECRET_LIVE?.substring(0, 5) + "...",
+  nodeEnv: process.env.NODE_ENV,
+});
+
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_LIVE;
+
+if (!endpointSecret) {
+  console.error("WARNING: Webhook secret is not configured!");
+}
 
 // Add debug logging
 console.log("Environment check:", {
