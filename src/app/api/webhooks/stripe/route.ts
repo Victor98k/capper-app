@@ -5,10 +5,32 @@ import { prisma } from "@/lib/prisma";
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+const logWebhookError = (error: any, context: string) => {
+  console.error(`[Webhook Error - ${context}]:`, {
+    message: error instanceof Error ? error.message : "Unknown error",
+    stack: error instanceof Error ? error.stack : undefined,
+    context,
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+  });
+};
+
 export async function POST(req: Request) {
   const body = await req.text();
-  const sig = req.headers.get("stripe-signature");
+  const headersList = await headers();
+  const sig = headersList.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  console.log("Received signature:", sig);
+  console.log("Body length:", body.length);
+
+  if (!sig || !webhookSecret) {
+    console.error("Missing stripe signature or webhook secret");
+    return NextResponse.json(
+      { error: "Missing stripe signature or webhook secret" },
+      { status: 400 }
+    );
+  }
 
   let event;
 
@@ -16,7 +38,7 @@ export async function POST(req: Request) {
     console.log("Webhook received - Starting processing");
 
     // Verify webhook signature
-    event = stripe.webhooks.constructEvent(body, sig!, webhookSecret!);
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
 
     console.log("Webhook signature verified, event type:", event.type);
 
@@ -83,6 +105,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ received: true });
       } catch (dbError) {
+        logWebhookError(dbError, "Database Operation");
         console.error("Failed to create subscription in database:", dbError);
         console.error("Error details:", {
           message: dbError instanceof Error ? dbError.message : "Unknown error",
