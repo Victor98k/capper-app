@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_LIVE;
 
 const logWebhookError = (error: any, context: string) => {
   console.error(`[Webhook Error - ${context}]:`, {
@@ -32,12 +32,8 @@ export async function POST(req: Request) {
   const body = Buffer.concat(chunks).toString("utf8");
   const headersList = await headers();
   const sig = headersList.get("stripe-signature");
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  console.log("Received signature:", sig);
-  console.log("Body length:", body.length);
-
-  if (!sig || !webhookSecret) {
+  if (!sig || !endpointSecret) {
     console.error("Missing stripe signature or webhook secret");
     return NextResponse.json(
       { error: "Missing stripe signature or webhook secret" },
@@ -50,8 +46,8 @@ export async function POST(req: Request) {
   try {
     console.log("Webhook received - Starting processing");
 
-    // Verify webhook signature
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    // Use endpointSecret (STRIPE_WEBHOOK_SECRET_LIVE) consistently
+    event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
 
     console.log("Webhook signature verified, event type:", event.type);
 
