@@ -5,6 +5,13 @@ import { prisma } from "@/lib/prisma";
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_LIVE;
 
+// Add debug logging
+console.log("Environment check:", {
+  hasWebhookSecret: !!endpointSecret,
+  environment: process.env.NODE_ENV,
+  webhookSecretPrefix: endpointSecret?.substring(0, 8),
+});
+
 const logWebhookError = (error: any, context: string) => {
   console.error(`[Webhook Error - ${context}]:`, {
     message: error instanceof Error ? error.message : "Unknown error",
@@ -33,8 +40,18 @@ export async function POST(req: Request) {
   const headersList = await headers();
   const sig = headersList.get("stripe-signature");
 
+  // Add debug logging for request
+  console.log("Webhook request details:", {
+    hasSignature: !!sig,
+    signaturePrefix: sig?.substring(0, 8),
+    bodyLength: body.length,
+  });
+
   if (!sig || !endpointSecret) {
-    console.error("Missing stripe signature or webhook secret");
+    console.error("Missing stripe signature or webhook secret", {
+      hasSignature: !!sig,
+      hasEndpointSecret: !!endpointSecret,
+    });
     return NextResponse.json(
       { error: "Missing stripe signature or webhook secret" },
       { status: 400 }
