@@ -16,7 +16,20 @@ const logWebhookError = (error: any, context: string) => {
 };
 
 export async function POST(req: Request) {
-  const body = await req.text();
+  // Get the raw body as a Buffer to preserve exact formatting
+  const chunks = [];
+  const reader = req.body?.getReader();
+  if (!reader) {
+    return NextResponse.json({ error: "No request body" }, { status: 400 });
+  }
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+
+  const body = Buffer.concat(chunks).toString("utf8");
   const headersList = await headers();
   const sig = headersList.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
