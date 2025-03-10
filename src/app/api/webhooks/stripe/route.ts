@@ -6,8 +6,6 @@ import { prisma } from "@/lib/prisma";
 // Add more detailed environment logging
 console.log("Available environment variables:", {
   hasWebhookSecretLive: !!process.env.STRIPE_WEBHOOK_SECRET_LIVE,
-  webhookSecretLiveValue:
-    process.env.STRIPE_WEBHOOK_SECRET_LIVE?.substring(0, 5) + "...",
   nodeEnv: process.env.NODE_ENV,
 });
 
@@ -35,20 +33,7 @@ const logWebhookError = (error: any, context: string) => {
 };
 
 export async function POST(req: Request) {
-  // Get the raw body as a Buffer to preserve exact formatting
-  const chunks = [];
-  const reader = req.body?.getReader();
-  if (!reader) {
-    return NextResponse.json({ error: "No request body" }, { status: 400 });
-  }
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-
-  const body = Buffer.concat(chunks).toString("utf8");
+  const body = await req.text(); // Use text() for raw body
   const headersList = await headers();
   const sig = headersList.get("stripe-signature");
 
@@ -57,6 +42,7 @@ export async function POST(req: Request) {
     hasSignature: !!sig,
     signaturePrefix: sig?.substring(0, 8),
     bodyLength: body.length,
+    hasEndpointSecret: !!endpointSecret,
   });
 
   if (!sig || !endpointSecret) {
@@ -74,8 +60,6 @@ export async function POST(req: Request) {
 
   try {
     console.log("Webhook received - Starting processing");
-
-    // Use endpointSecret (STRIPE_WEBHOOK_SECRET_LIVE) consistently
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
 
     console.log("Webhook signature verified, event type:", event.type);
@@ -166,7 +150,7 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(
       { error: "Webhook handler failed" },
-      { status: 500 }
+      { status: 400 } // Changed from 500 to 400 for signature verification failures
     );
   }
 }
