@@ -1,9 +1,7 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_WEBHOOK_SECRET_LIVE) {
-  throw new Error(
-    "STRIPE_WEBHOOK_SECRET_LIVE is missing in environment variables"
-  );
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("STRIPE_SECRET_KEY is missing in environment variables");
 }
 
 // Add retry logic for rate limits
@@ -44,7 +42,7 @@ const stripeWithRetry = (stripeInstance: Stripe) => {
 };
 
 export const stripe = stripeWithRetry(
-  new Stripe(process.env.STRIPE_WEBHOOK_SECRET_LIVE, {
+  new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: "2024-12-18.acacia", // Use the latest API version
     typescript: true,
   })
