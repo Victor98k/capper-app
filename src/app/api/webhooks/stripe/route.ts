@@ -4,22 +4,34 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
 // Add more detailed environment logging
-console.log("Available environment variables:", {
-  hasWebhookSecretLive: !!process.env.STRIPE_WEBHOOK_SECRET_LIVE,
+console.log("Webhook environment check:", {
+  hasWebhookSecretProductionUrl:
+    !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
+  webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL?.length,
   nodeEnv: process.env.NODE_ENV,
+  // Don't log the actual secret, just check if it starts with 'whsec_'
+  hasValidPrefix:
+    process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL?.startsWith("whsec_"),
 });
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET_LIVE;
+// Use a more descriptive variable name
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL;
 
-if (!endpointSecret) {
-  console.error("WARNING: Webhook secret is not configured!");
+if (!webhookSecret) {
+  console.error(
+    "Critical Error: Stripe webhook secret is not configured in environment variables",
+    {
+      nodeEnv: process.env.NODE_ENV,
+      hasSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
+    }
+  );
 }
 
 // Add debug logging
 console.log("Environment check:", {
-  hasWebhookSecret: !!endpointSecret,
+  hasWebhookSecret: !!webhookSecret,
   environment: process.env.NODE_ENV,
-  webhookSecretPrefix: endpointSecret?.substring(0, 8),
+  webhookSecretPrefix: webhookSecret?.substring(0, 8),
 });
 
 const logWebhookError = (error: any, context: string) => {
@@ -39,24 +51,26 @@ export async function POST(req: Request) {
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
-    // Add debug logging for request
-    console.log("Webhook request details:", {
+    // Enhanced request validation logging
+    console.log("Webhook request validation:", {
       hasSignature: !!sig,
       signaturePrefix: sig?.substring(0, 8),
       bodyLength: body.length,
-      hasEndpointSecret: !!endpointSecret,
+      hasWebhookSecret: !!webhookSecret,
       rawBodyLength: rawBody.byteLength,
+      headers: Object.fromEntries(headersList.entries()),
     });
 
-    if (!sig || !endpointSecret) {
-      console.error("Missing stripe signature or webhook secret", {
+    if (!sig || !webhookSecret) {
+      const error = !sig
+        ? "Missing Stripe signature"
+        : "Missing webhook secret";
+      console.error(`Webhook validation failed: ${error}`, {
         hasSignature: !!sig,
-        hasEndpointSecret: !!endpointSecret,
+        hasWebhookSecret: !!webhookSecret,
+        nodeEnv: process.env.NODE_ENV,
       });
-      return NextResponse.json(
-        { error: "Missing stripe signature or webhook secret" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error }, { status: 400 });
     }
 
     let event;
@@ -66,11 +80,7 @@ export async function POST(req: Request) {
 
       // Convert ArrayBuffer to Buffer for Stripe
       const rawBodyBuffer = Buffer.from(rawBody);
-      event = stripe.webhooks.constructEvent(
-        rawBodyBuffer,
-        sig,
-        endpointSecret
-      );
+      event = stripe.webhooks.constructEvent(rawBodyBuffer, sig, webhookSecret);
 
       console.log("Webhook signature verified, event type:", event.type);
 
