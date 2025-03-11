@@ -26,5 +26,7 @@ export const config = {
     "/api/stripe/connect/:path*",
     "/api/stripe/products/:path*",
     "/api/stripe/:path*",
+    // Exclude webhook endpoint but match other paths
+    "/((?!api/webhooks/stripe).*)",
   ],
 };
