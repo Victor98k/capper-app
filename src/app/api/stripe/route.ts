@@ -4,7 +4,7 @@ import { verifyJWT } from "@/utils/jwt";
 import { PrismaClient } from "@prisma/client";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
+  apiVersion: "2025-02-24.acacia",
 });
 
 const prisma = new PrismaClient();
