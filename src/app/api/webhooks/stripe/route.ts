@@ -46,6 +46,13 @@ const logWebhookError = (error: any, context: string) => {
 
 export async function POST(req: Request) {
   try {
+    // Add URL logging at the very start
+    console.log("Incoming webhook request details:", {
+      url: req.url,
+      path: new URL(req.url).pathname,
+      method: req.method,
+    });
+
     const rawBody = await req.clone().arrayBuffer();
     const body = Buffer.from(rawBody).toString("utf8");
     const headersList = await headers();
