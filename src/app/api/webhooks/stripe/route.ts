@@ -46,48 +46,37 @@ const logWebhookError = (error: any, context: string) => {
 
 export async function POST(req: Request) {
   try {
-    // Add URL logging at the very start
     console.log("Incoming webhook request details:", {
       url: req.url,
       path: new URL(req.url).pathname,
       method: req.method,
     });
 
-    const rawBody = await req.clone().arrayBuffer();
-    const body = Buffer.from(rawBody).toString("utf8");
+    // Get the raw body as text
+    const body = await req.text();
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
-    // Enhanced request validation logging
     console.log("Webhook request validation:", {
       hasSignature: !!sig,
       signaturePrefix: sig?.substring(0, 8),
       bodyLength: body.length,
       hasWebhookSecret: !!webhookSecret,
-      rawBodyLength: rawBody.byteLength,
-      headers: Object.fromEntries(headersList.entries()),
     });
 
     if (!sig || !webhookSecret) {
       const error = !sig
         ? "Missing Stripe signature"
         : "Missing webhook secret";
-      console.error(`Webhook validation failed: ${error}`, {
-        hasSignature: !!sig,
-        hasWebhookSecret: !!webhookSecret,
-        nodeEnv: process.env.NODE_ENV,
-      });
+      console.error(`Webhook validation failed: ${error}`);
       return NextResponse.json({ error }, { status: 400 });
     }
 
     let event;
 
     try {
-      console.log("Webhook received - Starting processing");
-
-      // Convert ArrayBuffer to Buffer for Stripe
-      const rawBodyBuffer = Buffer.from(rawBody);
-      event = stripe.webhooks.constructEvent(rawBodyBuffer, sig, webhookSecret);
+      // Use the raw text body directly with constructEvent
+      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
 
       console.log("Webhook signature verified, event type:", event.type);
 
