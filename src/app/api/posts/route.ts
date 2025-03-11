@@ -108,7 +108,7 @@ export async function GET(req: Request) {
         if (post.productId) {
           try {
             const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-              apiVersion: "2024-12-18.acacia",
+              apiVersion: "2025-02-24.acacia",
             });
             const product = await stripe.products.retrieve(post.productId, {
               stripeAccount: post.capper.user.stripeConnectId || undefined,
@@ -326,7 +326,7 @@ export async function POST(req: Request) {
     if (capperProfile) {
       try {
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-          apiVersion: "2024-12-18.acacia",
+          apiVersion: "2025-02-24.acacia",
         });
 
         // Use the capper's Stripe Connect account ID
