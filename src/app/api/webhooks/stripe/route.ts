@@ -50,13 +50,15 @@ export async function POST(req: Request) {
   try {
     // Get the raw request
     const text = await req.text();
-    const headersList = await headers(); // await the headers
+    const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
     console.log("Raw webhook details:", {
       bodyLength: text.length,
-      signatureHeader: sig?.substring(0, 20) + "...", // Log part of signature safely
+      bodyPreview: text.substring(0, 100),
+      signatureHeader: sig?.substring(0, 20) + "...",
       contentType: req.headers.get("content-type"),
+      allHeaders: Object.fromEntries(headersList.entries()),
     });
 
     if (!sig || !webhookSecret) {
