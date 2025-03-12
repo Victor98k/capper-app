@@ -44,135 +44,108 @@ const logWebhookError = (error: any, context: string) => {
   });
 };
 
+export const runtime = "edge";
+
 export async function POST(req: Request) {
   try {
-    console.log("Incoming webhook request details:", {
-      url: req.url,
-      path: new URL(req.url).pathname,
-      method: req.method,
-    });
-
-    // Get the raw body as text
-    const body = await req.text();
-    const headersList = await headers();
+    // Get the raw request
+    const text = await req.text();
+    const headersList = await headers(); // await the headers
     const sig = headersList.get("stripe-signature");
 
-    console.log("Webhook request validation:", {
-      hasSignature: !!sig,
-      signaturePrefix: sig?.substring(0, 8),
-      bodyLength: body.length,
-      hasWebhookSecret: !!webhookSecret,
+    console.log("Raw webhook details:", {
+      bodyLength: text.length,
+      signatureHeader: sig?.substring(0, 20) + "...", // Log part of signature safely
+      contentType: req.headers.get("content-type"),
     });
 
     if (!sig || !webhookSecret) {
-      const error = !sig
-        ? "Missing Stripe signature"
-        : "Missing webhook secret";
-      console.error(`Webhook validation failed: ${error}`);
-      return NextResponse.json({ error }, { status: 400 });
+      throw new Error(!sig ? "No signature found" : "No webhook secret found");
     }
 
-    let event;
+    // Construct the event with the raw body
+    const event = stripe.webhooks.constructEvent(text, sig, webhookSecret);
 
-    try {
-      // Use the raw text body directly with constructEvent
-      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    console.log("Webhook signature verified, event type:", event.type);
 
-      console.log("Webhook signature verified, event type:", event.type);
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
 
-      if (event.type === "checkout.session.completed") {
-        const session = event.data.object;
+      console.log("Checkout session completed. Session data:", {
+        id: session.id,
+        metadata: session.metadata,
+        customer: session.customer,
+        subscription: session.subscription,
+      });
 
-        console.log("Checkout session completed. Session data:", {
-          id: session.id,
-          metadata: session.metadata,
-          customer: session.customer,
-          subscription: session.subscription,
+      try {
+        // First check if subscription already exists
+        const existingSubscription = await prisma.subscription.findFirst({
+          where: {
+            stripeSubscriptionId: session.subscription,
+            userId: session.metadata.userId,
+            capperId: session.metadata.capperId,
+          },
         });
 
-        try {
-          // First check if subscription already exists
-          const existingSubscription = await prisma.subscription.findFirst({
-            where: {
-              stripeSubscriptionId: session.subscription,
-              userId: session.metadata.userId,
-              capperId: session.metadata.capperId,
-            },
-          });
-
-          if (existingSubscription) {
-            console.log(
-              "Subscription already exists:",
-              existingSubscription.id
-            );
-            return NextResponse.json({ received: true });
-          }
-
-          // Create new subscription
-          const subscription = await prisma.subscription.create({
-            data: {
-              userId: session.metadata.userId,
-              capperId: session.metadata.capperId,
-              productId: session.metadata.productId,
-              priceId: session.metadata.priceId,
-              status: "active",
-              stripeSubscriptionId: session.subscription,
-              stripeCustomerId: session.customer,
-              subscribedAt: new Date(),
-              expiresAt:
-                session.metadata.priceType === "recurring"
-                  ? null
-                  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            },
-          });
-
-          console.log("Successfully created subscription in database:", {
-            id: subscription.id,
-            userId: subscription.userId,
-            productId: subscription.productId,
-          });
-
-          // Update capper's subscriberIds
-          await prisma.capper.update({
-            where: { id: session.metadata.capperId },
-            data: {
-              subscriberIds: {
-                push: session.metadata.userId,
-              },
-            },
-          });
-
-          console.log("Updated capper's subscriberIds");
-
+        if (existingSubscription) {
+          console.log("Subscription already exists:", existingSubscription.id);
           return NextResponse.json({ received: true });
-        } catch (dbError) {
-          logWebhookError(dbError, "Database Operation");
-          console.error("Failed to create subscription in database:", dbError);
-          console.error("Error details:", {
-            message:
-              dbError instanceof Error ? dbError.message : "Unknown error",
-            code:
-              dbError instanceof Error && "code" in dbError
-                ? dbError.code
-                : undefined,
-            metadata: session.metadata,
-          });
-          throw dbError;
         }
-      }
 
-      return NextResponse.json({ received: true });
-    } catch (error) {
-      console.error("Webhook error:", {
-        error: error instanceof Error ? error.message : "Unknown error",
-        type: event?.type,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      return NextResponse.json(
-        { error: "Webhook handler failed" },
-        { status: 400 }
-      );
+        // Create new subscription
+        const subscription = await prisma.subscription.create({
+          data: {
+            userId: session.metadata.userId,
+            capperId: session.metadata.capperId,
+            productId: session.metadata.productId,
+            priceId: session.metadata.priceId,
+            status: "active",
+            stripeSubscriptionId: session.subscription,
+            stripeCustomerId: session.customer,
+            subscribedAt: new Date(),
+            expiresAt:
+              session.metadata.priceType === "recurring"
+                ? null
+                : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          },
+        });
+
+        console.log("Successfully created subscription in database:", {
+          id: subscription.id,
+          userId: subscription.userId,
+          productId: subscription.productId,
+        });
+
+        // Update capper's subscriberIds
+        await prisma.capper.update({
+          where: { id: session.metadata.capperId },
+          data: {
+            subscriberIds: {
+              push: session.metadata.userId,
+            },
+          },
+        });
+
+        console.log("Updated capper's subscriberIds");
+
+        return NextResponse.json({ received: true });
+      } catch (dbError) {
+        logWebhookError(dbError, "Database Operation");
+        console.error("Failed to create subscription in database:", dbError);
+        console.error("Error details:", {
+          message: dbError instanceof Error ? dbError.message : "Unknown error",
+          code:
+            dbError instanceof Error && "code" in dbError
+              ? dbError.code
+              : undefined,
+          metadata: session.metadata,
+        });
+        throw dbError;
+      }
     }
+
+    return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Request processing error:", error);
     return NextResponse.json(
@@ -185,5 +158,6 @@ export async function POST(req: Request) {
 export const config = {
   api: {
     bodyParser: false,
+    externalResolver: true,
   },
 };
