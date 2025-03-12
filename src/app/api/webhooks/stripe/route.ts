@@ -72,18 +72,40 @@ export async function POST(req: Request) {
 
     console.log("Webhook signature verified, event type:", event.type);
 
+    console.log("Received webhook event:", {
+      type: event.type,
+      hasSession: !!event.data.object,
+      hasMetadata: !!event.data.object.metadata,
+    });
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
-      console.log("Checkout session completed. Session data:", {
-        id: session.id,
-        metadata: session.metadata,
+      // Detailed session logging
+      console.log("Processing checkout.session.completed event:", {
+        sessionId: session.id,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          userId: session.metadata?.userId,
+          capperId: session.metadata?.capperId,
+          productId: session.metadata?.productId,
+          priceId: session.metadata?.priceId,
+          priceType: session.metadata?.priceType,
+        },
         customer: session.customer,
         subscription: session.subscription,
+        paymentStatus: session.payment_status,
+        mode: session.mode,
       });
 
       try {
-        // First check if subscription already exists
+        // Log subscription check
+        console.log("Checking for existing subscription:", {
+          stripeSubscriptionId: session.subscription,
+          userId: session.metadata?.userId,
+          capperId: session.metadata?.capperId,
+        });
+
         const existingSubscription = await prisma.subscription.findFirst({
           where: {
             stripeSubscriptionId: session.subscription,
@@ -93,11 +115,22 @@ export async function POST(req: Request) {
         });
 
         if (existingSubscription) {
-          console.log("Subscription already exists:", existingSubscription.id);
+          console.log("Found existing subscription:", {
+            subscriptionId: existingSubscription.id,
+            status: existingSubscription.status,
+            createdAt: existingSubscription.subscribedAt,
+          });
           return NextResponse.json({ received: true });
         }
 
-        // Create new subscription
+        // Log subscription creation attempt
+        console.log("Attempting to create new subscription:", {
+          userId: session.metadata.userId,
+          capperId: session.metadata.capperId,
+          productId: session.metadata.productId,
+          timestamp: new Date().toISOString(),
+        });
+
         const subscription = await prisma.subscription.create({
           data: {
             userId: session.metadata.userId,
@@ -115,13 +148,21 @@ export async function POST(req: Request) {
           },
         });
 
-        console.log("Successfully created subscription in database:", {
-          id: subscription.id,
+        console.log("Successfully created subscription:", {
+          subscriptionId: subscription.id,
           userId: subscription.userId,
+          capperId: subscription.capperId,
           productId: subscription.productId,
+          status: subscription.status,
+          createdAt: subscription.subscribedAt,
         });
 
-        // Update capper's subscriberIds
+        // Log capper update attempt
+        console.log("Attempting to update capper's subscriberIds:", {
+          capperId: session.metadata.capperId,
+          newSubscriberId: session.metadata.userId,
+        });
+
         await prisma.capper.update({
           where: { id: session.metadata.capperId },
           data: {
@@ -131,19 +172,29 @@ export async function POST(req: Request) {
           },
         });
 
-        console.log("Updated capper's subscriberIds");
+        console.log("Successfully updated capper's subscriberIds");
 
         return NextResponse.json({ received: true });
       } catch (dbError) {
-        logWebhookError(dbError, "Database Operation");
-        console.error("Failed to create subscription in database:", dbError);
-        console.error("Error details:", {
-          message: dbError instanceof Error ? dbError.message : "Unknown error",
-          code:
+        // Enhanced error logging
+        console.error("Subscription creation failed:", {
+          error: dbError instanceof Error ? dbError.message : "Unknown error",
+          errorName: dbError instanceof Error ? dbError.name : "Unknown",
+          stack: dbError instanceof Error ? dbError.stack : undefined,
+          metadata: {
+            userId: session.metadata?.userId,
+            capperId: session.metadata?.capperId,
+            productId: session.metadata?.productId,
+            sessionId: session.id,
+          },
+          timestamp: new Date().toISOString(),
+          prismaError:
             dbError instanceof Error && "code" in dbError
-              ? dbError.code
+              ? {
+                  code: (dbError as any).code,
+                  meta: (dbError as any).meta,
+                }
               : undefined,
-          metadata: session.metadata,
         });
         throw dbError;
       }
