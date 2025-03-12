@@ -64,7 +64,11 @@ export async function POST(req: Request) {
     }
 
     // Construct the event with the raw body
-    const event = stripe.webhooks.constructEvent(text, sig, webhookSecret);
+    const event = await stripe.webhooks.constructEventAsync(
+      text,
+      sig,
+      webhookSecret
+    );
 
     console.log("Webhook signature verified, event type:", event.type);
 
