@@ -3,6 +3,11 @@ import type { NextRequest } from "next/server";
 import { verifyJWT } from "@/utils/jwt";
 
 export async function middleware(request: NextRequest) {
+  // Skip middleware for Stripe webhook requests
+  if (request.nextUrl.pathname === "/api/webhooks/stripe") {
+    return NextResponse.next();
+  }
+
   // Get token from cookies
   const token = request.cookies.get("token")?.value;
 
