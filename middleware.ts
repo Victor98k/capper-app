@@ -2,9 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyJWT } from "@/utils/jwt";
 
+const log = (message: string, data: any) => {
+  if (process.env.NODE_ENV === "production") {
+    console.warn(`[Middleware] ${message}`, data);
+  } else {
+    console.log(`[Middleware] ${message}`, data);
+  }
+};
+
 export async function middleware(request: NextRequest) {
-  // Add logging to verify middleware behavior
-  console.log("Middleware path check:", {
+  log("Path check", {
     path: request.nextUrl.pathname,
     isWebhook: request.nextUrl.pathname.startsWith("/api/webhooks/stripe"),
   });

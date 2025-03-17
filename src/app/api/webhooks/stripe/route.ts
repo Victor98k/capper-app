@@ -57,27 +57,34 @@ const logWebhookError = (error: any, context: string) => {
 // Disable edge runtime for local testing
 // export const runtime = "edge";
 
+// Helper function for production logging
+const log = (message: string, data: any) => {
+  if (process.env.NODE_ENV === "production") {
+    // Use Vercel's logging system
+    console.warn(`[Webhook] ${message}`, data); // console.warn is visible in Vercel logs
+  } else {
+    console.log(`[Webhook] ${message}`, data);
+  }
+};
+
 export async function POST(req: Request) {
   try {
     const text = await req.text();
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
-    // Add detailed logging
-    console.log("Webhook request received:", {
+    log("Request received", {
       hasBody: !!text,
       bodyLength: text.length,
       hasSignature: !!sig,
       hasWebhookSecret: !!webhookSecret,
       nodeEnv: process.env.NODE_ENV,
-      isProd: process.env.NODE_ENV === "production",
     });
 
     if (!sig || !webhookSecret) {
-      console.error("Webhook validation failed:", {
+      log("Validation failed", {
         hasSignature: !!sig,
         hasSecret: !!webhookSecret,
-        secretPrefix: webhookSecret?.substring(0, 6),
       });
       return NextResponse.json(
         { error: !sig ? "No signature found" : "No webhook secret found" },
@@ -92,15 +99,13 @@ export async function POST(req: Request) {
         webhookSecret
       );
 
+      log("Event constructed", { type: event.type });
+
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
-
-        // Log session data
-        console.log("Processing checkout session:", {
-          id: session.id,
-          metadata: session.metadata,
-          subscription: session.subscription,
-          customer: session.customer,
+        log("Processing checkout", {
+          sessionId: session.id,
+          hasMetadata: !!session.metadata,
         });
 
         try {
@@ -146,7 +151,10 @@ export async function POST(req: Request) {
 
       return NextResponse.json({ received: true });
     } catch (err) {
-      console.error("Webhook construction failed:", err);
+      log("Error", {
+        message: err instanceof Error ? err.message : "Unknown error",
+        type: err instanceof Error ? err.name : "Unknown",
+      });
       return NextResponse.json(
         { error: "Webhook signature verification failed" },
         { status: 400 }
