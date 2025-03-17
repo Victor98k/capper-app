@@ -67,6 +67,14 @@ const log = (message: string, data: any) => {
   }
 };
 
+// Add this temporarily to debug production
+log("Webhook configuration", {
+  isDev: process.env.NODE_ENV === "development",
+  hasProductionSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
+  hasLocalSecret: !!process.env.STRIPE_WEBHOOK_SECRET_LOCAL,
+  secretPrefix: webhookSecret?.substring(0, 6),
+});
+
 export async function POST(req: Request) {
   try {
     const text = await req.text();
@@ -101,14 +109,32 @@ export async function POST(req: Request) {
 
       log("Event constructed", { type: event.type });
 
-      if (event.type === "checkout.session.completed") {
+      if (
+        event.type === "checkout.session.completed" ||
+        event.type === "invoice.payment_succeeded"
+      ) {
         const session = event.data.object;
-        log("Processing checkout", {
+        log("Processing payment event", {
+          type: event.type,
           sessionId: session.id,
           hasMetadata: !!session.metadata,
+          subscription: session.subscription,
         });
 
         try {
+          // Check if subscription already exists
+          const existingSubscription = await prisma.subscription.findFirst({
+            where: {
+              stripeSubscriptionId: session.subscription,
+            },
+          });
+
+          if (existingSubscription) {
+            log("Subscription already exists", { id: existingSubscription.id });
+            return NextResponse.json({ received: true });
+          }
+
+          // Create new subscription
           const subscription = await prisma.subscription.create({
             data: {
               userId: session.metadata.userId,
@@ -126,7 +152,7 @@ export async function POST(req: Request) {
             },
           });
 
-          console.log("Created subscription in database:", subscription);
+          log("Created subscription", { id: subscription.id });
 
           // Update capper's subscribers
           await prisma.capper.update({
@@ -140,10 +166,9 @@ export async function POST(req: Request) {
 
           return NextResponse.json({ received: true });
         } catch (dbError) {
-          console.error("Database operation failed:", {
+          log("Database error", {
             error: dbError instanceof Error ? dbError.message : "Unknown error",
             metadata: session.metadata,
-            subscription: session.subscription,
           });
           throw dbError;
         }
