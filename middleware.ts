@@ -3,6 +3,12 @@ import type { NextRequest } from "next/server";
 import { verifyJWT } from "@/utils/jwt";
 
 export async function middleware(request: NextRequest) {
+  // Add logging to verify middleware behavior
+  console.log("Middleware path check:", {
+    path: request.nextUrl.pathname,
+    isWebhook: request.nextUrl.pathname.startsWith("/api/webhooks/stripe"),
+  });
+
   // Skip middleware for Stripe webhook requests
   if (request.nextUrl.pathname.startsWith("/api/webhooks/stripe")) {
     console.log("Skipping middleware for webhook request");
