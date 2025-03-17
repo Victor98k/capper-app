@@ -75,6 +75,25 @@ log("Webhook configuration", {
   secretPrefix: webhookSecret?.substring(0, 6),
 });
 
+// Cache setup
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const getCachedData = (key: string) => {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedData = (key: string, data: any) => {
+  cache.set(key, {
+    data,
+    timestamp: Date.now(),
+  });
+};
+
 export async function POST(req: Request) {
   try {
     const text = await req.text();
@@ -122,7 +141,16 @@ export async function POST(req: Request) {
         });
 
         try {
-          // Check if subscription already exists
+          // Check cache first
+          const cacheKey = `subscription_${session.subscription}`;
+          const cachedSubscription = getCachedData(cacheKey);
+
+          if (cachedSubscription) {
+            log("Using cached subscription", { id: cachedSubscription.id });
+            return NextResponse.json({ received: true });
+          }
+
+          // Check database if not in cache
           const existingSubscription = await prisma.subscription.findFirst({
             where: {
               stripeSubscriptionId: session.subscription,
@@ -130,7 +158,11 @@ export async function POST(req: Request) {
           });
 
           if (existingSubscription) {
-            log("Subscription already exists", { id: existingSubscription.id });
+            // Cache the found subscription
+            setCachedData(cacheKey, existingSubscription);
+            log("Cached existing subscription", {
+              id: existingSubscription.id,
+            });
             return NextResponse.json({ received: true });
           }
 
@@ -152,7 +184,9 @@ export async function POST(req: Request) {
             },
           });
 
-          log("Created subscription", { id: subscription.id });
+          // Cache the new subscription
+          setCachedData(cacheKey, subscription);
+          log("Created and cached new subscription", { id: subscription.id });
 
           // Update capper's subscribers
           await prisma.capper.update({
