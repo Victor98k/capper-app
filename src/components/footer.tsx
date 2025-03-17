@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Facebook, Twitter, Instagram, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import CappersLogo from "@/images/Cappers Logga.png";
+import CappersLogo from "@/images/Cappers Logga (1).svg";
 
 export function FooterComponent() {
   return (

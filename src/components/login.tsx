@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Facebook, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import capperLogo from "@/images/Cappers Logga.png";
+import capperLogo from "@/images/Cappers Logga (1).svg";
 import {
   Card,
   CardContent,
@@ -148,12 +148,12 @@ export function Login() {
           className="md:hidden w-32 mb-6"
         />
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
-          Welcome back to{" "}
+          {/* Welcome back to{" "} */}
           <span className="inline-flex items-center">
             <img
               src={capperLogo.src}
               alt="Cappers Logo"
-              className="h-6 md:h-8 lg:h-10"
+              className="h-8 md:h-10 lg:h-24"
             />
           </span>
         </h1>

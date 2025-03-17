@@ -11,7 +11,7 @@ import {
   CheckCircle,
   DollarSign,
 } from "lucide-react";
-import CappersLogo from "@/images/Cappers Logga.png";
+import CappersLogo from "@/images/Cappers Logga (1).svg";
 import gsap from "gsap";
 import DisplayCapperCard from "@/components/displayCapperCard";
 import Footer from "@/components/footer";

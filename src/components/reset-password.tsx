@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader } from "@/components/ui/loader";
-import capperLogo from "@/images/Cappers Logga.png";
+import capperLogo from "@/images/Cappers Logga (1).svg";
 
 export function ResetPassword() {
   const [password, setPassword] = useState("");

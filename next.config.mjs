@@ -12,6 +12,13 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
+  api: {
+    bodyParser: {
+      sizeLimit: "1mb",
+      // Disable body parsing for webhook endpoint
+      webhooks: false,
+    },
+  },
 };
 
 export default nextConfig;

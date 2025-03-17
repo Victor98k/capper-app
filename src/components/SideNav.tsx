@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import logo from "@/images/Cappers Logga.png";
+import logo from "@/images/Cappers Logga (1).svg";
 import {
   Home,
   Heart,

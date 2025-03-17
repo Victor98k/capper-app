@@ -4,7 +4,7 @@ import { SideNav } from "@/components/SideNav";
 import MyCappers from "@/app/My-cappers/page";
 import { CappersSidebar } from "@/components/CappersSidebar";
 import Image from "next/image";
-import logo from "@/images/Cappers Logga.png";
+import logo from "@/images/Cappers Logga (1).svg";
 import Loader from "@/components/Loader";
 import { Suspense } from "react";
 

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Facebook, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import capperLogo from "@/images/Cappers Logga.png";
+import capperLogo from "@/images/Cappers Logga (1).svg";
 import {
   Card,
   CardContent,
@@ -145,16 +145,7 @@ export function Signup() {
           alt="Cappers Logo"
           className="hidden md:block w-48 mb-8"
         />
-        <h1 className="text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
-          Start earning with{" "}
-          <span className="inline-flex items-center">
-            <img
-              src={capperLogo.src}
-              alt="Cappers Logo"
-              className="h-8 lg:h-10"
-            />
-          </span>
-        </h1>
+
         {alert && (
           <Alert variant={alert.type === "error" ? "destructive" : "default"}>
             <AlertTitle>{alert.message}</AlertTitle>
