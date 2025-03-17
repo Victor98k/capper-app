@@ -4,7 +4,8 @@ import { verifyJWT } from "@/utils/jwt";
 
 export async function middleware(request: NextRequest) {
   // Skip middleware for Stripe webhook requests
-  if (request.nextUrl.pathname === "/api/webhooks/stripe") {
+  if (request.nextUrl.pathname.startsWith("/api/webhooks/stripe")) {
+    console.log("Skipping middleware for webhook request");
     return NextResponse.next();
   }
 
@@ -31,7 +32,7 @@ export const config = {
     "/api/stripe/connect/:path*",
     "/api/stripe/products/:path*",
     "/api/stripe/:path*",
-    // Remove this problematic catch-all pattern that might be affecting the webhook
-    // "/((?!api/webhooks/stripe).*)",
+    // Exclude webhook path from middleware
+    "/((?!api/webhooks/stripe).*)",
   ],
 };

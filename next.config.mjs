@@ -15,8 +15,11 @@ const nextConfig = {
   api: {
     bodyParser: {
       sizeLimit: "1mb",
-      // Disable body parsing for webhook endpoint
-      webhooks: false,
+      webhooks: {
+        "/api/webhooks/stripe": {
+          bodyParser: false, // Disable body parsing for webhook endpoint
+        },
+      },
     },
   },
 };
