@@ -94,11 +94,28 @@ const setCachedData = (key: string, data: any) => {
   });
 };
 
+// At the top of your webhook handler
+log("Webhook environment details", {
+  nodeEnv: process.env.NODE_ENV,
+  webhookSecretType:
+    process.env.NODE_ENV === "development" ? "CLI" : "Dashboard",
+  hasWebhookSecret: !!webhookSecret,
+  webhookSecretPrefix: webhookSecret?.substring(0, 6),
+});
+
 export async function POST(req: Request) {
   try {
     const text = await req.text();
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
+
+    // Log raw request details
+    log("Incoming webhook request", {
+      hasBody: !!text,
+      bodyLength: text.length,
+      signature: sig?.substring(0, 10),
+      headers: Object.fromEntries(headersList.entries()),
+    });
 
     log("Request received", {
       hasBody: !!text,
