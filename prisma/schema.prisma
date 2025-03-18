@@ -92,7 +92,7 @@ model Subscription {
   cancelledAt          DateTime? // Add this field
   capper               Capper    @relation(fields: [capperId], references: [id])
   user                 User      @relation(fields: [userId], references: [id])
-  stripeSubscriptionId String  @unique
+  stripeSubscriptionId String?  @unique  // Make it optional with ?
   stripeCustomerId     String?   // Add this field
 }
 
