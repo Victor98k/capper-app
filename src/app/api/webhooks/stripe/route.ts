@@ -145,87 +145,25 @@ export async function POST(req: Request) {
 
       log("Event constructed", { type: event.type });
 
-      if (
-        event.type === "checkout.session.completed" ||
-        event.type === "invoice.payment_succeeded"
-      ) {
-        const session = event.data.object;
-        log("Processing payment event", {
-          type: event.type,
-          sessionId: session.id,
-          hasMetadata: !!session.metadata,
-          subscription: session.subscription,
-        });
+      switch (event.type) {
+        case "checkout.session.completed":
+        case "invoice.payment_succeeded":
+        case "customer.subscription.created":
+          // Handle successful subscription creation/renewal
+          const session = event.data.object;
+          return await handleSubscriptionCreation(session);
 
-        try {
-          // Check cache first
-          const cacheKey = `subscription_${session.subscription}`;
-          const cachedSubscription = getCachedData(cacheKey);
+        case "customer.subscription.deleted":
+        case "customer.subscription.updated":
+          // Handle subscription updates/cancellations
+          const subscription = event.data.object;
+          return await handleSubscriptionUpdate(subscription);
 
-          if (cachedSubscription) {
-            log("Using cached subscription", { id: cachedSubscription.id });
-            return NextResponse.json({ received: true });
-          }
-
-          // Check database if not in cache
-          const existingSubscription = await prisma.subscription.findFirst({
-            where: {
-              stripeSubscriptionId: session.subscription,
-            },
-          });
-
-          if (existingSubscription) {
-            // Cache the found subscription
-            setCachedData(cacheKey, existingSubscription);
-            log("Cached existing subscription", {
-              id: existingSubscription.id,
-            });
-            return NextResponse.json({ received: true });
-          }
-
-          // Create new subscription
-          const subscription = await prisma.subscription.create({
-            data: {
-              userId: session.metadata.userId,
-              capperId: session.metadata.capperId,
-              productId: session.metadata.productId,
-              priceId: session.metadata.priceId,
-              status: "active",
-              stripeSubscriptionId: session.subscription,
-              stripeCustomerId: session.customer,
-              subscribedAt: new Date(),
-              expiresAt:
-                session.metadata.priceType === "recurring"
-                  ? null
-                  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            },
-          });
-
-          // Cache the new subscription
-          setCachedData(cacheKey, subscription);
-          log("Created and cached new subscription", { id: subscription.id });
-
-          // Update capper's subscribers
-          await prisma.capper.update({
-            where: { id: session.metadata.capperId },
-            data: {
-              subscriberIds: {
-                push: session.metadata.userId,
-              },
-            },
-          });
-
+        default:
+          // Log unhandled events in production
+          log("Unhandled event type", { type: event.type });
           return NextResponse.json({ received: true });
-        } catch (dbError) {
-          log("Database error", {
-            error: dbError instanceof Error ? dbError.message : "Unknown error",
-            metadata: session.metadata,
-          });
-          throw dbError;
-        }
       }
-
-      return NextResponse.json({ received: true });
     } catch (err) {
       log("Error", {
         message: err instanceof Error ? err.message : "Unknown error",
@@ -242,6 +180,92 @@ export async function POST(req: Request) {
       { error: "Failed to process request" },
       { status: 400 }
     );
+  }
+}
+
+async function handleSubscriptionCreation(session: any) {
+  try {
+    const cacheKey = `subscription_${session.subscription}`;
+    const cachedSubscription = getCachedData(cacheKey);
+
+    if (cachedSubscription) {
+      log("Using cached subscription", { id: cachedSubscription.id });
+      return NextResponse.json({ received: true });
+    }
+
+    // Check database if not in cache
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: {
+        stripeSubscriptionId: session.subscription,
+      },
+    });
+
+    if (existingSubscription) {
+      // Cache the found subscription
+      setCachedData(cacheKey, existingSubscription);
+      log("Cached existing subscription", {
+        id: existingSubscription.id,
+      });
+      return NextResponse.json({ received: true });
+    }
+
+    // Create new subscription
+    const subscription = await prisma.subscription.create({
+      data: {
+        userId: session.metadata.userId,
+        capperId: session.metadata.capperId,
+        productId: session.metadata.productId,
+        priceId: session.metadata.priceId,
+        status: "active",
+        stripeSubscriptionId: session.subscription,
+        stripeCustomerId: session.customer,
+        subscribedAt: new Date(),
+        expiresAt:
+          session.metadata.priceType === "recurring"
+            ? null
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    // Cache the new subscription
+    setCachedData(cacheKey, subscription);
+    log("Created and cached new subscription", { id: subscription.id });
+
+    // Update capper's subscribers
+    await prisma.capper.update({
+      where: { id: session.metadata.capperId },
+      data: {
+        subscriberIds: {
+          push: session.metadata.userId,
+        },
+      },
+    });
+
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    log("Subscription creation error", { error });
+    throw error;
+  }
+}
+
+async function handleSubscriptionUpdate(subscription: any) {
+  try {
+    await prisma.subscription.update({
+      where: {
+        stripeSubscriptionId: subscription.id,
+      },
+      data: {
+        status: subscription.status,
+        cancelledAt: subscription.canceled_at
+          ? new Date(subscription.canceled_at * 1000)
+          : null,
+      },
+    });
+
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    log("Subscription update error", { error });
+    throw error;
   }
 }
 
