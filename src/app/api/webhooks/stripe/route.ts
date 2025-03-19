@@ -152,7 +152,7 @@ export async function POST(req: Request) {
           // Handle successful subscription creation/renewal
           const session = event.data.object;
           return await handleSubscriptionCreation(session);
-
+        // revert commit
         case "customer.subscription.deleted":
         case "customer.subscription.updated":
           // Handle subscription updates/cancellations
