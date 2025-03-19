@@ -21,6 +21,13 @@ const webhookSecret =
     ? process.env.STRIPE_WEBHOOK_SECRET_LOCAL
     : process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL;
 
+console.log("Webhook Configuration:", {
+  environment: process.env.NODE_ENV,
+  hasSecret: !!webhookSecret,
+  secretPrefix: webhookSecret?.substring(0, 6),
+  isProduction: process.env.NODE_ENV === "production",
+});
+
 if (!webhookSecret) {
   /*
   console.error(
@@ -109,26 +116,19 @@ export async function POST(req: Request) {
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
-    // Log raw request details
-    log("Incoming webhook request", {
-      hasBody: !!text,
-      bodyLength: text.length,
-      signature: sig?.substring(0, 10),
+    // Log ALL incoming webhook details
+    console.log("Raw Webhook Details:", {
+      body: text.substring(0, 100) + "...", // Log first 100 chars of body
       headers: Object.fromEntries(headersList.entries()),
-    });
-
-    log("Request received", {
-      hasBody: !!text,
-      bodyLength: text.length,
-      hasSignature: !!sig,
-      hasWebhookSecret: !!webhookSecret,
-      nodeEnv: process.env.NODE_ENV,
+      signature: sig?.substring(0, 20),
+      timestamp: new Date().toISOString(),
     });
 
     if (!sig || !webhookSecret) {
-      log("Validation failed", {
+      console.error("Webhook Validation Failed:", {
         hasSignature: !!sig,
         hasSecret: !!webhookSecret,
+        secretPrefix: webhookSecret?.substring(0, 6),
       });
       return NextResponse.json(
         { error: !sig ? "No signature found" : "No webhook secret found" },
@@ -143,25 +143,40 @@ export async function POST(req: Request) {
         webhookSecret
       );
 
-      log("Event constructed", { type: event.type });
+      console.log("Stripe Event:", {
+        type: event.type,
+        id: event.id,
+        metadata: event.data.object.metadata,
+        created: new Date(event.created * 1000).toISOString(),
+      });
 
       switch (event.type) {
         case "checkout.session.completed":
-        case "invoice.payment_succeeded":
-        case "customer.subscription.created":
-          // Handle successful subscription creation/renewal
+          // Only handle checkout.session.completed for subscriptions
           const session = event.data.object;
-          return await handleSubscriptionCreation(session);
-        // revert commit
-        case "customer.subscription.deleted":
+          if (session.mode === "subscription") {
+            return await handleSubscriptionCreation(session);
+          }
+          return NextResponse.json({ received: true });
+
         case "customer.subscription.updated":
-          // Handle subscription updates/cancellations
+        case "customer.subscription.deleted":
           const subscription = event.data.object;
           return await handleSubscriptionUpdate(subscription);
 
+        // Add these cases but just acknowledge them
+        case "invoice.finalized":
+        case "invoice.updated":
+        case "invoice.paid":
+        case "invoice.payment_succeeded":
+          console.log(`Received ${event.type} event`, {
+            id: event.id,
+            subscription: event.data.object.subscription,
+          });
+          return NextResponse.json({ received: true });
+
         default:
-          // Log unhandled events in production
-          log("Unhandled event type", { type: event.type });
+          console.log("Unhandled event type", { type: event.type });
           return NextResponse.json({ received: true });
       }
     } catch (err) {
@@ -250,6 +265,21 @@ async function handleSubscriptionCreation(session: any) {
 
 async function handleSubscriptionUpdate(subscription: any) {
   try {
+    // First check if subscription exists
+    const existingSubscription = await prisma.subscription.findUnique({
+      where: {
+        stripeSubscriptionId: subscription.id,
+      },
+    });
+
+    if (!existingSubscription) {
+      console.log("No subscription found to update", {
+        stripeSubscriptionId: subscription.id,
+      });
+      return NextResponse.json({ received: true });
+    }
+
+    // Then update it
     await prisma.subscription.update({
       where: {
         stripeSubscriptionId: subscription.id,
@@ -264,8 +294,11 @@ async function handleSubscriptionUpdate(subscription: any) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    log("Subscription update error", { error });
-    throw error;
+    console.error("Subscription update error:", error);
+    return NextResponse.json(
+      { error: "Failed to update subscription" },
+      { status: 500 }
+    );
   }
 }
 
