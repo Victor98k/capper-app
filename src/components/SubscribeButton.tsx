@@ -146,9 +146,19 @@ export function SubscribeButton({
     if (onClick) {
       onClick();
     }
-    if (!productId) {
-      return; // Don't trigger subscription if no productId (top button case)
+
+    // If already subscribed, show unsubscribe dialog
+    if (isSubscribed) {
+      setShowConfirmDialog(true);
+      return;
     }
+
+    // For new subscriptions, check for productId
+    if (!productId) {
+      return;
+    }
+
+    // Handle new subscription
     await handleSubscription();
   };
 
