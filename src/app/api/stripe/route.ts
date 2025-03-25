@@ -13,7 +13,9 @@ export async function POST(req: Request) {
   try {
     const { priceId, capperId, productId } = await req.json();
 
-    // Get the capper's Stripe account ID and username
+    console.log("Received request with:", { priceId, capperId, productId });
+
+    // Get capper first
     const capper = await prisma.capper.findUnique({
       where: { id: capperId },
       include: {
@@ -26,9 +28,25 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!capper?.user?.stripeConnectId || !capper?.user?.username) {
+    if (!capper?.user?.stripeConnectId) {
       return NextResponse.json(
         { error: "Capper account information not found" },
+        { status: 400 }
+      );
+    }
+
+    // Then retrieve price with correct options
+    let price;
+    try {
+      price = await stripe.prices.retrieve(
+        priceId,
+        { expand: ["product"] },
+        { stripeAccount: capper.user.stripeConnectId }
+      );
+    } catch (priceError) {
+      console.error("Price retrieval error:", priceError);
+      return NextResponse.json(
+        { error: "Invalid or inaccessible price" },
         { status: 400 }
       );
     }
@@ -49,46 +67,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    // Get the base URL - add a fallback for production
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL || "https://app.cappersports.co";
 
-    // Log the URL being constructed
-    // console.log("Constructing URLs with base:", baseUrl);
-
-    // Create the checkout session
-    const session = await stripe.checkout.sessions.create(
-      {
-        mode: "subscription",
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        success_url: `${baseUrl}/cappers/${capper.user.username}`,
-        cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
-        metadata: {
-          userId: payload.userId,
-          capperId: capperId,
-          productId: productId,
-          priceId: priceId,
-          priceType: "recurring",
+    // Create checkout session with different mode based on price type
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+      mode:
+        price.type === "recurring"
+          ? ("subscription" as const)
+          : ("payment" as const),
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
         },
+      ],
+      success_url: `${baseUrl}/cappers/${capper.user.username}`,
+      cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
+      metadata: {
+        userId: payload.userId,
+        capperId: capperId,
+        productId: productId,
+        priceId: priceId,
+        priceType: price.type,
       },
-      {
-        stripeAccount: capper.user.stripeConnectId,
-      }
-    );
+    };
 
-    // Log the created session for debugging
-    // console.log("Created checkout session:", {
-    //   id: session.id,
-    //   success_url: session.success_url,
-    //   cancel_url: session.cancel_url,
-    //   metadata: session.metadata,
-    // });
+    const session = await stripe.checkout.sessions.create(sessionConfig, {
+      stripeAccount: capper.user.stripeConnectId,
+    });
 
     return NextResponse.json({
       sessionId: session.id,

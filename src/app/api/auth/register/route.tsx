@@ -27,9 +27,39 @@ export async function POST(request: Request) {
   try {
     const body: UserRegistrationData = await request.json();
     const [hasErrors, errors] = userRegistrationValidator(body);
-
-    // Add password validation
     const [hasPasswordErrors, passwordErrors] = validatePassword(body.password);
+
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: body.email },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        {
+          errors: {
+            email: ["This email is already registered"],
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check if username already exists
+    const existingUsername = await prisma.user.findUnique({
+      where: { username: body.username },
+    });
+
+    if (existingUsername) {
+      return NextResponse.json(
+        {
+          errors: {
+            username: ["This username is already taken"],
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     if (hasErrors || hasPasswordErrors) {
       return NextResponse.json(

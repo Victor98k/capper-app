@@ -48,6 +48,9 @@ const ALLOWED_IMAGE_TYPES = [
 ];
 const BOOKMAKERS = [
   "Bet365",
+  "Betfair",
+  "Oddset",
+  "Betsson",
   "William Hill",
   "Unibet",
   "Betway",
@@ -239,19 +242,10 @@ function NewPostPage() {
 
   const handleSubmit = async () => {
     try {
-      // Add bookmaker validation
-      if (!selectedBookmaker) {
-        toast.error("Please select a bookmaker", {
-          description: "Bookmaker selection is required",
-        });
-        return;
-      }
-
       // Validate required fields
-      if (!title || !content || !selectedProduct || !selectedBookmaker) {
+      if (!title || !content || !selectedProduct) {
         toast.error("Please fill in all required fields", {
-          description:
-            "Title, content, bookmaker, and bundle selection are required",
+          description: "Title, content, and bundle selection are required",
         });
         return;
       }
@@ -341,11 +335,13 @@ function NewPostPage() {
     { emoji: "🏀", sport: "Basketball" },
     { emoji: "🎾", sport: "Tennis" },
     { emoji: "🏈", sport: "American Football" },
+    { emoji: "🥊", sport: "MMA" },
     { emoji: "⚾", sport: "Baseball" },
-    { emoji: "🏸", sport: "Badminton" },
-    { emoji: "🏉", sport: "Rugby" },
-    { emoji: "🏊‍♂️", sport: "Swimming" },
-    { emoji: "🏃‍♂️", sport: "Running" },
+    { emoji: "🏒", sport: "Ice Hockey" },
+    { emoji: "⛳", sport: "Golf" },
+    { emoji: "🥊", sport: "Boxing" },
+    { emoji: "🏎️", sport: "Formula 1" },
+    { emoji: "🏇", sport: "Horse Racing" },
   ];
 
   useEffect(() => {
@@ -618,12 +614,14 @@ function NewPostPage() {
                           key={item.sport}
                           type="button"
                           onClick={() => setTags([item.sport])}
-                          className={`p-2 rounded-full text-xl hover:bg-gray-100 ${
+                          className={`relative p-2 rounded-full text-xl hover:bg-gray-100 ${
                             tags.includes(item.sport) ? "bg-blue-100" : ""
-                          }`}
-                          title={item.sport}
+                          } group`}
                         >
                           {item.emoji}
+                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                            {item.sport}
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -714,17 +712,14 @@ function NewPostPage() {
                   {/* Bookmaker Section */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Bookmaker <span className="text-red-500">*</span>
+                      Bookmaker
                     </label>
                     <Select
                       value={selectedBookmaker}
                       onValueChange={setSelectedBookmaker}
-                      required
                     >
-                      <SelectTrigger
-                        className={`w-full ${!selectedBookmaker ? "border-red-300" : ""}`}
-                      >
-                        <SelectValue placeholder="Select bookmaker" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select bookmaker (optional)" />
                       </SelectTrigger>
                       <SelectContent>
                         {BOOKMAKERS.map((bookmaker) => (
@@ -734,11 +729,6 @@ function NewPostPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {!selectedBookmaker && (
-                      <p className="mt-1 text-xs text-red-500">
-                        Please select a bookmaker
-                      </p>
-                    )}
                   </div>
 
                   {/* Submit Button */}

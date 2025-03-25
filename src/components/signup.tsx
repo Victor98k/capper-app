@@ -63,33 +63,38 @@ export function Signup() {
         body: JSON.stringify(registrationData),
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (parseError) {
-        console.error("Failed to parse response:", parseError);
-        setAlert({
-          type: "error",
-          message: "Server Error",
-          description: "Invalid response from server. Please try again later.",
-        });
-        return;
-      }
+      const data = await response.json();
 
       if (!response.ok) {
-        if (data.errors?.password) {
-          setAlert({
-            type: "error",
-            message: "Invalid Password",
-            description: data.errors.password.join(", "),
-          });
-        } else {
-          setAlert({
-            type: "error",
-            message: "Sign-up failed",
-            description: data?.error || `Server error: ${response.status}`,
-          });
+        if (data.errors) {
+          // Handle specific error messages
+          if (data.errors.email) {
+            setAlert({
+              type: "error",
+              message: "Registration Failed",
+              description: data.errors.email[0],
+            });
+          } else if (data.errors.username) {
+            setAlert({
+              type: "error",
+              message: "Registration Failed",
+              description: data.errors.username[0],
+            });
+          } else if (data.errors.password) {
+            setAlert({
+              type: "error",
+              message: "Registration Failed",
+              description: data.errors.password.join(", "),
+            });
+          } else {
+            setAlert({
+              type: "error",
+              message: "Registration Failed",
+              description: "Please check your information and try again.",
+            });
+          }
         }
+        setIsLoading(false);
         return;
       }
 

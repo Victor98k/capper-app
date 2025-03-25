@@ -64,24 +64,18 @@ const logWebhookError = (error: any, context: string) => {
 // Disable edge runtime for local testing
 // export const runtime = "edge";
 
-// New logging function for Vercel
-const vercelLog = (type: "info" | "error", message: string, data?: any) => {
+// At the top of the file
+const log = (type: "info" | "error", message: string, data?: any) => {
   const logData = {
     message,
     timestamp: new Date().toISOString(),
     ...data,
   };
-
-  if (type === "error") {
-    console.error("[Webhook Error]:", logData);
-  } else {
-    // Use console.log for Vercel production logs
-    console.log("[Webhook]:", logData);
-  }
+  console.log(`[Webhook ${type}]:`, logData);
 };
 
 // Add this temporarily to debug production
-vercelLog("info", "Webhook configuration", {
+log("info", "Webhook configuration", {
   isDev: process.env.NODE_ENV === "development",
   hasProductionSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
   hasLocalSecret: !!process.env.STRIPE_WEBHOOK_SECRET_LOCAL,
@@ -108,7 +102,7 @@ const setCachedData = (key: string, data: any) => {
 };
 
 // At the top of your webhook handler
-vercelLog("info", "Webhook environment details", {
+log("info", "Webhook environment details", {
   nodeEnv: process.env.NODE_ENV,
   webhookSecretType:
     process.env.NODE_ENV === "development" ? "CLI" : "Dashboard",
@@ -122,14 +116,14 @@ export async function POST(req: Request) {
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
-    vercelLog("info", "Webhook received", {
+    log("info", "Webhook received", {
       NODE_ENV: process.env.NODE_ENV,
       hasWebhookSecret: !!webhookSecret,
       hasSignature: !!sig,
     });
 
     if (!sig || !webhookSecret) {
-      vercelLog("error", "Webhook validation failed", {
+      log("error", "Webhook validation failed", {
         hasSignature: !!sig,
         hasSecret: !!webhookSecret,
       });
@@ -142,13 +136,13 @@ export async function POST(req: Request) {
     let event;
     try {
       event = stripe.webhooks.constructEvent(text, sig, webhookSecret);
-      vercelLog("info", "Stripe event constructed", {
+      log("info", "Stripe event constructed", {
         type: event.type,
         id: event.id,
         metadata: event.data.object.metadata,
       });
     } catch (err) {
-      vercelLog("error", "Webhook signature verification failed", {
+      log("error", "Webhook signature verification failed", {
         error: err instanceof Error ? err.message : "Unknown error",
       });
       return NextResponse.json(
@@ -159,10 +153,38 @@ export async function POST(req: Request) {
 
     switch (event.type) {
       case "checkout.session.completed":
-        // Only handle checkout.session.completed for subscriptions
         const session = event.data.object;
-        if (session.mode === "subscription") {
-          return await handleSubscriptionCreation(session);
+        console.log("Checkout Session Data:", {
+          id: session.id,
+          mode: session.mode,
+          paymentStatus: session.payment_status,
+          metadata: session.metadata,
+          customer: session.customer,
+          paymentIntent: session.payment_intent,
+          subscription: session.subscription,
+        });
+        return await handleSubscriptionCreation(session);
+
+      case "charge.succeeded":
+        const charge = event.data.object;
+        console.log("Charge succeeded:", {
+          id: charge.id,
+          paymentIntent: charge.payment_intent,
+          amount: charge.amount,
+          metadata: charge.metadata,
+        });
+        // For one-time payments, we might want to handle this
+        if (charge.metadata?.userId && charge.metadata?.capperId) {
+          const paymentIntent = await stripe.paymentIntents.retrieve(
+            charge.payment_intent as string,
+            { stripeAccount: charge.metadata.stripeAccount }
+          );
+          return await handleSubscriptionCreation({
+            mode: "payment",
+            metadata: charge.metadata,
+            payment_intent: charge.payment_intent,
+            customer: charge.customer,
+          });
         }
         return NextResponse.json({ received: true });
 
@@ -171,26 +193,20 @@ export async function POST(req: Request) {
         const subscription = event.data.object;
         return await handleSubscriptionUpdate(subscription);
 
-      // Add these cases but just acknowledge them
-      case "invoice.finalized":
-      case "invoice.updated":
-      case "invoice.paid":
-      case "invoice.payment_succeeded":
-        vercelLog("info", "Received event", {
-          type: event.type,
-          id: event.id,
-          subscription: event.data.object.subscription,
+      case "payment_intent.succeeded":
+        console.log("Payment intent succeeded:", {
+          id: event.data.object.id,
+          amount: event.data.object.amount,
+          metadata: event.data.object.metadata,
         });
         return NextResponse.json({ received: true });
 
       default:
-        vercelLog("info", "Unhandled event type", {
-          type: event.type,
-        });
+        console.log("Unhandled event type:", event.type);
         return NextResponse.json({ received: true });
     }
   } catch (error) {
-    vercelLog("error", "Webhook processing failed", {
+    log("error", "Webhook processing failed", {
       error: error instanceof Error ? error.message : "Unknown error",
     });
     return NextResponse.json(
@@ -202,16 +218,16 @@ export async function POST(req: Request) {
 
 async function handleSubscriptionCreation(session: any) {
   try {
-    vercelLog("info", "Processing subscription creation", {
-      sessionId: session.id,
+    console.log("Creating subscription for:", {
+      userId: session.metadata?.userId,
+      capperId: session.metadata?.capperId,
       mode: session.mode,
-      metadata: session.metadata,
-      customerId: session.customer,
-      subscriptionId: session.subscription,
+      paymentIntent: session.payment_intent,
+      subscription: session.subscription,
     });
 
     if (!session.metadata?.userId || !session.metadata?.capperId) {
-      vercelLog("error", "Missing required metadata", {
+      log("error", "Missing required metadata", {
         metadata: session.metadata,
       });
       return NextResponse.json(
@@ -220,29 +236,27 @@ async function handleSubscriptionCreation(session: any) {
       );
     }
 
-    const cacheKey = `subscription_${session.subscription}`;
-    const cachedSubscription = getCachedData(cacheKey);
+    // For one-time payments, use payment intent ID
+    // For subscriptions, use subscription ID
+    const identifier =
+      session.mode === "subscription"
+        ? session.subscription
+        : session.payment_intent;
 
-    if (cachedSubscription) {
-      vercelLog("info", "Using cached subscription", {
-        id: cachedSubscription.id,
-      });
-      return NextResponse.json({ received: true });
-    }
-
-    // Check database if not in cache
+    // Check for existing subscription
     const existingSubscription = await prisma.subscription.findFirst({
       where: {
-        stripeSubscriptionId: session.subscription,
+        OR: [
+          { stripeSubscriptionId: identifier },
+          { stripePaymentIntentId: identifier },
+        ],
+        userId: session.metadata.userId,
+        capperId: session.metadata.capperId,
       },
     });
 
     if (existingSubscription) {
-      // Cache the found subscription
-      setCachedData(cacheKey, existingSubscription);
-      vercelLog("info", "Cached existing subscription", {
-        id: existingSubscription.id,
-      });
+      log("info", "Subscription already exists", { identifier });
       return NextResponse.json({ received: true });
     }
 
@@ -254,20 +268,17 @@ async function handleSubscriptionCreation(session: any) {
         productId: session.metadata.productId,
         priceId: session.metadata.priceId,
         status: "active",
-        stripeSubscriptionId: session.subscription,
+        stripeSubscriptionId:
+          session.mode === "subscription" ? session.subscription : null,
+        stripePaymentIntentId:
+          session.mode === "payment" ? session.payment_intent : null,
         stripeCustomerId: session.customer,
         subscribedAt: new Date(),
         expiresAt:
-          session.metadata.priceType === "recurring"
-            ? null
-            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          session.mode === "payment"
+            ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            : null,
       },
-    });
-
-    // Cache the new subscription
-    setCachedData(cacheKey, subscription);
-    vercelLog("info", "Created and cached new subscription", {
-      id: subscription.id,
     });
 
     // Update capper's subscribers
@@ -280,15 +291,26 @@ async function handleSubscriptionCreation(session: any) {
       },
     });
 
+    console.log("Subscription created:", {
+      id: subscription.id,
+      userId: subscription.userId,
+      capperId: subscription.capperId,
+      status: subscription.status,
+      paymentIntentId: subscription.stripePaymentIntentId,
+      subscriptionId: subscription.stripeSubscriptionId,
+    });
+
     return NextResponse.json({ received: true });
   } catch (error) {
-    vercelLog("error", "Subscription creation failed", {
-      error: error instanceof Error ? error.message : "Unknown error",
+    console.error("Subscription creation error:", {
+      error: error instanceof Error ? error.message : error,
+      session: {
+        id: session.id,
+        mode: session.mode,
+        metadata: session.metadata,
+      },
     });
-    return NextResponse.json(
-      { error: "Failed to process subscription" },
-      { status: 500 }
-    );
+    throw error;
   }
 }
 
@@ -302,7 +324,7 @@ async function handleSubscriptionUpdate(subscription: any) {
     });
 
     if (!existingSubscription) {
-      vercelLog("info", "No subscription found to update", {
+      log("info", "No subscription found to update", {
         stripeSubscriptionId: subscription.id,
       });
       return NextResponse.json({ received: true });
@@ -323,7 +345,7 @@ async function handleSubscriptionUpdate(subscription: any) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    vercelLog("error", "Subscription update error", {
+    log("error", "Subscription update error", {
       error: error instanceof Error ? error.message : "Unknown error",
     });
     return NextResponse.json(

@@ -93,6 +93,7 @@ model Subscription {
   capper               Capper    @relation(fields: [capperId], references: [id])
   user                 User      @relation(fields: [userId], references: [id])
   stripeSubscriptionId String?  @unique  // Make it optional with ?
+  stripePaymentIntentId String?  // Add this field
   stripeCustomerId     String?   // Add this field
 }
 
