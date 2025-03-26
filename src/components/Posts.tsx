@@ -84,114 +84,111 @@ const BetDialog = ({
   tags: string[];
   bookmaker?: string;
 }) => (
-  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto">
+  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
     {isSubscribed || isOwnPost ? (
       <>
-        <DialogHeader>
+        <DialogHeader className="space-y-4">
           {/* Title and Bookmaker Section */}
-          <div className="space-y-4">
-            <div className="border-l-4 border-[#4e43ff] pl-4">
-              <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
-              <p className="text-xs text-[#4e43ff] font-semibold mt-1">
-                {capperInfo.username}'s Pick
-              </p>
-            </div>
-
-            {/* Prominent Bookmaker Display */}
-            {bookmaker && (
-              <div className="flex items-center justify-between bg-[#4e43ff]/10 p-4 rounded-lg border border-[#4e43ff]/20">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
-                    <span className="text-2xl">🎲</span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-[#4e43ff] font-semibold">
-                      BOOKMAKER
-                    </p>
-                    <p className="text-base font-semibold text-gray-100">
-                      {bookmaker}
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-[#4e43ff] px-3 py-1 rounded-full">
-                  <span className="text-xs font-medium text-white">
-                    Verified
-                  </span>
-                </div>
-              </div>
-            )}
+          <div className="border-l-4 border-[#4e43ff] pl-4">
+            <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
+            <p className="text-xs text-[#4e43ff] font-semibold mt-1">
+              {capperInfo.username}'s Pick
+            </p>
           </div>
 
-          {/* Stats Grid: Odds and Sports */}
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            {/* Odds Section */}
-            {odds.length > 0 && (
-              <div className="bg-gray-800/30 p-4 rounded-lg">
-                <p className="text-xs text-[#4e43ff] font-semibold mb-2">
-                  ODDS
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {odds.map((odd, index) => (
-                    <div
-                      key={index}
-                      className="bg-[#4e43ff]/10 px-3 py-1 rounded-lg"
-                    >
-                      <span className="text-lg font-bold text-[#4e43ff]">
-                        {odd}x
-                      </span>
-                    </div>
-                  ))}
+          {/* Prominent Bookmaker Display */}
+          {bookmaker && (
+            <div className="flex items-center justify-between bg-[#4e43ff]/10 p-4 rounded-lg border border-[#4e43ff]/20">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
+                  <span className="text-2xl">🎲</span>
+                </div>
+                <div>
+                  <p className="text-xs text-[#4e43ff] font-semibold">
+                    BOOKMAKER
+                  </p>
+                  <p className="text-base font-semibold text-gray-100">
+                    {bookmaker}
+                  </p>
                 </div>
               </div>
-            )}
+              <div className="bg-[#4e43ff] px-3 py-1 rounded-full">
+                <span className="text-xs font-medium text-white">Verified</span>
+              </div>
+            </div>
+          )}
+        </DialogHeader>
 
-            {/* Sports Section */}
+        {/* Stats Grid: Odds and Sports */}
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          {/* Odds Section */}
+          {odds.length > 0 && (
             <div className="bg-gray-800/30 p-4 rounded-lg">
-              <p className="text-xs text-[#4e43ff] font-semibold mb-2">SPORT</p>
+              <p className="text-xs text-[#4e43ff] font-semibold mb-2">ODDS</p>
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
+                {odds.map((odd, index) => (
                   <div
-                    key={tag}
-                    className="bg-[#4e43ff]/10 px-3 py-1 rounded-lg flex items-center gap-1"
+                    key={index}
+                    className="bg-[#4e43ff]/10 px-3 py-1 rounded-lg"
                   >
-                    <span className="text-lg">{sportEmojiMap[tag] || ""}</span>
-                    <span className="text-sm text-[#4e43ff] font-medium">
-                      {tag}
+                    <span className="text-lg font-bold text-[#4e43ff]">
+                      {odd}x
                     </span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Content section */}
-          <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
-            <DialogDescription className="text-gray-300 text-sm leading-relaxed">
-              {content}
-            </DialogDescription>
-          </div>
-        </DialogHeader>
-
-        {/* Rest of the betting details section remains the same */}
-        <div className="mt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-8 rounded-full bg-[#4e43ff]/10 flex items-center justify-center">
-              <span className="text-lg">🎯</span>
+          {/* Sports Section */}
+          <div className="bg-gray-800/30 p-4 rounded-lg">
+            <p className="text-xs text-[#4e43ff] font-semibold mb-2">SPORT</p>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <div
+                  key={tag}
+                  className="bg-[#4e43ff]/10 px-3 py-1 rounded-lg flex items-center gap-1"
+                >
+                  <span className="text-lg">{sportEmojiMap[tag] || ""}</span>
+                  <span className="text-sm text-[#4e43ff] font-medium">
+                    {tag}
+                  </span>
+                </div>
+              ))}
             </div>
-            <h3 className="font-semibold text-[#4e43ff]">Betting Details</h3>
           </div>
+        </div>
 
-          <ul className="space-y-3">
-            {bets.map((bet, index) => (
-              <li
-                key={index}
-                className="bg-gray-800/30 p-4 rounded-lg text-sm text-gray-200 hover:bg-gray-800/50 transition-colors flex items-start gap-3"
-              >
-                <span className="text-[#4e43ff] font-mono">#{index + 1}</span>
-                {bet}
-              </li>
-            ))}
-          </ul>
+        {/* Content section */}
+        <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
+          <DialogDescription className="text-gray-300 text-sm leading-relaxed">
+            {content}
+          </DialogDescription>
+        </div>
+
+        {/* Add padding to bottom to ensure content is fully scrollable */}
+        <div className="pb-4">
+          {/* Rest of the betting details section remains the same */}
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 rounded-full bg-[#4e43ff]/10 flex items-center justify-center">
+                <span className="text-lg">🎯</span>
+              </div>
+              <h3 className="font-semibold text-[#4e43ff]">Betting Details</h3>
+            </div>
+
+            <ul className="space-y-3">
+              {bets.map((bet, index) => (
+                <li
+                  key={index}
+                  className="bg-gray-800/30 p-4 rounded-lg text-sm text-gray-200 hover:bg-gray-800/50 transition-colors flex items-start gap-3"
+                >
+                  <span className="text-[#4e43ff] font-mono">#{index + 1}</span>
+                  {bet}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </>
     ) : (
