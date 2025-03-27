@@ -149,6 +149,14 @@ export function SideNav() {
               <Heart className="h-5 w-5 mr-3" />
               My Cappers
             </Button> */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base"
+              onClick={() => router.push("/my-profile")}
+            >
+              <TicketIcon className="h-5 w-5 mr-3" />
+              My Profile
+            </Button>
 
             <Button
               variant="ghost"
