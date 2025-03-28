@@ -17,6 +17,7 @@ import {
   Settings,
   Menu,
   LineChart,
+  UserCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -107,11 +108,11 @@ export function SideNav() {
     return (
       <div className="flex flex-col h-full">
         {/* Navigation Items - Mobile: larger spacing, Desktop: compact */}
-        <nav className="space-y-2 lg:space-y-2 flex-1">
+        <nav className="space-y-4 lg:space-y-2 flex-1">
           <div className="mb-4">{/* Search input removed for now */}</div>
 
-          {/* Mobile: py-4 padding, space-y-6 gap | Desktop: normal padding, space-y-2 gap */}
-          <div className="space-y-6 lg:space-y-2">
+          {/* Increase the spacing between links */}
+          <div className="space-y-6 lg:space-y-18">
             <Button
               variant="ghost"
               className="w-full justify-start py-4 px-2 text-base"
@@ -154,7 +155,7 @@ export function SideNav() {
               className="w-full justify-start py-4 px-2 text-base"
               onClick={() => router.push("/my-profile")}
             >
-              <TicketIcon className="h-5 w-5 mr-3" />
+              <UserCircle className="h-5 w-5 mr-3" />
               My Profile
             </Button>
 
