@@ -242,8 +242,8 @@ export function SideNav() {
                 <Image
                   src={logo}
                   alt="Cappers Logo"
-                  width={120}
-                  height={40}
+                  width={140}
+                  height={50}
                   priority
                   className="mx-auto"
                 />
@@ -266,8 +266,8 @@ export function SideNav() {
             <Image
               src={logo}
               alt="Cappers Logo"
-              width={150}
-              height={50}
+              width={190}
+              height={70}
               priority
             />
           </div>
