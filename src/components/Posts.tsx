@@ -496,11 +496,13 @@ function InstagramPost({
               onClick={handleLike}
               className="h-8 w-8"
             >
-              <Heart
-                className={`h-5 w-5 ${
-                  isLiked ? "text-red-500 fill-red-500" : "text-gray-300"
+              <span
+                className={`text-lg ${
+                  isLiked ? "text-[#4e43ff]" : "text-gray-300"
                 }`}
-              />
+              >
+                🚀
+              </span>
             </Button>
             <p className="font-semibold text-xs text-gray-100">
               {likeCount} likes
