@@ -224,7 +224,7 @@ export function SideNav() {
       {/* ==================== MOBILE NAVIGATION ==================== */}
       <div className="lg:hidden">
         <Sheet>
-          {/* Mobile Menu Trigger Button */}
+          {/* Mobile Menu Trigger Button - This is causing the offset */}
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Menu className="h-5 w-5 text-gray-100" />
