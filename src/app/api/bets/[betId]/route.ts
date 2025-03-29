@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -22,8 +23,8 @@ async function getUserFromToken() {
 }
 
 export async function PATCH(
-  req: Request,
-  context: { params: { betId: string } }
+  req: NextRequest,
+  { params }: { params: { betId: string } }
 ) {
   try {
     const user = await getUserFromToken();
@@ -41,7 +42,7 @@ export async function PATCH(
     // Verify the bet belongs to the user
     const bet = await prisma.bet.findUnique({
       where: {
-        id: context.params.betId,
+        id: params.betId,
       },
     });
 
@@ -51,7 +52,7 @@ export async function PATCH(
 
     const updatedBet = await prisma.bet.update({
       where: {
-        id: context.params.betId,
+        id: params.betId,
       },
       data: {
         status,
