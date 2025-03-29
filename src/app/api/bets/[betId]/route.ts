@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { type NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -23,7 +22,7 @@ async function getUserFromToken() {
 }
 
 export async function PATCH(
-  req: NextRequest,
+  request: Request,
   { params }: { params: { betId: string } }
 ) {
   try {
@@ -32,7 +31,7 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { status } = body;
 
     if (!status || !["WON", "LOST"].includes(status)) {
