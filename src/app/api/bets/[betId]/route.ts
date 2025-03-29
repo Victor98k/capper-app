@@ -21,17 +21,18 @@ async function getUserFromToken() {
   }
 }
 
-interface RouteContext {
-  params: {
-    betId: string;
-  };
-}
-
-export async function PATCH(request: Request, context: RouteContext) {
+export async function PATCH(request: Request) {
   try {
     const user = await getUserFromToken();
     if (!user?.userId) {
       return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const url = new URL(request.url);
+    const betId = url.pathname.split("/").pop(); // Extract betId from URL
+
+    if (!betId) {
+      return new NextResponse("Invalid request", { status: 400 });
     }
 
     const body = await request.json();
@@ -43,9 +44,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     // Verify the bet belongs to the user
     const bet = await prisma.bet.findUnique({
-      where: {
-        id: context.params.betId,
-      },
+      where: { id: betId },
     });
 
     if (!bet || bet.userId !== user.userId) {
@@ -53,12 +52,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const updatedBet = await prisma.bet.update({
-      where: {
-        id: context.params.betId,
-      },
-      data: {
-        status,
-      },
+      where: { id: betId },
+      data: { status },
     });
 
     return NextResponse.json(updatedBet);
