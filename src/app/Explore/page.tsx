@@ -51,9 +51,13 @@ export default function ExplorePage() {
       return;
     }
 
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     const filtered = allPosts.filter((post) => {
-      return post.tags?.some((tag) => tag.toLowerCase().includes(query));
+      return post.tags?.some(
+        (tag) =>
+          tag.toLowerCase().trim().includes(query) ||
+          query.includes(tag.toLowerCase().trim())
+      );
     });
 
     setPosts(filtered);
@@ -62,9 +66,11 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex">
       <SideNav />
-      <main className="flex-1 p-4">
-        <div className="lg:mt-0 mt-8">
-          <h1 className="text-5xl font-bold mb-6 mt-12">Explore our Cappers</h1>
+      <main className="flex-1 p-4 md:ml-16">
+        <div className="max-w-7xl mx-auto lg:mt-0 mt-8">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 mt-6 md:mt-12 text-center md:text-left bg-gradient-to-r from-violet-500 to-violet-300 bg-clip-text text-transparent">
+            Explore our Cappers
+          </h1>
 
           <SearchBar
             searchQuery={searchQuery}
@@ -77,18 +83,33 @@ export default function ExplorePage() {
               <Loader />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 max-w-9xl mx-auto mt-12">
-              {posts.map((post) => (
-                <ExploreCapperCard
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto gap-4 mt-12">
+              {posts.map((post, index) => (
+                <div
                   key={post._id}
-                  username={post.capperInfo.username}
-                  firstName={post.capperInfo.firstName}
-                  lastName={post.capperInfo.lastName}
-                  imageUrl={post.imageUrl || undefined}
-                  profileImage={post.capperInfo.profileImage}
-                  sport={post.tags[0]}
-                  likes={post.likes}
-                />
+                  className={`${
+                    // Make every 5th post span 2 columns and 2 rows
+                    index % 5 === 0
+                      ? "col-span-2 row-span-2"
+                      : // Make every 8th post span 2 rows
+                        index % 8 === 0
+                        ? "row-span-2"
+                        : // Make every 12th post span 2 columns
+                          index % 12 === 0
+                          ? "col-span-2"
+                          : ""
+                  }`}
+                >
+                  <ExploreCapperCard
+                    username={post.capperInfo.username}
+                    firstName={post.capperInfo.firstName}
+                    lastName={post.capperInfo.lastName}
+                    imageUrl={post.imageUrl || undefined}
+                    profileImage={post.capperInfo.profileImage}
+                    sport={post.tags[0]}
+                    likes={post.likes}
+                  />
+                </div>
               ))}
             </div>
           )}
