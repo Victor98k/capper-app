@@ -21,10 +21,13 @@ async function getUserFromToken() {
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { betId: string } }
-) {
+interface RouteContext {
+  params: {
+    betId: string;
+  };
+}
+
+export async function PATCH(request: Request, context: RouteContext) {
   try {
     const user = await getUserFromToken();
     if (!user?.userId) {
@@ -41,7 +44,7 @@ export async function PATCH(
     // Verify the bet belongs to the user
     const bet = await prisma.bet.findUnique({
       where: {
-        id: params.betId,
+        id: context.params.betId,
       },
     });
 
@@ -51,7 +54,7 @@ export async function PATCH(
 
     const updatedBet = await prisma.bet.update({
       where: {
-        id: params.betId,
+        id: context.params.betId,
       },
       data: {
         status,
