@@ -30,6 +30,7 @@ model User {
   resetToken       String?
   resetTokenExpiry DateTime?
   capperApplications CapperApplication[]
+  bets          Bet[]     @relation("UserBets")
 
   Subscription Subscription[]
 }
@@ -124,5 +125,26 @@ model CapperApplication {
   updatedAt       DateTime @updatedAt
 
   @@index([userId])
+}
+
+model Bet {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  game      String
+  amount    Float
+  odds      Float
+  date      DateTime
+  status    BetStatus   @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  userId    String      @db.ObjectId
+  user      User        @relation("UserBets", fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
 }
   
