@@ -1,6 +1,5 @@
 "use client";
 
-import { SideNav } from "@/components/SideNav";
 import { useEffect, useState } from "react";
 import Post from "@/components/Posts";
 import Loader from "@/components/Loader";
@@ -8,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 type Post = {
   _id: string;
@@ -30,73 +30,41 @@ type Subscription = {
 
 function MyCappers() {
   const { user } = useAuth();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchSubscriptions = async () => {
-      if (!user?.id) return;
+  // Use React Query for better caching and parallel data fetching
+  const { data: subscriptions = [], isLoading: subsLoading } = useQuery<
+    Subscription[]
+  >({
+    queryKey: ["subscriptions", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch("/api/subscriptions/user", {
+        headers: { userId: user.id },
+      });
+      const data = await response.json();
+      return data.subscriptions;
+    },
+    enabled: !!user?.id,
+  });
 
-      try {
-        const response = await fetch("/api/subscriptions/user", {
-          headers: {
-            userId: user.id,
-          },
-        });
+  const {
+    data: posts = [],
+    isLoading: postsLoading,
+    error,
+  } = useQuery<Post[]>({
+    queryKey: ["posts", subscriptions],
+    queryFn: async () => {
+      const response = await fetch("/api/posts");
+      const data = await response.json();
+      const subscribedCapperIds = subscriptions.map((sub) => sub.capperId);
+      return data.filter((post: Post) =>
+        subscribedCapperIds.includes(post.capperId)
+      );
+    },
+    enabled: subscriptions.length > 0,
+  });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch subscriptions");
-        }
-
-        const data = await response.json();
-        setSubscriptions(data.subscriptions);
-      } catch (error) {
-        console.error("Error fetching subscriptions:", error);
-      }
-    };
-
-    fetchSubscriptions();
-  }, [user?.id]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch("/api/posts");
-        if (!response.ok) {
-          throw new Error("Failed to fetch posts");
-        }
-        const data = await response.json();
-
-        if (mounted) {
-          const subscribedCapperIds = subscriptions.map((sub) => sub.capperId);
-          const filteredPosts = data.filter((post: Post) =>
-            subscribedCapperIds.includes(post.capperId)
-          );
-
-          setPosts(filteredPosts);
-        }
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-        if (mounted) {
-          setError("Failed to fetch posts");
-        }
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchPosts();
-
-    return () => {
-      mounted = false;
-    };
-  }, [subscriptions]);
+  const isLoading = subsLoading || postsLoading;
 
   if (isLoading) {
     return (
@@ -109,7 +77,7 @@ function MyCappers() {
   if (error) {
     return (
       <div className="flex justify-center items-center h-full">
-        <div className="text-red-500">{error}</div>
+        <div className="text-red-500">{error.message}</div>
       </div>
     );
   }
