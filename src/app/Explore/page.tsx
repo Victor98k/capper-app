@@ -64,7 +64,7 @@ export default function ExplorePage() {
   }, [searchQuery, allPosts]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-[#020817] text-gray-100">
       {/* Mobile Top Nav - Similar to your customerHomePage.tsx */}
       <div className="sticky top-0 z-50 w-full bg-gray-900 border-b border-gray-800 p-4 flex items-center lg:hidden">
         <div className="absolute left-4">

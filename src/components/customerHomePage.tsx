@@ -10,7 +10,7 @@ import { Suspense } from "react";
 
 export function CustomerHomepageComponent() {
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-[#020817] text-gray-100">
       {/* Mobile Top Nav - Sticky */}
       <div className="sticky top-0 z-50 w-full bg-gray-900 border-b border-gray-800 p-4 flex items-center lg:hidden">
         {/* Left side - Menu */}

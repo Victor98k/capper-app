@@ -12,7 +12,19 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 import { SideNav } from "@/components/SideNav";
 import { useAuth } from "@/hooks/useAuth";
 import axios from "axios";
@@ -135,6 +147,26 @@ export default function MyBets() {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
+  };
+
+  // Add this new function to prepare data for line chart
+  const prepareLineChartData = () => {
+    const sortedBets = [...bets]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .filter((bet) => bet.status !== "PENDING");
+
+    let runningBalance = 0;
+    return sortedBets.map((bet) => {
+      if (bet.status === "WON") {
+        runningBalance += bet.amount * bet.odds - bet.amount;
+      } else {
+        runningBalance -= bet.amount;
+      }
+      return {
+        date: new Date(bet.date).toLocaleDateString(),
+        balance: runningBalance,
+      };
+    });
   };
 
   return (
@@ -312,88 +344,139 @@ export default function MyBets() {
                 Statistics
               </h2>
               <div className="grid gap-4">
+                {/* Line Chart Card */}
                 <Card className="bg-gray-800/30 border-gray-700 p-6 backdrop-blur-sm">
                   <h3 className="text-lg font-medium text-white mb-4">
-                    Win/Loss Ratio
+                    Performance Over Time
                   </h3>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={winLossData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) =>
-                          `${name}: ${(percent * 100).toFixed(0)}%`
-                        }
-                        outerRadius={60}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {winLossData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={
-                              WIN_LOSS_COLORS[index % WIN_LOSS_COLORS.length]
-                            }
-                          />
-                        ))}
-                      </Pie>
-                      <Legend />
-                    </PieChart>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart
+                      data={prepareLineChartData()}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis
+                        dataKey="date"
+                        stroke="#9CA3AF"
+                        style={{ fontSize: "12px" }}
+                      />
+                      <YAxis
+                        stroke="#9CA3AF"
+                        style={{ fontSize: "12px" }}
+                        label={{
+                          value: "Balance ($)",
+                          angle: -90,
+                          position: "insideLeft",
+                          style: { fill: "#9CA3AF" },
+                        }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#1F2937",
+                          border: "1px solid #374151",
+                          borderRadius: "6px",
+                        }}
+                        labelStyle={{ color: "#9CA3AF" }}
+                        itemStyle={{ color: "#4e43ff" }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="balance"
+                        stroke="#4e43ff"
+                        strokeWidth={2}
+                        dot={{ fill: "#4e43ff", strokeWidth: 2 }}
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
                 </Card>
 
-                <Card className="bg-gray-800/30 border-gray-700 p-6 backdrop-blur-sm">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium text-white">
-                      Profit/Loss Overview
+                {/* Grid for Pie Charts */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Win/Loss Ratio Card */}
+                  <Card className="bg-gray-800/30 border-gray-700 p-6 backdrop-blur-sm">
+                    <h3 className="text-lg font-medium text-white mb-4">
+                      Win/Loss Ratio
                     </h3>
-                    <div className="text-sm text-gray-400">
-                      Net:
-                      <span
-                        className={
-                          financialStats.profit - financialStats.losses > 0
-                            ? "text-green-500 ml-2"
-                            : "text-red-500 ml-2"
-                        }
-                      >
-                        $
-                        {(
-                          financialStats.profit - financialStats.losses
-                        ).toFixed(2)}
-                      </span>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={winLossData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) =>
+                            `${name}: ${(percent * 100).toFixed(0)}%`
+                          }
+                          outerRadius={60}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {winLossData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={
+                                WIN_LOSS_COLORS[index % WIN_LOSS_COLORS.length]
+                              }
+                            />
+                          ))}
+                        </Pie>
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Card>
+
+                  {/* Profit/Loss Overview Card */}
+                  <Card className="bg-gray-800/30 border-gray-700 p-6 backdrop-blur-sm">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium text-white">
+                        Profit/Loss Overview
+                      </h3>
+                      <div className="text-sm text-gray-400">
+                        Net:
+                        <span
+                          className={
+                            financialStats.profit - financialStats.losses > 0
+                              ? "text-green-500 ml-2"
+                              : "text-red-500 ml-2"
+                          }
+                        >
+                          $
+                          {(
+                            financialStats.profit - financialStats.losses
+                          ).toFixed(2)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={profitLossData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value }) =>
-                          `${name}: $${value.toFixed(2)}`
-                        }
-                        outerRadius={60}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {profitLossData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={
-                              PROFIT_LOSS_COLORS[
-                                index % PROFIT_LOSS_COLORS.length
-                              ]
-                            }
-                          />
-                        ))}
-                      </Pie>
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Card>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={profitLossData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, value }) =>
+                            `${name}: $${value.toFixed(2)}`
+                          }
+                          outerRadius={60}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {profitLossData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={
+                                PROFIT_LOSS_COLORS[
+                                  index % PROFIT_LOSS_COLORS.length
+                                ]
+                              }
+                            />
+                          ))}
+                        </Pie>
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Card>
+                </div>
               </div>
             </div>
           </div>

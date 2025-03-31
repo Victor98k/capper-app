@@ -175,7 +175,7 @@ export default function CapperProfilePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex">
+      <div className="min-h-screen bg-[#020817] text-gray-100 flex">
         <SideNav />
         <main className="flex-1 p-8">
           <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
@@ -188,7 +188,7 @@ export default function CapperProfilePage({
 
   if (!capper) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex">
+      <div className="min-h-screen bg-[#020817] text-gray-100 flex">
         <SideNav />
         <main className="flex-1 p-8">
           <p className="text-center">Capper not found</p>
@@ -198,14 +198,14 @@ export default function CapperProfilePage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#020817] text-gray-100 flex flex-col lg:flex-row">
       {/* Hide SideNav on mobile */}
       <div className="hidden lg:block">
         <SideNav />
       </div>
 
       {/* Add mobile header */}
-      <div className="lg:hidden sticky top-0 z-50 w-full bg-gray-900 border-b border-gray-800 p-4 flex items-center">
+      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] border-b border-gray-800 p-4 flex items-center">
         <div className="absolute left-4">
           <SideNav />
         </div>
@@ -217,7 +217,7 @@ export default function CapperProfilePage({
       <main className="flex-1 p-2 sm:p-4 lg:p-8">
         <div className="max-w-6xl mx-auto">
           {/* Profile Header - More compact on mobile */}
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
+          <div className="bg-gray-800/30 rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
             {/* Profile Info Section - Make it more compact on mobile */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
               {/* Avatar - Smaller on mobile */}
