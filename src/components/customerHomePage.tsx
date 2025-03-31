@@ -8,17 +8,22 @@ import logo from "@/images/Cappers Logga (1).svg";
 import Loader from "@/components/Loader";
 import { Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60, // Consider data fresh for 1 minute
-      gcTime: 1000 * 60 * 5, // Keep unused data in cache for 5 minutes
-    },
-  },
-});
+import { useState } from "react";
 
 export function CustomerHomepageComponent() {
+  // Create a new QueryClient instance for each component mount
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60, // Consider data fresh for 1 minute
+            gcTime: 1000 * 60 * 5, // Keep unused data in cache for 5 minutes
+          },
+        },
+      })
+  );
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-[#020817] text-gray-100">

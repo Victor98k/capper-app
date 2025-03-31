@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Post from "@/components/Posts";
 import Loader from "@/components/Loader";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, QueryClient } from "@tanstack/react-query";
+
+// Create a new client for each request
+const queryClient = new QueryClient();
 
 type Post = {
   _id: string;
@@ -29,9 +32,13 @@ type Subscription = {
 };
 
 function MyCappers() {
+  // Disable pre-rendering for this page
+  useEffect(() => {
+    // This ensures the component only runs on client
+  }, []);
+
   const { user } = useAuth();
 
-  // Use React Query for better caching and parallel data fetching
   const { data: subscriptions = [], isLoading: subsLoading } = useQuery<
     Subscription[]
   >({
@@ -127,5 +134,8 @@ function MyCappers() {
     </div>
   );
 }
+
+// Add this configuration to disable static generation
+export const dynamic = "force-dynamic";
 
 export default MyCappers;
