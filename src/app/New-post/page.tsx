@@ -342,6 +342,7 @@ function NewPostPage() {
     { emoji: "🥊", sport: "Boxing" },
     { emoji: "🏎️", sport: "Formula 1" },
     { emoji: "🏇", sport: "Horse Racing" },
+    { emoji: "🎮", sport: "E-Sports" },
   ];
 
   useEffect(() => {
