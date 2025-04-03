@@ -188,6 +188,23 @@ export function SideNav() {
           </div>
         </nav>
 
+        {/* Add Become Capper button above the profile section */}
+        {!isCapper && (
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start py-4 px-2 text-base border border-[#4e43ff] text-[#4e43ff] hover:bg-[#4e43ff]/10"
+              onClick={() =>
+                (window.location.href =
+                  "https://www.cappersports.co/become-capper")
+              }
+            >
+              <LineChart className="h-5 w-5 mr-3" />
+              Become Capper
+            </Button>
+          </div>
+        )}
+
         {/* Profile Section - Mobile: larger avatar and text | Desktop: normal size */}
         <div className="border-t border-gray-700 pt-4 mt-auto">
           <div className="flex items-center space-x-3 mb-4">
