@@ -173,6 +173,19 @@ export default function CapperProfilePage({
     checkSubscriptions();
   }, [capper?.id]);
 
+  // Add this useEffect to handle the initial scroll if there's a hash in the URL
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.location.hash === "#subscription-plans"
+    ) {
+      setTimeout(() => {
+        const element = document.getElementById("subscription-plans");
+        element?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 500); // Longer delay to ensure content is loaded
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#020817] text-gray-100 flex">

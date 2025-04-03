@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { SimplifiedCapperCard } from "@/components/SimplifiedCapperCard";
 import { SidebarCapper } from "@/types/capper";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export function CappersSidebar() {
+  const router = useRouter();
   const [cappers, setCappers] = useState<SidebarCapper[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +27,7 @@ export function CappersSidebar() {
         }
 
         const text = await response.text();
-        console.log("Raw response:", text); // Debug log
+        console.log("Raw response:", text); // Uncomment this line
 
         if (!text) {
           setCappers([]);
@@ -39,7 +42,10 @@ export function CappersSidebar() {
             setError("Invalid data format received");
             return;
           }
-          setCappers(data.slice(0, 5));
+          // Shuffle the array randomly
+          const shuffledCappers = [...data].sort(() => Math.random() - 0.5);
+          // Take only 5 random cappers
+          setCappers(shuffledCappers.slice(0, 5));
         } catch (parseError) {
           console.error("Parse error:", parseError);
           setError("Failed to parse server response");
@@ -60,7 +66,7 @@ export function CappersSidebar() {
 
   return (
     <div className="w-[300px] min-w-[300px] pt-10 mt-10 p-4">
-      <h2 className="text-2xl font-bold mb-6">Popular Cappers</h2>
+      <h2 className="text-2xl font-bold mb-6">Trending Cappers</h2>
       {loading ? (
         <p className="text-gray-400 text-lg">Loading cappers...</p>
       ) : error ? (
@@ -76,6 +82,12 @@ export function CappersSidebar() {
               />
             </div>
           ))}
+          <Button
+            onClick={() => router.push("/Explore")}
+            className="cursor-pointer mt-4 w-full bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+          >
+            View All Cappers
+          </Button>
         </div>
       ) : (
         <p className="text-gray-400 text-lg">No cappers found</p>

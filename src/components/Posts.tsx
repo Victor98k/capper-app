@@ -225,7 +225,14 @@ const BetDialog = ({
         </DialogHeader>
         <DialogFooter className="mt-6">
           <Button
-            onClick={() => router.push(`/cappers/${capperInfo.username}`)}
+            onClick={() => {
+              router.push(`/cappers/${capperInfo.username}#subscription-plans`);
+              // Add a small delay to ensure the navigation completes before scrolling
+              setTimeout(() => {
+                const element = document.getElementById("subscription-plans");
+                element?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 100);
+            }}
             className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 py-6 text-lg font-semibold rounded-xl transition-transform hover:scale-[1.02]"
           >
             View Subscription Plans
