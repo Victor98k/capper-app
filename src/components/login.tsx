@@ -142,18 +142,12 @@ export function Login() {
 
       {/* Right side with login form */}
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black p-4 md:p-8">
-        <img
-          src={capperLogo.src}
-          alt="Cappers Logo"
-          className="md:hidden w-32 mb-6"
-        />
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
-          {/* Welcome back to{" "} */}
           <span className="inline-flex items-center">
             <img
               src={capperLogo.src}
               alt="Cappers Logo"
-              className="h-8 md:h-10 lg:h-24"
+              className="h-16 md:h-20 lg:h-24"
             />
           </span>
         </h1>

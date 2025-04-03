@@ -34,6 +34,7 @@ const sportEmojiMap: { [key: string]: string } = {
   "American Football": "🏈",
   Baseball: "⚾",
   Soccer: "⚽",
+  "E-Sports": "🎮",
   Hockey: "🏒",
   Golf: "🏌️‍♂️",
   MMA: "🥊",
