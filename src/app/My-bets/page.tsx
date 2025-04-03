@@ -31,10 +31,13 @@ import axios from "axios";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+type Currency = "USD" | "EUR" | "SEK" | "NOK";
+
 interface Bet {
   id: string;
   game: string;
   amount: number;
+  currency: Currency;
   odds: number;
   date: string;
   status: "PENDING" | "WON" | "LOST";
@@ -48,9 +51,11 @@ export default function MyBets() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const betsPerPage = 5;
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>("USD");
   const [newBet, setNewBet] = useState({
     game: "",
     amount: "",
+    currency: "USD" as Currency,
     odds: "",
     date: "",
   });
@@ -71,17 +76,33 @@ export default function MyBets() {
     }
   };
 
+  const getCurrencySymbol = (currency: Currency) => {
+    switch (currency) {
+      case "USD":
+        return "$";
+      case "EUR":
+        return "€";
+      case "SEK":
+        return "kr";
+      case "NOK":
+        return "kr";
+      default:
+        return "$";
+    }
+  };
+
   const addBet = async () => {
     try {
       const response = await axios.post("/api/bets", {
         game: newBet.game,
         amount: parseFloat(newBet.amount),
+        currency: newBet.currency,
         odds: parseFloat(newBet.odds),
         date: newBet.date,
       });
 
       setBets([response.data, ...bets]);
-      setNewBet({ game: "", amount: "", odds: "", date: "" });
+      setNewBet({ game: "", amount: "", currency: "USD", odds: "", date: "" });
       toast.success("Bet added successfully");
     } catch (error) {
       console.error("Failed to add bet:", error);
@@ -220,6 +241,27 @@ export default function MyBets() {
                     />
                   </div>
                   <div className="grid gap-2">
+                    <Label htmlFor="currency" className="text-gray-200">
+                      Currency
+                    </Label>
+                    <select
+                      id="currency"
+                      value={newBet.currency}
+                      onChange={(e) =>
+                        setNewBet({
+                          ...newBet,
+                          currency: e.target.value as Currency,
+                        })
+                      }
+                      className="bg-gray-800 border-gray-700 text-white rounded-md p-2"
+                    >
+                      <option value="USD">USD ($) - US Dollar</option>
+                      <option value="EUR">EUR (€) - Euro</option>
+                      <option value="SEK">SEK (kr) - Swedish Krona</option>
+                      <option value="NOK">NOK (kr) - Norwegian Krone</option>
+                    </select>
+                  </div>
+                  <div className="grid gap-2">
                     <Label htmlFor="odds" className="text-gray-200">
                       Odds
                     </Label>
@@ -274,7 +316,8 @@ export default function MyBets() {
                       <div>
                         <h3 className="font-medium text-white">{bet.game}</h3>
                         <p className="text-sm text-gray-400">
-                          Amount: ${bet.amount} | Odds: {bet.odds} |{" "}
+                          Amount: {getCurrencySymbol(bet.currency)}
+                          {bet.amount} | Odds: {bet.odds} |{" "}
                           {new Date(bet.date).toLocaleDateString()}
                         </p>
                       </div>
@@ -364,7 +407,7 @@ export default function MyBets() {
                         stroke="#9CA3AF"
                         style={{ fontSize: "12px" }}
                         label={{
-                          value: "Balance ($)",
+                          value: `Balance (${getCurrencySymbol(selectedCurrency)})`,
                           angle: -90,
                           position: "insideLeft",
                           style: { fill: "#9CA3AF" },
@@ -440,7 +483,7 @@ export default function MyBets() {
                               : "text-red-500 ml-2"
                           }
                         >
-                          $
+                          {getCurrencySymbol(selectedCurrency)}
                           {(
                             financialStats.profit - financialStats.losses
                           ).toFixed(2)}
@@ -455,7 +498,7 @@ export default function MyBets() {
                           cy="50%"
                           labelLine={false}
                           label={({ name, value }) =>
-                            `${name}: $${value.toFixed(2)}`
+                            `${name}: ${getCurrencySymbol(selectedCurrency)}${value.toFixed(2)}`
                           }
                           outerRadius={60}
                           fill="#8884d8"

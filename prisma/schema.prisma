@@ -131,6 +131,7 @@ model Bet {
   id        String      @id @default(auto()) @map("_id") @db.ObjectId
   game      String
   amount    Float
+  currency  String      @default("USD")  // Add this field
   odds      Float
   date      DateTime
   status    BetStatus   @default(PENDING)
