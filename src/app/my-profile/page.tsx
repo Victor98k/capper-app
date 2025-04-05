@@ -19,12 +19,33 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+type Subscription = {
+  id: string;
+  status: string;
+  expiresAt: Date | null;
+  productId: string;
+  capper: {
+    id: string;
+    profileImage: string | null;
+    user: {
+      username: string;
+      firstName: string;
+      lastName: string;
+      imageUrl: string | null;
+    };
+  };
+  product?: {
+    name: string;
+    description?: string;
+  };
+};
+
 function UserProfileContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [userData, setUserData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("profile");
   const [preferences, setPreferences] = useState({
@@ -33,6 +54,9 @@ function UserProfileContent() {
     promotionalEmails: false,
   });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [subscriptionToCancel, setSubscriptionToCancel] =
+    useState<Subscription | null>(null);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -46,24 +70,29 @@ function UserProfileContent() {
     const fetchUserProfile = async () => {
       if (user?.id) {
         try {
-          const token = localStorage.getItem("token");
+          // console.log("Fetching user profile");
+
           const response = await fetch("/api/users/profile", {
+            credentials: "include",
             headers: {
-              Authorization: `Bearer ${token}`,
               "Cache-Control": "no-cache",
             },
           });
+
+          // console.log("Profile response status:", response.status);
 
           if (!response.ok) {
             throw new Error("Failed to fetch profile data");
           }
 
           const data = await response.json();
-          console.log("Fetched user data:", data);
+          // console.log("Profile data:", data);
+
           setUserData(data);
           setUsername(data.username || "");
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
+          toast.error("Failed to load profile");
         }
       }
     };
@@ -75,21 +104,31 @@ function UserProfileContent() {
     const fetchSubscriptions = async () => {
       if (user?.id) {
         try {
-          const token = localStorage.getItem("token");
-          const response = await fetch(`/api/users/${user.id}/subscriptions`, {
+          // console.log("Starting subscription fetch for user:", user.id);
+
+          const response = await fetch("/api/subscriptions/user", {
+            credentials: "include",
             headers: {
-              Authorization: `Bearer ${token}`,
+              userId: user.id,
             },
           });
 
+          // console.log("Fetch URL:", response.url);
+          // console.log("Response status:", response.status);
+
           if (!response.ok) {
-            throw new Error("Failed to fetch subscriptions");
+            throw new Error(
+              `Failed to fetch subscriptions: ${response.status}`
+            );
           }
 
           const data = await response.json();
-          setSubscriptions(data);
+          // console.log("Subscription data received:", data);
+
+          setSubscriptions(data.subscriptions || []);
         } catch (error) {
-          console.error("Failed to fetch subscriptions:", error);
+          console.error("Failed to cancel subscription:", error);
+          toast.error("Failed to load subscriptions");
         }
       }
     };
@@ -163,6 +202,43 @@ function UserProfileContent() {
     }
   };
 
+  const handleCancelSubscription = async (subscription: Subscription) => {
+    setSubscriptionToCancel(subscription);
+    setShowCancelDialog(true);
+  };
+
+  const confirmCancelSubscription = async () => {
+    if (!subscriptionToCancel) return;
+
+    try {
+      const response = await fetch("/api/subscriptions", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          subscriptionId: subscriptionToCancel.id,
+          capperId: subscriptionToCancel.capper.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to cancel subscription");
+      }
+
+      const updatedSubs = subscriptions.filter(
+        (sub) => sub.id !== subscriptionToCancel.id
+      );
+      setSubscriptions(updatedSubs);
+      toast.success("Subscription cancelled successfully");
+      setShowCancelDialog(false);
+    } catch (error) {
+      console.error("Failed to cancel subscription:", error);
+      toast.error("Failed to cancel subscription");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[#020817]">
@@ -192,8 +268,10 @@ function UserProfileContent() {
                 <div>
                   <label className="text-sm text-gray-400">Username</label>
                   <div className="flex items-center gap-2 mt-1">
-                    <p className="text-[#4e43ff] font-semibold">@{username}</p>
-                    {isEditingUsername ? (
+                    <p className="text-[#4e43ff] font-semibold">
+                      @{userData?.username}
+                    </p>
+                    {/* {isEditingUsername ? (
                       <div className="flex gap-2 items-center">
                         <input
                           type="text"
@@ -223,8 +301,8 @@ function UserProfileContent() {
                         className="text-gray-400 hover:text-white"
                       >
                         Edit
-                      </Button>
-                    )}
+                      </Button> */}
+                    {/* )} */}
                   </div>
                 </div>
                 <div>
@@ -336,28 +414,40 @@ function UserProfileContent() {
                         <Image
                           src={
                             subscription.capper.profileImage ||
+                            subscription.capper.user.imageUrl ||
                             "/default-avatar.png"
                           }
-                          alt={subscription.capper.username}
+                          alt={subscription.capper.user.username}
                           fill
                           className="object-cover"
                         />
                       </div>
                       <div>
                         <h4 className="font-medium text-white">
-                          {subscription.capper.username}
+                          {subscription.capper.user.username}
                         </h4>
                         <p className="text-sm text-gray-400">
-                          Expires:{" "}
-                          {new Date(
-                            subscription.expiresAt
-                          ).toLocaleDateString()}
+                          Bundle:{" "}
+                          <span className="text-violet-400">
+                            {subscription.productId || "No Product ID"}
+                          </span>
+                          <br />
+                          Status: {subscription.status}
+                          {subscription.expiresAt && (
+                            <>
+                              <br />
+                              Expires:{" "}
+                              {new Date(
+                                subscription.expiresAt
+                              ).toLocaleDateString()}
+                            </>
+                          )}
                         </p>
                       </div>
                     </div>
                     <Button
                       variant="destructive"
-                      //   onClick={() => handleCancelSubscription(subscription.id)}
+                      onClick={() => handleCancelSubscription(subscription)}
                       className="w-full sm:w-auto"
                     >
                       Cancel
@@ -513,6 +603,36 @@ function UserProfileContent() {
           <div className="space-y-4 sm:space-y-6">{renderTabContent()}</div>
         </div>
       </div>
+
+      {/* Cancel Subscription Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Subscription</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel your subscription to{" "}
+              {subscriptionToCancel?.capper.user.username}? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+              className="border-[#2D3B4E] text-gray-300 hover:bg-[#0F172A]"
+            >
+              Keep Subscription
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmCancelSubscription}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Yes, Cancel Subscription
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
