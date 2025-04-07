@@ -536,7 +536,7 @@ function CapperProfileContent() {
               Your Profile information
             </h2>
 
-            <Card className="mt-6">
+            {/* <Card className="mt-6">
               <CardHeader>
                 <CardTitle>Your Username</CardTitle>
                 <CardDescription>
@@ -579,7 +579,7 @@ function CapperProfileContent() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </Card> */}
 
             <Card className="mt-6">
               <CardHeader>
