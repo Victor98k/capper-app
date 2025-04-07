@@ -27,6 +27,11 @@ import {
   Shield,
   User,
   Calculator,
+  Instagram,
+  Twitter,
+  Youtube,
+  MessageSquare,
+  Phone,
 } from "lucide-react";
 import { use } from "react";
 // Components
@@ -310,6 +315,82 @@ export default function CapperProfilePage({
                 <p className="text-gray-100 text-sm sm:text-base">
                   {capper.bio}
                 </p>
+
+                {/* Social Links */}
+                {capper.socialLinks && (
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
+                    {capper.socialLinks.instagram?.username &&
+                      capper.socialLinks.instagram?.url && (
+                        <a
+                          href={capper.socialLinks.instagram.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-pink-500 hover:text-pink-400 transition-colors"
+                        >
+                          <Instagram className="h-5 w-5" />
+                          <span className="text-sm">
+                            @{capper.socialLinks.instagram.username}
+                          </span>
+                        </a>
+                      )}
+                    {capper.socialLinks.x?.username &&
+                      capper.socialLinks.x?.url && (
+                        <a
+                          href={capper.socialLinks.x.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          <Twitter className="h-5 w-5" />
+                          <span className="text-sm">
+                            @{capper.socialLinks.x.username}
+                          </span>
+                        </a>
+                      )}
+                    {capper.socialLinks.youtube?.username &&
+                      capper.socialLinks.youtube?.url && (
+                        <a
+                          href={capper.socialLinks.youtube.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-red-500 hover:text-red-400 transition-colors"
+                        >
+                          <Youtube className="h-5 w-5" />
+                          <span className="text-sm">
+                            {capper.socialLinks.youtube.username}
+                          </span>
+                        </a>
+                      )}
+                    {capper.socialLinks.discord?.username &&
+                      capper.socialLinks.discord?.url && (
+                        <a
+                          href={capper.socialLinks.discord.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-indigo-500 hover:text-indigo-400 transition-colors"
+                        >
+                          <MessageSquare className="h-5 w-5" />
+                          <span className="text-sm">
+                            {capper.socialLinks.discord.username}
+                          </span>
+                        </a>
+                      )}
+                    {capper.socialLinks.whatsapp?.username &&
+                      capper.socialLinks.whatsapp?.url && (
+                        <a
+                          href={capper.socialLinks.whatsapp.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-green-500 hover:text-green-400 transition-colors"
+                        >
+                          <Phone className="h-5 w-5" />
+                          <span className="text-sm">
+                            {capper.socialLinks.whatsapp.username}
+                          </span>
+                        </a>
+                      )}
+                  </div>
+                )}
               </div>
             </div>
 

@@ -13,7 +13,13 @@ export type CapperProfile = {
   profileImage?: string;
   tags: string[];
   subscriberIds: string[];
-  socialLinks?: Record<string, string>;
+  socialLinks?: {
+    instagram?: { username: string; url: string };
+    x?: { username: string; url: string };
+    discord?: { username: string; url: string };
+    whatsapp?: { username: string; url: string };
+    youtube?: { username: string; url: string };
+  };
   products: {
     id: string;
     name: string;

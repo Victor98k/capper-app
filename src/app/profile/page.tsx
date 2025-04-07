@@ -25,6 +25,14 @@ import {
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 import Loader from "@/components/Loader";
+import { Input } from "@/components/ui/input";
+import {
+  Instagram,
+  Twitter,
+  Youtube,
+  MessageSquare,
+  Phone,
+} from "lucide-react";
 
 // Add this at the top of your file with other imports
 const sportEmojiMap: { [key: string]: string } = {
@@ -69,6 +77,14 @@ function CapperProfileContent() {
   const [showCropper, setShowCropper] = useState(false);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [capperData, setCapperData] = useState<any>(null);
+  const [socials, setSocials] = useState({
+    instagram: { username: "", url: "" },
+    x: { username: "", url: "" },
+    discord: { username: "", url: "" },
+    whatsapp: { username: "", url: "" },
+    youtube: { username: "", url: "" },
+  });
+  const [isEditingSocials, setIsEditingSocials] = useState(false);
 
   // 3. All useCallback hooks together
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -141,22 +157,49 @@ function CapperProfileContent() {
           }
 
           const data = await response.json();
+          console.log("All cappers data:", data); // Debug log
+
           const capperData = data.find((c: any) => c.userId === user.id);
+          console.log("Found capper data:", capperData); // Debug log
+          console.log("User ID for comparison:", user.id); // Debug log
 
           if (capperData) {
-            console.log("Fetched capper data:", capperData);
+            console.log("Social links raw:", capperData.socialLinks); // Debug log
+
             setCapperData(capperData);
-            // Check if bio exists in the response
-            if ("bio" in capperData) {
-              setBio(capperData.bio || "");
-            } else {
-              console.warn("Bio field missing in capper data");
-              setBio(""); // Set default empty string if bio is missing
-            }
+            setBio(capperData.bio || "");
             setTags(capperData.tags || []);
             setUsername(capperData.user?.username || "");
+
+            // Initialize socials with existing data or empty values
+            if (capperData.socialLinks) {
+              const socialLinks = {
+                instagram: capperData.socialLinks.instagram || {
+                  username: "",
+                  url: "",
+                },
+                x: capperData.socialLinks.x || { username: "", url: "" },
+                discord: capperData.socialLinks.discord || {
+                  username: "",
+                  url: "",
+                },
+                whatsapp: capperData.socialLinks.whatsapp || {
+                  username: "",
+                  url: "",
+                },
+                youtube: capperData.socialLinks.youtube || {
+                  username: "",
+                  url: "",
+                },
+              };
+
+              console.log("Setting social links state to:", socialLinks); // Debug log
+              setSocials(socialLinks);
+            } else {
+              console.log("No social links found in capper data"); // Debug log
+            }
           } else {
-            console.log("No capper data found for user:", user.id);
+            console.log("No capper data found for user ID:", user.id); // Debug log
           }
         } catch (error) {
           console.error("Failed to fetch capper profile:", error);
@@ -505,6 +548,69 @@ function CapperProfileContent() {
     }
   };
 
+  const handleSocialsUpdate = async () => {
+    try {
+      if (!user?.id) return;
+
+      // Filter out empty social links
+      const validSocials = Object.fromEntries(
+        Object.entries(socials).map(([platform, data]) => [
+          platform,
+          {
+            username: data.username || "",
+            url: data.url || "",
+          },
+        ])
+      );
+
+      console.log("Sending social links update:", validSocials); // Debug log
+
+      const response = await fetch("/api/cappers/socials", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Add token
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          socials: validSocials,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error response:", errorData); // Debug log
+        throw new Error(errorData.error || "Failed to update social links");
+      }
+
+      const updatedData = await response.json();
+      console.log("Social links update response:", updatedData); // Debug log
+
+      // Update local state with the response data
+      if (updatedData.socialLinks) {
+        setSocials({
+          instagram: updatedData.socialLinks.instagram || {
+            username: "",
+            url: "",
+          },
+          x: updatedData.socialLinks.x || { username: "", url: "" },
+          discord: updatedData.socialLinks.discord || { username: "", url: "" },
+          whatsapp: updatedData.socialLinks.whatsapp || {
+            username: "",
+            url: "",
+          },
+          youtube: updatedData.socialLinks.youtube || { username: "", url: "" },
+        });
+      }
+
+      setIsEditingSocials(false);
+      toast.success("Social links updated successfully");
+    } catch (error) {
+      console.error("Failed to update social links:", error);
+      toast.error("Failed to update social links");
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <SideNav />
@@ -804,6 +910,313 @@ function CapperProfileContent() {
                       onClick={() => setIsEditingBio(true)}
                     >
                       Edit Bio
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+                <CardDescription>
+                  Connect with your followers on social media
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isEditingSocials ? (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      {/* Instagram */}
+                      <div className="space-y-2">
+                        <label className="text-sm text-gray-400">
+                          Instagram
+                        </label>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Instagram className="w-5 h-5 text-pink-500" />
+                            <Input
+                              placeholder="Your Instagram username (without @)"
+                              value={socials.instagram?.username || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  instagram: {
+                                    ...socials.instagram,
+                                    username: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2 pl-7">
+                            <Input
+                              placeholder="Your Instagram profile URL"
+                              value={socials.instagram?.url || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  instagram: {
+                                    ...socials.instagram,
+                                    url: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Twitter/X */}
+                      <div className="space-y-2">
+                        <label className="text-sm text-gray-400">
+                          Twitter/X
+                        </label>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Twitter className="w-5 h-5 text-blue-400" />
+                            <Input
+                              placeholder="Your X username (without @)"
+                              value={socials.x?.username || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  x: {
+                                    ...socials.x,
+                                    username: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2 pl-7">
+                            <Input
+                              placeholder="Your X profile URL"
+                              value={socials.x?.url || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  x: {
+                                    ...socials.x,
+                                    url: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Discord */}
+                      <div className="space-y-2">
+                        <label className="text-sm text-gray-400">Discord</label>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <MessageSquare className="w-5 h-5 text-indigo-500" />
+                            <Input
+                              placeholder="Your Discord username"
+                              value={socials.discord?.username || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  discord: {
+                                    ...socials.discord,
+                                    username: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2 pl-7">
+                            <Input
+                              placeholder="Discord server invite link"
+                              value={socials.discord?.url || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  discord: {
+                                    ...socials.discord,
+                                    url: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* WhatsApp */}
+                      <div className="space-y-2">
+                        <label className="text-sm text-gray-400">
+                          WhatsApp
+                        </label>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Phone className="w-5 h-5 text-green-500" />
+                            <Input
+                              placeholder="Your WhatsApp number/name"
+                              value={socials.whatsapp?.username || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  whatsapp: {
+                                    ...socials.whatsapp,
+                                    username: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2 pl-7">
+                            <Input
+                              placeholder="WhatsApp group invite link"
+                              value={socials.whatsapp?.url || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  whatsapp: {
+                                    ...socials.whatsapp,
+                                    url: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* YouTube */}
+                      <div className="space-y-2">
+                        <label className="text-sm text-gray-400">YouTube</label>
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Youtube className="w-5 h-5 text-red-500" />
+                            <Input
+                              placeholder="Your YouTube channel name"
+                              value={socials.youtube?.username || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  youtube: {
+                                    ...socials.youtube,
+                                    username: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2 pl-7">
+                            <Input
+                              placeholder="Your YouTube channel URL"
+                              value={socials.youtube?.url || ""}
+                              onChange={(e) =>
+                                setSocials({
+                                  ...socials,
+                                  youtube: {
+                                    ...socials.youtube,
+                                    url: e.target.value,
+                                  },
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={handleSocialsUpdate}>
+                        Save Social Links
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditingSocials(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {Object.entries(socials).some(
+                      ([_, value]) => value?.username || value?.url
+                    ) ? (
+                      <div className="space-y-2">
+                        {socials.instagram?.username && (
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <Instagram className="h-5 w-5 text-pink-500" />
+                              <span>@{socials.instagram.username}</span>
+                            </div>
+                            {socials.instagram.url && (
+                              <span className="text-sm text-gray-500 pl-7">
+                                {socials.instagram.url}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {socials.x?.username && (
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <Twitter className="h-5 w-5 text-blue-400" />
+                              <span>@{socials.x.username}</span>
+                            </div>
+                            {socials.x?.url && (
+                              <span className="text-sm text-gray-500 pl-7">
+                                {socials.x.url}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {socials.discord?.url && (
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <MessageSquare className="h-5 w-5 text-indigo-500" />
+                              <span>Discord Server</span>
+                            </div>
+                            {socials.discord?.url && (
+                              <span className="text-sm text-gray-500 pl-7">
+                                {socials.discord.url}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {socials.whatsapp?.url && (
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <Phone className="h-5 w-5 text-green-500" />
+                              <span>WhatsApp Group</span>
+                            </div>
+                            {socials.whatsapp?.url && (
+                              <span className="text-sm text-gray-500 pl-7">
+                                {socials.whatsapp.url}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {socials.youtube?.url && (
+                          <div className="flex flex-col space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <Youtube className="h-5 w-5 text-red-500" />
+                              <span>YouTube Channel</span>
+                            </div>
+                            {socials.youtube?.url && (
+                              <span className="text-sm text-gray-500 pl-7">
+                                {socials.youtube.url}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        No social links added yet
+                      </p>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditingSocials(true)}
+                    >
+                      Edit Social Links
                     </Button>
                   </div>
                 )}

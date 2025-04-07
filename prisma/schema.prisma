@@ -44,7 +44,14 @@ model Capper {
   bio           String?
   title         String?         // Professional title
   imageUrl      String?         // Profile image
-  socialLinks   Json?           // Store social links as JSON
+  socialLinks   Json?           // Store social links as JSON with this structure:
+                               // {
+                               //   instagram?: { username: string, url: string },
+                               //   x?: { username: string, url: string },
+                               //   discord?: { username: string, url: string },
+                               //   whatsapp?: { username: string, url: string },
+                               //   youtube?: { username: string, url: string }
+                               // }
   tags          String[]        // Keep existing tags
   subscribers   User[]          @relation("UserSubscriptions", fields: [subscriberIds], references: [id])
   subscriberIds String[]       @db.ObjectId

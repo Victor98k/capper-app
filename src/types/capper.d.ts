@@ -3,6 +3,13 @@ interface Capper {
   userId: string;
   bio: string | null;
   tags: string[];
+  socials: {
+    instagram: string;
+    x: string;
+    discord: string;
+    whatsapp: string;
+    youtube: string;
+  };
   user: {
     firstName: string;
     lastName: string;
