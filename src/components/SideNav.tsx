@@ -167,24 +167,6 @@ export function SideNav() {
               <TicketIcon className="h-5 w-5 mr-3" />
               My Bets
             </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base"
-              onClick={() => router.push("/Analytics")}
-            >
-              <BarChart3 className="h-5 w-5 mr-3" />
-              Analytics
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base"
-              onClick={() => router.push("/Settings")}
-            >
-              <Settings className="h-5 w-5 mr-3" />
-              Settings
-            </Button>
           </div>
         </nav>
 
@@ -196,7 +178,7 @@ export function SideNav() {
               className="w-full justify-start py-4 px-2 text-base border border-[#4e43ff] text-[#4e43ff] hover:bg-[#4e43ff]/10"
               onClick={() =>
                 (window.location.href =
-                  "https://www.cappersports.co/become-capper")
+                  "https://app.cappersports.co/become-capper")
               }
             >
               <LineChart className="h-5 w-5 mr-3" />
