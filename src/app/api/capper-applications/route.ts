@@ -5,14 +5,8 @@ import { Resend } from "resend";
 import { CapperApplicationEmail } from "@/emails/CapperApplicationEmail";
 import { signJWT } from "@/utils/jwt";
 
-console.log("Resend API Key configured:", !!process.env.RESEND_API_KEY);
+// console.log("Resend API Key configured:", !!process.env.RESEND_API_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-const fromEmail = process.env.RESEND_FROM_EMAIL;
-const testEmail = process.env.RESEND_TEST_EMAIL;
-
-// Define test email - this ensures we have a fallback
-const TEST_EMAIL = "victorgustav98@gmail.com";
 
 // Add this interface
 interface CapperApplication {
@@ -151,8 +145,8 @@ export async function POST(request: Request) {
 
     // Send confirmation email
     await resend.emails.send({
-      from: "Cappers Platform <onboarding@resend.dev>",
-      to: TEST_EMAIL, // Always send to test email
+      from: "Cappers <hello@cappersports.co>",
+      to: user.email,
       subject: "Application Received - Cappers Platform",
       react: CapperApplicationEmail({
         userFirstName: user.firstName,
@@ -248,14 +242,14 @@ export async function PUT(request: Request) {
 
         console.log("Sending approval email to:", application.user.email); // Debug log
         const emailResponse = await resend.emails.send({
-          from: "Cappers Platform <onboarding@resend.dev>",
-          to: TEST_EMAIL,
+          from: "Cappers <hello@cappersports.co>",
+          to: application.user.email,
           subject: "Your Capper Application has been Approved!",
           react: CapperApplicationEmail({
             userFirstName: application.user.firstName,
             status: "APPROVED",
-            setupUrl: signupToken, // Just pass the token
-            baseUrl: "https://app.cappersports.co", // Base URL without trailing slash
+            setupUrl: signupToken,
+            baseUrl: process.env.NEXT_PUBLIC_APP_URL || "",
           }),
         });
 
@@ -274,8 +268,8 @@ export async function PUT(request: Request) {
     } else if (status === "REJECTED") {
       // Update rejection email as well
       await resend.emails.send({
-        from: "Cappers Platform <onboarding@resend.dev>",
-        to: TEST_EMAIL, // Always send to test email
+        from: "Cappers <hello@cappersports.co>",
+        to: application.user.email,
         subject: "Update on Your Capper Application",
         react: CapperApplicationEmail({
           userFirstName: application.user.firstName,

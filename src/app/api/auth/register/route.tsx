@@ -90,9 +90,8 @@ export async function POST(request: Request) {
     // Send welcome email
     try {
       await resend.emails.send({
-        from: "Cappers Platform <onboarding@resend.dev>",
-        to: "victorgustav98@gmail.com", // Temporarily use your email for testing
-        // to: user.email  // Send to the actual user's email
+        from: "Cappers <hello@cappersports.co>",
+        to: user.email, // Send directly to user's email instead of test email
         subject: "Welcome to Cappers Platform!",
         react: CappersWelcomeEmail({ userFirstname: user.firstName }),
       });

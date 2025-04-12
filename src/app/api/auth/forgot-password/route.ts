@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       .update(resetToken)
       .digest("hex");
 
-    console.log("Generated reset token for user:", user.id);
+    // console.log("Generated reset token for user:", user.id);
 
     // Save the reset token and expiry to the user record
     await prisma.user.update({

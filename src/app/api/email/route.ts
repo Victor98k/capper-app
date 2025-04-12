@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     switch (type) {
       case "welcome":
         emailResponse = await resend.emails.send({
-          from: "Cappers Platform <onboarding@resend.dev>",
+          from: "Cappers <hello@cappersports.co>",
           to: email,
           subject: "Welcome to Cappers Platform!",
           react: CappersWelcomeEmail({ userFirstname: username }),

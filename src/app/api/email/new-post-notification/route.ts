@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     // Send email to each subscriber
     const emailPromises = capper.subscriptions.map(async ({ user }) => {
       await resend.emails.send({
-        from: "Cappers <notifications@cappersports.co>",
+        from: "Cappers <hello@cappersports.co>",
         to: user.email,
         subject: `New post from ${capper.user.firstName} ${capper.user.lastName}: ${postTitle}`,
         react: NewPostEmail({
