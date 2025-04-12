@@ -148,7 +148,7 @@ export function Signup() {
         <img
           src={capperLogo.src}
           alt="Cappers Logo"
-          className="hidden md:block w-53 mb-8"
+          className="h-16 md:h-20 lg:h-24 pb-2"
         />
 
         {alert && (
