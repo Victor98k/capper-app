@@ -6,17 +6,26 @@ import { hashPassword } from "@/utils/bcrypt";
 export async function POST(request: Request) {
   try {
     const { token, password } = await request.json();
+    console.log("Received token:", token);
 
-    const decoded = await verifyJWT(token);
-    if (!decoded?.userId) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    const payload = await verifyJWT(token);
+    console.log("Token payload:", payload);
+
+    if (!payload?.userId) {
+      throw new Error("Invalid token");
     }
+
+    // Log the user lookup
+    const existingUser = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+    console.log("Found user:", existingUser);
 
     const hashedPassword = await hashPassword(password);
 
     // Update user with password and set isCapper to true
     await prisma.user.update({
-      where: { id: decoded.userId },
+      where: { id: payload.userId },
       data: {
         password: hashedPassword,
         isCapper: true,

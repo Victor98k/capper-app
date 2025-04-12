@@ -23,9 +23,11 @@ export const CapperApplicationEmail = ({
   baseUrl,
 }: CapperApplicationEmailProps) => {
   const isApproved = status === "APPROVED";
+  console.log("Email Component Debug:", { baseUrl, setupUrl });
   const fullSetupUrl = setupUrl
     ? `${baseUrl}/capper-signup?token=${setupUrl}`
     : "#";
+  console.log("Generated URL:", fullSetupUrl);
 
   return (
     <Html>

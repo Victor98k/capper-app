@@ -263,6 +263,12 @@ export async function PUT(request: Request) {
             ? "victorgustav98@gmail.com"
             : application.user.email
         );
+
+        console.log("Sending email with:", {
+          baseUrl: BASE_URL,
+          signupToken,
+          fullUrl: `${BASE_URL}/capper-signup?token=${signupToken}`,
+        });
       } catch (emailError) {
         console.error("Error in approval process:", emailError);
         // Continue with the response even if email fails
