@@ -31,7 +31,14 @@ model User {
   resetTokenExpiry DateTime?
   capperApplications CapperApplication[]
   bets          Bet[]     @relation("UserBets")
-
+  socialLinks   Json?           // Store social links as JSON with this structure:
+                               // {
+                               //   instagram?: { username: string, url: string },
+                               //   x?: { username: string, url: string },
+                               //   discord?: { username: string, url: string },
+                               //   whatsapp?: { username: string, url: string },
+                               //   youtube?: { username: string, url: string }
+                               // }
   Subscription Subscription[]
 }
 

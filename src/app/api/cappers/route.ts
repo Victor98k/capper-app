@@ -23,13 +23,18 @@ export async function GET(request: Request) {
     // Get all cappers with their associated user info
     const cappers = await prisma.capper.findMany({
       where: {
-        // Only get cappers that have an associated user
         user: {
-          // Check that user exists and is not null
           id: { not: undefined },
         },
       },
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        bio: true,
+        tags: true,
+        profileImage: true,
+        imageUrl: true,
+        socialLinks: true,
         user: {
           select: {
             firstName: true,
@@ -40,7 +45,7 @@ export async function GET(request: Request) {
           },
         },
       },
-      take: 10, // Limit to 10 cappers for performance
+      take: 10,
       orderBy: {
         createdAt: "desc",
       },
@@ -64,6 +69,7 @@ export async function GET(request: Request) {
       profileImage: capper.profileImage,
       imageUrl: capper.imageUrl || undefined,
       tags: capper.tags || [],
+      socialLinks: capper.socialLinks || {},
     }));
 
     return NextResponse.json(formattedCappers);

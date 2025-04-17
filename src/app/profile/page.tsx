@@ -145,6 +145,8 @@ function CapperProfileContent() {
       if (user?.id) {
         try {
           const token = localStorage.getItem("token");
+          console.log("Fetching profile for user ID:", user.id); // Debug log
+
           const response = await fetch("/api/cappers", {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -157,49 +159,32 @@ function CapperProfileContent() {
           }
 
           const data = await response.json();
-          console.log("All cappers data:", data); // Debug log
+          console.log("Raw API response:", data); // Debug log
 
           const capperData = data.find((c: any) => c.userId === user.id);
           console.log("Found capper data:", capperData); // Debug log
-          console.log("User ID for comparison:", user.id); // Debug log
+          console.log("Social links in capper data:", capperData?.socialLinks); // Debug log
 
           if (capperData) {
-            console.log("Social links raw:", capperData.socialLinks); // Debug log
-
             setCapperData(capperData);
             setBio(capperData.bio || "");
             setTags(capperData.tags || []);
             setUsername(capperData.user?.username || "");
 
-            // Initialize socials with existing data or empty values
-            if (capperData.socialLinks) {
-              const socialLinks = {
-                instagram: capperData.socialLinks.instagram || {
-                  username: "",
-                  url: "",
-                },
-                x: capperData.socialLinks.x || { username: "", url: "" },
-                discord: capperData.socialLinks.discord || {
-                  username: "",
-                  url: "",
-                },
-                whatsapp: capperData.socialLinks.whatsapp || {
-                  username: "",
-                  url: "",
-                },
-                youtube: capperData.socialLinks.youtube || {
-                  username: "",
-                  url: "",
-                },
-              };
+            // Initialize socials with existing data
+            const socialLinks = capperData.socialLinks || {};
+            console.log("Social links before processing:", socialLinks); // Debug log
 
-              console.log("Setting social links state to:", socialLinks); // Debug log
-              setSocials(socialLinks);
-            } else {
-              console.log("No social links found in capper data"); // Debug log
-            }
-          } else {
-            console.log("No capper data found for user ID:", user.id); // Debug log
+            const initialSocials = {
+              instagram: socialLinks.instagram || { username: "", url: "" },
+              x: socialLinks.x || { username: "", url: "" },
+              discord: socialLinks.discord || { username: "", url: "" },
+              whatsapp: socialLinks.whatsapp || { username: "", url: "" },
+              youtube: socialLinks.youtube || { username: "", url: "" },
+            };
+
+            console.log("Initial socials state:", initialSocials); // Debug log
+            setSocials(initialSocials);
           }
         } catch (error) {
           console.error("Failed to fetch capper profile:", error);
@@ -552,24 +537,24 @@ function CapperProfileContent() {
     try {
       if (!user?.id) return;
 
-      // Filter out empty social links
+      // Create an object with only non-empty social links
       const validSocials = Object.fromEntries(
         Object.entries(socials).map(([platform, data]) => [
           platform,
-          {
-            username: data.username || "",
-            url: data.url || "",
-          },
+          data.username || data.url
+            ? {
+                username: data.username || "",
+                url: data.url || "",
+              }
+            : null,
         ])
       );
-
-      console.log("Sending social links update:", validSocials); // Debug log
 
       const response = await fetch("/api/cappers/socials", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Add token
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
           userId: user.id,
@@ -578,13 +563,10 @@ function CapperProfileContent() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error response:", errorData); // Debug log
-        throw new Error(errorData.error || "Failed to update social links");
+        throw new Error("Failed to update social links");
       }
 
       const updatedData = await response.json();
-      console.log("Social links update response:", updatedData); // Debug log
 
       // Update local state with the response data
       if (updatedData.socialLinks) {

@@ -15,6 +15,10 @@ interface SocialLinks {
   youtube?: SocialLink | null;
 }
 
+interface ExistingCapper {
+  socialLinks: SocialLinks | null;
+}
+
 export async function PUT(request: Request) {
   try {
     const { userId, socials } = (await request.json()) as {
@@ -33,10 +37,12 @@ export async function PUT(request: Request) {
     // Get existing capper data first
     const existingCapper = (await prisma.capper.findUnique({
       where: { userId },
-      select: { socialLinks: true as const },
-    })) as { socialLinks: SocialLinks | null };
+      select: { socialLinks: true },
+    })) as ExistingCapper | null;
 
-    // Merge existing social links with new ones
+    console.log("Existing capper social links:", existingCapper?.socialLinks); // Debug log
+
+    // Create the updated socials object, maintaining existing values if not updated
     const updatedSocials = {
       instagram:
         socials.instagram || existingCapper?.socialLinks?.instagram || null,
@@ -47,7 +53,7 @@ export async function PUT(request: Request) {
       youtube: socials.youtube || existingCapper?.socialLinks?.youtube || null,
     };
 
-    console.log("Updating with merged socials:", updatedSocials); // Debug log
+    console.log("Updating with socials:", updatedSocials); // Debug log
 
     const updatedCapper = await prisma.capper.update({
       where: { userId },
