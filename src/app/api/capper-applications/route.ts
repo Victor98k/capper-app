@@ -169,10 +169,10 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    console.log("PUT request received"); // Debug log
+    // console.log("PUT request received"); // Debug log
 
     const cookies = request.headers.get("cookie");
-    console.log("Cookies:", cookies); // Debug log
+    // console.log("Cookies:", cookies); // Debug log
 
     const token = cookies
       ?.split(";")
