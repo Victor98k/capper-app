@@ -1,0 +1,3 @@
+main text color = #4e43ff
+
+dark bg color in app = 

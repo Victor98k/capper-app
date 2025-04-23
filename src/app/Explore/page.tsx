@@ -85,7 +85,7 @@ export default function ExplorePage() {
         <main className="flex-1 p-4">
           <div className="max-w-7xl mx-auto lg:mt-0 mt-8">
             <div className="px-2 sm:px-4">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 mt-6 md:mt-12 text-center md:text-left bg-gradient-to-r from-violet-500 to-violet-300 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 mt-6 md:mt-12 text-center md:text-left text-[#4e43ff]">
                 Explore our Cappers
               </h1>
 

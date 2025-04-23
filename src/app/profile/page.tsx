@@ -394,6 +394,10 @@ function CapperProfileContent() {
 
   const handleAddSport = async () => {
     if (newTag && !tags.includes(newTag)) {
+      if (tags.length >= 3) {
+        toast.error("You can only have up to 3 sports");
+        return;
+      }
       // Only allow sports from our sportEmojiMap
       if (sportEmojiMap[newTag]) {
         try {

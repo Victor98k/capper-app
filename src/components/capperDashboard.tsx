@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import StripeProductDisplay from "./StripeProductDisplay";
 import Loader from "@/components/Loader";
+import { useQuery } from "@tanstack/react-query";
 
 export function CapperDashboard() {
   const { user, loading } = useAuth();
@@ -41,66 +42,43 @@ export function CapperDashboard() {
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [username, setUsername] = useState("");
-  const [stripeStatus, setStripeStatus] = useState({
-    isOnboarded: false,
-    isLoading: true,
-  });
 
   // Add searchParams to check for success parameter
   const searchParams = useSearchParams();
   const success = searchParams.get("success");
 
-  // Modify the checkStripeStatus function to be reusable
-  const checkStripeStatus = async () => {
-    try {
-      // Remove localStorage check since we're using cookies now
-      const response = await fetch("/api/stripe/connect", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // Add credentials to include cookies in the request
-        credentials: "include",
-      });
+  // Convert checkStripeStatus to a fetch function
+  const fetchStripeStatus = async () => {
+    const response = await fetch("/api/stripe/connect", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Stripe connect error:", errorData);
-        throw new Error(errorData.error || "Failed to fetch Stripe status");
-      }
-
-      const data = await response.json();
-      setStripeStatus({
-        isOnboarded: data.onboarded || false,
-        isLoading: false,
-      });
-
-      // console.log("Stripe status check:", data);
-    } catch (error) {
-      console.error("Failed to fetch Stripe status:", error);
-      setStripeStatus({
-        isOnboarded: false,
-        isLoading: false,
-      });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch Stripe status");
     }
+
+    const data = await response.json();
+    return data;
   };
 
-  // Check Stripe status on initial load
-  useEffect(() => {
-    if (user?.isCapper && !loading) {
-      // console.log("Checking Stripe status for capper:", user.id);
-      checkStripeStatus();
-    }
-  }, [user, loading]);
+  // Use React Query to manage the Stripe status
+  const { data: stripeStatus, refetch: refetchStripeStatus } = useQuery({
+    queryKey: ["stripeStatus", user?.id],
+    queryFn: fetchStripeStatus,
+    enabled: !!user?.isCapper && !loading, // Only run query if user is a capper
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+  });
 
-  // Add another useEffect to handle the success parameter
+  // Handle success parameter
   useEffect(() => {
     if (success === "true" && user?.isCapper) {
-      // console.log(
-      //   "Detected successful Stripe onboarding, rechecking status..."
-      // );
-      checkStripeStatus();
+      refetchStripeStatus();
     }
-  }, [success, user]);
+  }, [success, user?.isCapper, refetchStripeStatus]);
 
   // Update useEffect to fetch tags as well
   useEffect(() => {
@@ -281,12 +259,12 @@ export function CapperDashboard() {
             {user?.isCapper && (
               <div className="mb-6">
                 <StripeConnectOnboarding
-                  isOnboarded={stripeStatus.isOnboarded}
+                  isOnboarded={stripeStatus?.onboarded || false}
                 />
               </div>
             )}
 
-            {user?.isCapper && stripeStatus.isOnboarded && (
+            {user?.isCapper && stripeStatus?.onboarded && (
               <div className="mb-6">
                 <StripeProductDisplay />
               </div>

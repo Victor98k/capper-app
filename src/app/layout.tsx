@@ -2,7 +2,7 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import QueryProvider from "@/providers/QueryProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = localFont({

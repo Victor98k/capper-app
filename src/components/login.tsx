@@ -74,7 +74,7 @@ export function Login() {
         router.push("/home");
       }, 100);
     } catch (error) {
-      console.error("Error during login:", error);
+      // console.error("Error during login:", error);
       setAlert({
         type: "error",
         message: "Network error",
