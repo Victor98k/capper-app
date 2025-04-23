@@ -242,14 +242,14 @@ export function CapperDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#020817]">
       <SideNav />
 
       <div className="flex-1">
-        <header className="bg-white shadow pl-16 lg:pl-0">
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back, {user?.firstName}
+        <header className="bg-[#020817] shadow pl-16 lg:pl-0">
+          <div className="max-w-7xl mx-auto pt-10 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 className="text-4xl font-bold text-white">
+              Welcome back, {user?.username}
             </h1>
           </div>
         </header>

@@ -5,6 +5,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import logo from "@/images/Cappers Logga (1).svg";
+import Image from "next/image";
+
 import {
   Home,
   Heart,
@@ -158,16 +161,6 @@ export function SideNav() {
           size="lg"
           onClick={() => router.push("/home-capper")}
         >
-          <Home className="h-5 w-5 mr-3" />
-          Home Dashboard
-        </Button>
-
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/home-capper")}
-        >
           <BarChart3 className="h-5 w-5 mr-3" />
           Capper Dashboard
         </Button>
@@ -274,23 +267,43 @@ export function SideNav() {
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
+              <Menu className="h-8 w-8 text-black" />
             </Button>
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-64 p-6 bg-gray-800 border-gray-700"
+            className="w-[85vw] max-w-[300px] p-0 bg-gray-900 border-gray-800"
           >
-            <h1 className="text-2xl font-bold text-blue-600 mb-8">CAPPERS</h1>
-            <NavLinks />
+            <div className="flex flex-col h-full">
+              {/* Mobile Header with Logo */}
+              <div className="p-4 border-b border-gray-800">
+                <Image
+                  src={logo}
+                  alt="Cappers Logo"
+                  width={140}
+                  height={50}
+                  priority
+                  className="mx-auto"
+                />
+              </div>
+
+              {/* Mobile Navigation Content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <NavLinks />
+              </div>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-64 bg-gray-800 border-r border-gray-700 h-screen sticky top-0">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-blue-600 mb-8">CAPPERS</h1>
+      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden lg:block h-screen sticky top-0">
+        <div className="p-6 h-full flex flex-col">
+          {/* Desktop Logo */}
+          <div className="mb-8 flex justify-center">
+            <Image src={logo} alt="Cappers Logo" width={190} height={70} />
+          </div>
+          {/* Desktop Navigation Content */}
           <NavLinks />
         </div>
       </aside>

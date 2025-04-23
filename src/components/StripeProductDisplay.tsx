@@ -10,7 +10,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Loader2 } from "lucide-react";
+import { Check, Plus, Loader2, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface Product {
@@ -161,7 +161,7 @@ export default function StripeProductDisplay() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-black">
+        <h2 className="text-xl font-semibold text-white">
           Your current products
         </h2>
         {products.length < MAX_PRODUCTS && (
@@ -177,82 +177,88 @@ export default function StripeProductDisplay() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => {
-          console.log("Rendering product:", product);
+        {products.map((product, index) => {
+          const isMiddleCard = products.length === 3 && index === 1;
+
           return (
-            <Card
+            <div
               key={product.id}
-              className="bg-gray-800 border-gray-700 flex flex-col"
+              className={`rounded-xl p-6 backdrop-blur-sm transition-all duration-300 hover:transform hover:scale-[1.02]
+                ${
+                  isMiddleCard
+                    ? "bg-gradient-to-br from-violet-600/50 to-violet-900/50 border-2 border-violet-400/50 shadow-[0_0_40px_rgba(139,92,246,0.3)]"
+                    : "bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 hover:border-[#4e43ff]/50"
+                }
+                ${isMiddleCard ? "lg:-mt-4 lg:p-8" : ""}
+                hover:shadow-[0_0_30px_rgba(78,67,255,0.2)]
+              `}
             >
-              <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-white flex justify-between items-center">
+              {/* Product Header */}
+              <div className="flex justify-between items-start mb-6">
+                <h3
+                  className={`text-2xl font-bold ${
+                    isMiddleCard ? "text-violet-300" : "text-[#4e43ff]"
+                  }`}
+                >
                   {product.name}
-                </CardTitle>
-                <CardDescription className="text-gray-300">
-                  {product.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <div className="flex flex-col items-center">
-                  <span className="text-5xl font-extrabold text-white">
+                  {isMiddleCard && (
+                    <div className="text-sm font-normal text-violet-300/80 mt-1">
+                      Most Popular
+                    </div>
+                  )}
+                </h3>
+              </div>
+
+              {/* Price Display */}
+              <div className="mb-8">
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold text-white">
                     {product.default_price.unit_amount === 0
                       ? "Free"
-                      : new Intl.NumberFormat("en-US", {
-                          style: "decimal",
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }).format(product.default_price.unit_amount / 100)}
+                      : `$${(product.default_price.unit_amount / 100).toFixed(2)}`}
                   </span>
                   {product.default_price.unit_amount > 0 && (
-                    <>
-                      <span className="text-sm font-medium text-gray-400 mt-1">
-                        {product.default_price.currency.toUpperCase()}
-                      </span>
-                      <span className="text-xl font-medium text-gray-300">
-                        {
-                          product.default_price?.type === "one_time"
-                            ? " one-time"
-                            : product.default_price?.recurring?.interval
-                            ? `/${product.default_price.recurring.interval}`
-                            : "/month" // fallback to /month if no interval specified
-                        }
-                        {product.default_price?.recurring?.interval_count &&
-                        product.default_price.recurring.interval_count > 1
-                          ? ` (${product.default_price.recurring.interval_count} ${product.default_price.recurring.interval}s)`
-                          : ""}
-                      </span>
-                    </>
+                    <span className="ml-2 text-gray-400">
+                      /{product.default_price?.recurring?.interval || "month"}
+                    </span>
                   )}
                 </div>
-                <ul className="mt-8 space-y-4">
-                  {Array.isArray(product.features) &&
-                  product.features.length > 0 ? (
-                    product.features.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <div className="flex-shrink-0">
-                          <Check className="h-6 w-6 text-green-400" />
-                        </div>
-                        <p className="ml-3 text-base text-gray-300">
-                          {feature.name}
-                        </p>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="text-gray-400 text-center">
-                      No features listed. Add features in your Stripe dashboard.
+                <p className="mt-2 text-gray-400">{product.description}</p>
+              </div>
+
+              {/* Features List */}
+              <ul className="space-y-4 mb-8">
+                {Array.isArray(product.features) &&
+                product.features.length > 0 ? (
+                  product.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-start gap-3">
+                      <Zap
+                        className={`h-5 w-5 flex-shrink-0 ${
+                          isMiddleCard ? "text-violet-300" : "text-[#4e43ff]"
+                        }`}
+                      />
+                      <span className="text-gray-300">{feature.name}</span>
                     </li>
-                  )}
-                </ul>
-              </CardContent>
-              <CardFooter className="mt-auto pt-6">
-                <Button
-                  className="w-full bg-violet-500 hover:bg-violet-600"
-                  onClick={() => openStripeDashboard(`/products/${product.id}`)}
-                >
-                  Manage Product
-                </Button>
-              </CardFooter>
-            </Card>
+                  ))
+                ) : (
+                  <li className="text-gray-400 text-center">
+                    No features listed. Add features in your Stripe dashboard.
+                  </li>
+                )}
+              </ul>
+
+              {/* Manage Button */}
+              <Button
+                className={`w-full ${
+                  isMiddleCard
+                    ? "bg-violet-500 hover:bg-violet-600 text-white"
+                    : "bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+                }`}
+                onClick={() => openStripeDashboard(`/products/${product.id}`)}
+              >
+                Manage Product
+              </Button>
+            </div>
           );
         })}
       </div>

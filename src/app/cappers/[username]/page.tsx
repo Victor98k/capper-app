@@ -32,6 +32,7 @@ import {
   Youtube,
   MessageSquare,
   Phone,
+  Zap,
 } from "lucide-react";
 import { use } from "react";
 // Components
@@ -560,126 +561,143 @@ export default function CapperProfilePage({
               <h2 className="text-2xl font-semibold text-white mb-6">
                 Subscription Plans
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {capper.products.length > 0 ? (
-                  capper.products.map((product) => {
+                  capper.products.map((product, index) => {
                     const isSubscribedToProduct = subscribedProducts.includes(
                       product.id
                     );
-                    // console.log("Product subscription status:", {
-                    //   productId: product.id,
-                    //   isSubscribed: isSubscribedToProduct,
-                    //   subscribedProducts,
-                    // });
+                    const isMiddleCard =
+                      capper.products.length === 3 && index === 1;
 
                     return (
-                      <Card
+                      <div
                         key={product.id}
-                        className={`bg-gray-800 border-2 flex flex-col relative p-4 sm:p-6 ${
-                          isSubscribedToProduct
-                            ? "border-green-500 shadow-lg shadow-green-500/20"
-                            : "border-gray-700"
-                        }`}
+                        className={`rounded-xl p-6 transition-all duration-300 hover:transform hover:scale-[1.02]
+                          ${
+                            isSubscribedToProduct
+                              ? "bg-[#4e43ff] border-2 border-white/20"
+                              : isMiddleCard
+                                ? "bg-gradient-to-br from-violet-600/50 to-violet-900/50 border-2 border-violet-400/50 shadow-[0_0_40px_rgba(139,92,246,0.3)]"
+                                : "bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 hover:border-[#4e43ff]/50"
+                          }
+                          ${isMiddleCard ? "lg:-mt-4 lg:p-8" : ""}
+                          hover:shadow-[0_0_30px_rgba(78,67,255,0.2)]
+                        `}
                       >
-                        <CardHeader className="p-0 sm:p-4">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-xl sm:text-2xl font-semibold text-white">
-                              {product.name}
-                            </CardTitle>
-                            {isSubscribedToProduct && (
-                              <span className="flex items-center gap-1 text-sm text-green-500 bg-green-500/10 px-2 py-1 rounded-full">
-                                <Check className="h-4 w-4" />
-                                Active
+                        {/* Product Header */}
+                        <div className="flex justify-between items-start mb-6">
+                          <h3
+                            className={`text-2xl font-bold ${
+                              isSubscribedToProduct
+                                ? "text-white"
+                                : isMiddleCard
+                                  ? "text-violet-300"
+                                  : "text-[#4e43ff]"
+                            }`}
+                          >
+                            {product.name}
+                            {isMiddleCard && (
+                              <div className="text-sm font-normal text-violet-300/80 mt-1">
+                                Most Popular
+                              </div>
+                            )}
+                          </h3>
+                          {isSubscribedToProduct && (
+                            <span className="flex items-center gap-1 text-sm bg-white/20 text-white px-3 py-1 rounded-full">
+                              <Check className="h-4 w-4" />
+                              Active
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Price Display */}
+                        <div className="mb-8">
+                          <div className="flex items-baseline">
+                            <span
+                              className={`text-4xl font-bold ${
+                                isSubscribedToProduct
+                                  ? "text-white"
+                                  : "text-white"
+                              }`}
+                            >
+                              {product.default_price.unit_amount === 0
+                                ? "Free"
+                                : `$${(product.default_price.unit_amount / 100).toFixed(2)}`}
+                            </span>
+                            {product.default_price.unit_amount > 0 && (
+                              <span
+                                className={`ml-2 ${
+                                  isSubscribedToProduct
+                                    ? "text-white/80"
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                /
+                                {product.default_price?.recurring?.interval ||
+                                  "month"}
                               </span>
                             )}
                           </div>
-                          <CardDescription className="text-sm sm:text-base text-gray-300">
-                            {product.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow">
-                          <div className="flex flex-col items-center">
-                            <span className="text-5xl font-extrabold text-white">
-                              {product.default_price.unit_amount === 0
-                                ? "Free"
-                                : new Intl.NumberFormat("en-US", {
-                                    style: "decimal",
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  }).format(
-                                    product.default_price.unit_amount / 100
-                                  )}
-                            </span>
-                            {product.default_price.unit_amount > 0 && (
-                              <>
-                                <span className="text-sm font-medium text-gray-400 mt-1">
-                                  {product.default_price.currency.toUpperCase()}
-                                </span>
-                                <span className="text-xl font-medium text-gray-300">
-                                  {
-                                    product.default_price?.type === "one_time"
-                                      ? " one-time"
-                                      : product.default_price?.recurring
-                                            ?.interval
-                                        ? `/${product.default_price.recurring.interval}`
-                                        : "/month" // fallback to /month if no interval specified
-                                  }
-                                  {product.default_price?.recurring
-                                    ?.interval_count &&
-                                  product.default_price.recurring
-                                    .interval_count > 1
-                                    ? ` (${product.default_price.recurring.interval_count} ${product.default_price.recurring.interval}s)`
-                                    : ""}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                          <ul className="mt-8 space-y-4">
-                            {Array.isArray(product.marketing_features) &&
-                            product.marketing_features.length > 0 ? (
-                              product.marketing_features.map(
-                                (feature, index) => (
-                                  <li key={index} className="flex items-start">
-                                    <div className="flex-shrink-0">
-                                      <Check className="h-6 w-6 text-green-400" />
-                                    </div>
-                                    <p className="ml-3 text-base text-gray-300">
-                                      {feature}
-                                    </p>
-                                  </li>
-                                )
-                              )
-                            ) : (
-                              <li className="flex items-start">
-                                <div className="flex-shrink-0">
-                                  <Check className="h-6 w-6 text-green-400" />
-                                </div>
-                                <p className="ml-3 text-base text-gray-300">
-                                  No features specified
-                                </p>
-                              </li>
-                            )}
-                          </ul>
-                        </CardContent>
-                        <CardFooter className="mt-auto pt-6">
-                          <SubscribeButton
-                            capperId={capper.id}
-                            productId={product.id}
-                            priceId={product.default_price.id}
-                            stripeAccountId={capper.user.stripeConnectId}
-                            isSubscribed={isSubscribedToProduct}
-                            className={`w-full ${
+                          <p
+                            className={`mt-2 ${
                               isSubscribedToProduct
-                                ? "bg-red-500 hover:bg-red-600"
-                                : "bg-violet-500 hover:bg-violet-600"
+                                ? "text-white/80"
+                                : "text-gray-400"
                             }`}
                           >
-                            {isSubscribedToProduct
-                              ? "Unsubscribe"
-                              : "Subscribe"}
-                          </SubscribeButton>
-                        </CardFooter>
-                      </Card>
+                            {product.description}
+                          </p>
+                        </div>
+
+                        {/* Features List */}
+                        <ul className="space-y-4 mb-8">
+                          {Array.isArray(product.marketing_features) &&
+                            product.marketing_features.map((feature, index) => (
+                              <li
+                                key={index}
+                                className="flex items-start gap-3"
+                              >
+                                <Zap
+                                  className={`h-5 w-5 flex-shrink-0 ${
+                                    isSubscribedToProduct
+                                      ? "text-white"
+                                      : "text-[#4e43ff]"
+                                  }`}
+                                />
+                                <span
+                                  className={
+                                    isSubscribedToProduct
+                                      ? "text-white/90"
+                                      : "text-gray-300"
+                                  }
+                                >
+                                  {feature}
+                                </span>
+                              </li>
+                            ))}
+                        </ul>
+
+                        {/* Subscribe Button */}
+                        <SubscribeButton
+                          capperId={capper.id}
+                          productId={product.id}
+                          priceId={product.default_price.id}
+                          stripeAccountId={capper.user.stripeConnectId}
+                          isSubscribed={isSubscribedToProduct}
+                          className={`w-full ${
+                            isSubscribedToProduct
+                              ? "bg-white/20 hover:bg-white/30 text-white"
+                              : isMiddleCard
+                                ? "bg-violet-500 hover:bg-violet-600 text-white"
+                                : "bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+                          }`}
+                        >
+                          {isSubscribedToProduct
+                            ? "Unsubscribe"
+                            : "Subscribe Now"}
+                        </SubscribeButton>
+                      </div>
                     );
                   })
                 ) : (
