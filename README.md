@@ -1,3 +1,6 @@
-## Cappers club 🚀
+## Capperssports 🚀
 
-Soon live 4 everyone 🔧
+ 
+Live 4 everyone 🔧
+
+https://www.cappersports.co/
