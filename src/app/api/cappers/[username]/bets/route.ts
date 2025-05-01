@@ -45,24 +45,22 @@ export async function GET(request: NextRequest) {
       select: {
         status: true,
         date: true,
-        odds: true,
-        amount: true,
+        units: true,
       },
     });
 
-    // Calculate cumulative performance
-    let cumulativeProfit = 0;
+    // Calculate cumulative units
+    let cumulativeUnits = 0;
     const performanceData = verifiedBets.map((bet) => {
-      const profit =
-        bet.status === "WON"
-          ? (bet.amount || 0) * (bet.odds - 1)
-          : -(bet.amount || 0);
-      cumulativeProfit += profit;
+      const unitChange =
+        bet.status === "WON" ? bet.units || 0 : -(bet.units || 0);
+      cumulativeUnits += unitChange;
 
       return {
         date: bet.date.toISOString().split("T")[0],
-        profit: cumulativeProfit,
+        units: cumulativeUnits,
         status: bet.status,
+        unitChange: unitChange,
       };
     });
 

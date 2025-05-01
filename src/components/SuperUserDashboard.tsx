@@ -33,6 +33,7 @@ interface BetValidation {
   game: string;
   amount: number;
   odds: number;
+  units: number;
   date: string;
   status: "PENDING" | "WON" | "LOST";
   createdAt: string;
@@ -49,6 +50,7 @@ interface BetValidation {
     title: string;
     bets: string[];
     odds: number[];
+    units: number;
     bookmaker: string;
     capper: string;
   };
@@ -442,6 +444,12 @@ export function SuperUserDashboard() {
                               <span className="text-white">
                                 {bet.postInfo.bookmaker}
                               </span>
+                            </div>
+                            <div className="bg-gray-700/50 px-4 py-2 rounded">
+                              <span className="text-gray-400 font-medium">
+                                Units:
+                              </span>{" "}
+                              <span className="text-white">{bet.units}</span>
                             </div>
                             <Dialog>
                               <DialogTrigger asChild>

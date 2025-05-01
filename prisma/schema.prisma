@@ -93,6 +93,7 @@ model CapperPost {
   capperBets    Bet[]    @relation("PostBets")
   oddsScreenshot String?
   oddsDate      DateTime?
+  units         Float     @default(1)
 
   @@index([capperId])
   @@index([productId])
@@ -147,7 +148,7 @@ model CapperApplication {
 model Bet {
   id        String      @id @default(auto()) @map("_id") @db.ObjectId
   game      String
-  amount    Float?
+  units    Float?
   currency  String      @default("USD")
   odds      Float
   date      DateTime

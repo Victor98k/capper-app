@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 import Post from "@/components/Posts";
 import CapperDashboard from "@/components/capperDashboard";
@@ -105,6 +106,8 @@ function NewPostPage() {
   const [betDate, setBetDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [betUnits, setBetUnits] = useState<string>("1"); // Default to 1 unit
+  const [newBetUnits, setNewBetUnits] = useState<string>("1"); // Default to 1 unit
   // const [crop, setCrop] = useState({ x: 0, y: 0 });
   // const [zoom, setZoom] = useState(1);
   // const [showCropper, setShowCropper] = useState(false);
@@ -321,6 +324,7 @@ function NewPostPage() {
       formData.append("tags", JSON.stringify(tags));
       formData.append("bets", JSON.stringify(bets));
       formData.append("odds", JSON.stringify(odds));
+      formData.append("units", betUnits);
       formData.append("bookmaker", selectedBookmaker);
       formData.append("username", username);
       formData.append("productId", selectedProduct);
@@ -348,7 +352,7 @@ function NewPostPage() {
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
-      // Then update the bet validation request in handleSubmit
+      // Update bet validation request to include units
       const betValidationResponse = await fetch("/api/bets", {
         method: "POST",
         headers: {
@@ -359,6 +363,7 @@ function NewPostPage() {
           userId: user?.id,
           bets: bets,
           odds: odds,
+          units: betUnits,
           bookmaker: selectedBookmaker,
           oddsScreenshot: oddsScreenshot
             ? await fileToBase64(oddsScreenshot)
@@ -464,6 +469,13 @@ function NewPostPage() {
 
     fetchUserAvatar();
   }, []);
+
+  const handleAddUnits = () => {
+    if (parseFloat(newBetUnits) >= 0.5) {
+      setBetUnits(newBetUnits);
+      setNewBetUnits("1");
+    }
+  };
 
   if (loading) {
     return (
@@ -728,6 +740,49 @@ function NewPostPage() {
                         className="flex-1 p-2 border rounded-md"
                       />
                       <Button onClick={handleAddBet}>Add Bet</Button>
+                    </div>
+                  </div>
+
+                  {/* Units Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Units
+                    </label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {betUnits !== "1" && (
+                        <div className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full">
+                          <span className="text-[#4e43ff]">
+                            {betUnits} units
+                          </span>
+                          <button
+                            onClick={() => setBetUnits("1")}
+                            className="text-[#4e43ff]/70 hover:text-red-500"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        type="number"
+                        min="0.5"
+                        step="0.5"
+                        value={newBetUnits}
+                        onChange={(e) => setNewBetUnits(e.target.value)}
+                        onKeyPress={(e) => {
+                          // Allow only numbers, decimal point, and Enter key
+                          if (!/[\d.]/.test(e.key) && e.key !== "Enter") {
+                            e.preventDefault();
+                          }
+                          if (e.key === "Enter") {
+                            handleAddUnits();
+                          }
+                        }}
+                        placeholder="Enter units (e.g., 1, 2.5)"
+                        className="flex-1 p-2 border rounded-md"
+                      />
+                      <Button onClick={handleAddUnits}>Set Units</Button>
                     </div>
                   </div>
 

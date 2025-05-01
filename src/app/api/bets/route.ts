@@ -42,10 +42,10 @@ export async function POST(request: Request) {
     const betValidation = await prisma.bet.create({
       data: {
         game: data.game,
-        amount: 0,
         odds: parseFloat(data.odds[0]),
         date: new Date(data.date),
         status: "PENDING",
+        units: parseFloat(data.units) || 1,
         user: {
           connect: {
             id: data.userId,
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
             content: data.game,
             bets: data.bets,
             odds: data.odds.map(String),
+            units: parseFloat(data.units) || 1,
             bookmaker: data.bookmaker,
             capper: {
               connect: {
@@ -103,7 +104,6 @@ export async function GET(req: Request) {
       select: {
         id: true,
         game: true,
-        amount: true,
         currency: true,
         odds: true,
         date: true,

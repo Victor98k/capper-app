@@ -56,6 +56,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+interface PerformanceData {
+  date: string;
+  units: number;
+  status: string;
+  unitChange: number;
+}
+
 export default function CapperProfilePage({
   params,
 }: {
@@ -72,7 +79,7 @@ export default function CapperProfilePage({
   const [showROICalculator, setShowROICalculator] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
-  const [performanceData, setPerformanceData] = useState([]);
+  const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -445,8 +452,12 @@ export default function CapperProfilePage({
             {/* Performance Chart - Moved here */}
             <Card className="mt-8 bg-gray-800/30 border-gray-700 p-4 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Betting Performance</CardTitle>
-                <CardDescription>Cumulative profit over time</CardDescription>
+                <CardTitle className="text-white font-bold text-2xl">
+                  Betting Performance
+                </CardTitle>
+                <CardDescription className="text-white">
+                  Cumulative units over time
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] w-full">
@@ -462,7 +473,7 @@ export default function CapperProfilePage({
                       />
                       <YAxis
                         stroke="#9CA3AF"
-                        tickFormatter={(value) => `$${value}`}
+                        tickFormatter={(value) => `${value}u`}
                       />
                       <Tooltip
                         contentStyle={{
@@ -470,14 +481,39 @@ export default function CapperProfilePage({
                           border: "1px solid #374151",
                         }}
                         labelStyle={{ color: "#9CA3AF" }}
-                        formatter={(value) => [`$${value}`, "Profit"]}
+                        formatter={(value: any, name: string, props: any) => {
+                          const bet = performanceData[props.payload.index];
+                          if (!bet) return [value + "u", "Units"];
+                          return [
+                            `${value}u (${bet.status === "WON" ? "+" + bet.unitChange : bet.unitChange}u)`,
+                            "Units",
+                          ];
+                        }}
                       />
                       <Line
                         type="monotone"
-                        dataKey="profit"
+                        dataKey="units"
                         stroke="#8B5CF6"
                         strokeWidth={2}
-                        dot={false}
+                        dot={(props: any) => {
+                          const bet = performanceData[props.index];
+                          return (
+                            <circle
+                              key={`dot-${props.index}`}
+                              cx={props.cx}
+                              cy={props.cy}
+                              r={4}
+                              fill={
+                                !bet
+                                  ? "#8B5CF6"
+                                  : bet.status === "WON"
+                                    ? "#22c55e"
+                                    : "#ef4444"
+                              }
+                              stroke="none"
+                            />
+                          );
+                        }}
                       />
                     </LineChart>
                   </ResponsiveContainer>

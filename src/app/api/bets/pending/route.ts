@@ -50,6 +50,7 @@ export async function GET(req: Request) {
             title: true,
             bets: true,
             odds: true,
+            units: true,
             bookmaker: true,
             capper: {
               select: {
@@ -74,8 +75,8 @@ export async function GET(req: Request) {
     const formattedBets = pendingBets.map((bet) => ({
       id: bet.id,
       game: bet.game,
-      amount: bet.amount,
       odds: bet.odds,
+      units: bet.units,
       date: bet.date.toISOString(),
       status: bet.status,
       createdAt: bet.createdAt.toISOString(),
@@ -92,6 +93,7 @@ export async function GET(req: Request) {
         title: bet.post?.title,
         bets: bet.post?.bets,
         odds: bet.post?.odds,
+        units: bet.post?.units || 1,
         bookmaker: bet.post?.bookmaker,
         capper: bet.post?.capper.user.username,
       },
