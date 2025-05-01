@@ -60,6 +60,7 @@ model Capper {
                                //   youtube?: { username: string, url: string }
                                // }
   tags          String[]        // Keep existing tags
+  roi           Float?          // ROI percentage
   subscribers   User[]          @relation("UserSubscriptions", fields: [subscriberIds], references: [id])
   subscriberIds String[]       @db.ObjectId
   posts         CapperPost[]
@@ -80,16 +81,18 @@ model CapperPost {
   tags          String[]
   bets          String[]
   odds          String[]
-  bookmaker     String?  // Add this field
+  bookmaker     String?
   capperId      String   @db.ObjectId
-  productId     String?   // Add this field to link post to a specific product
-  // productId     String   @default("default_product")
+  productId     String?
   capper        Capper   @relation(fields: [capperId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   likes         Int      @default(0)
   comments      Int      @default(0)
   likedBy       PostLike[]
+  capperBets    Bet[]    @relation("PostBets")
+  oddsScreenshot String?
+  oddsDate      DateTime?
 
   @@index([capperId])
   @@index([productId])
@@ -144,8 +147,8 @@ model CapperApplication {
 model Bet {
   id        String      @id @default(auto()) @map("_id") @db.ObjectId
   game      String
-  amount    Float
-  currency  String      @default("USD")  // Add this field
+  amount    Float?
+  currency  String      @default("USD")
   odds      Float
   date      DateTime
   status    BetStatus   @default(PENDING)
@@ -153,8 +156,13 @@ model Bet {
   updatedAt DateTime    @updatedAt
   userId    String      @db.ObjectId
   user      User        @relation("UserBets", fields: [userId], references: [id])
+  postId    String?     @db.ObjectId
+  post      CapperPost? @relation("PostBets", fields: [postId], references: [id])
+  oddsScreenshot String?
+  oddsDate      DateTime?
 
   @@index([userId])
+  @@index([postId])
 }
 
 enum BetStatus {

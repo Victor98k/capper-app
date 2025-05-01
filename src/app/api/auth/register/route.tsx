@@ -105,6 +105,7 @@ export async function POST(request: Request) {
           userId: user.id,
           tags: [],
           subscriberIds: [],
+          roi: 0,
         },
       });
     }

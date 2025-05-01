@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import cloudinary from "@/lib/cloudinary";
 
 async function getUserFromToken() {
   const cookieStore = await cookies();
@@ -21,34 +22,65 @@ async function getUserFromToken() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const user = await getUserFromToken();
-    if (!user?.userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    const data = await request.json();
+    let oddsScreenshotUrl = null;
+
+    // Upload screenshot to Cloudinary if it exists
+    if (data.oddsScreenshot) {
+      try {
+        const result = await cloudinary.uploader.upload(data.oddsScreenshot, {
+          folder: "bet_validations",
+        });
+        oddsScreenshotUrl = result.secure_url;
+      } catch (uploadError) {
+        console.error("Screenshot upload error:", uploadError);
+      }
     }
 
-    const body = await req.json();
-    const { game, amount, odds, date } = body;
-
-    if (!game || !amount || !odds || !date) {
-      return new NextResponse("Missing required fields", { status: 400 });
-    }
-
-    const bet = await prisma.bet.create({
+    const betValidation = await prisma.bet.create({
       data: {
-        game,
-        amount: parseFloat(amount),
-        odds: parseFloat(odds),
-        date: new Date(date),
-        userId: user.userId,
+        game: data.game,
+        amount: 0,
+        odds: parseFloat(data.odds[0]),
+        date: new Date(data.date),
+        status: "PENDING",
+        user: {
+          connect: {
+            id: data.userId,
+          },
+        },
+        oddsScreenshot: oddsScreenshotUrl,
+        oddsDate: new Date(data.date),
+        post: {
+          create: {
+            title: data.game,
+            content: data.game,
+            bets: data.bets,
+            odds: data.odds.map(String),
+            bookmaker: data.bookmaker,
+            capper: {
+              connect: {
+                userId: data.userId,
+              },
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+        post: true,
       },
     });
 
-    return NextResponse.json(bet);
+    return NextResponse.json(betValidation);
   } catch (error) {
-    console.error("[BETS_POST]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error("Failed to create bet validation:", error);
+    return NextResponse.json(
+      { error: "Failed to create bet validation" },
+      { status: 500 }
+    );
   }
 }
 
@@ -56,21 +88,37 @@ export async function GET(req: Request) {
   try {
     const user = await getUserFromToken();
     if (!user?.userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get all personal bets for the user
     const bets = await prisma.bet.findMany({
       where: {
         userId: user.userId,
+        postId: null, // Only get personal bets
       },
       orderBy: {
         createdAt: "desc",
+      },
+      select: {
+        id: true,
+        game: true,
+        amount: true,
+        currency: true,
+        odds: true,
+        date: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
     return NextResponse.json(bets);
   } catch (error) {
     console.error("[BETS_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch bets" },
+      { status: 500 }
+    );
   }
 }

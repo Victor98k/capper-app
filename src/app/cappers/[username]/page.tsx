@@ -46,6 +46,15 @@ import { PriceRecurring } from "@/types/priceRecurring";
 import { CapperProfile } from "@/types/capperProfile";
 import { Pick } from "@/types/betPickForCapperProfile";
 import { Post } from "@/types/capperPost";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function CapperProfilePage({
   params,
@@ -63,6 +72,7 @@ export default function CapperProfilePage({
   const [showROICalculator, setShowROICalculator] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
+  const [performanceData, setPerformanceData] = useState([]);
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -178,6 +188,25 @@ export default function CapperProfilePage({
 
     checkSubscriptions();
   }, [capper?.id]);
+
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      try {
+        const response = await fetch(
+          `/api/cappers/${resolvedParams.username}/bets`
+        );
+        if (!response.ok) throw new Error("Failed to fetch performance data");
+        const data = await response.json();
+        setPerformanceData(data);
+      } catch (error) {
+        console.error("Error fetching performance data:", error);
+      }
+    };
+
+    if (capper) {
+      fetchPerformanceData();
+    }
+  }, [capper, resolvedParams.username]);
 
   // Add this useEffect to handle the initial scroll if there's a hash in the URL
   useEffect(() => {
@@ -413,7 +442,50 @@ export default function CapperProfilePage({
               />
             </div>
 
-            {/* ROI Calculator - Simplified on mobile */}
+            {/* Performance Chart - Moved here */}
+            <Card className="mt-8 bg-gray-800/30 border-gray-700 p-4 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Betting Performance</CardTitle>
+                <CardDescription>Cumulative profit over time</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={performanceData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis
+                        dataKey="date"
+                        stroke="#9CA3AF"
+                        tickFormatter={(date) =>
+                          new Date(date).toLocaleDateString()
+                        }
+                      />
+                      <YAxis
+                        stroke="#9CA3AF"
+                        tickFormatter={(value) => `$${value}`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#1F2937",
+                          border: "1px solid #374151",
+                        }}
+                        labelStyle={{ color: "#9CA3AF" }}
+                        formatter={(value) => [`$${value}`, "Profit"]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="profit"
+                        stroke="#8B5CF6"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ROI Calculator */}
             {showROICalculator && (
               <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-700/30 rounded-lg">
                 <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">

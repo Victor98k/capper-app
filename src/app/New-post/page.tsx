@@ -70,6 +70,16 @@ const isValidOdd = (odd: string): boolean => {
   ); // Ensure odds are 1 or greater
 };
 
+// First, add a function to convert the file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 function NewPostPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -88,6 +98,13 @@ function NewPostPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
   const [selectedBookmaker, setSelectedBookmaker] = useState<string>("");
+  const [oddsScreenshot, setOddsScreenshot] = useState<File | null>(null);
+  const [oddsScreenshotPreview, setOddsScreenshotPreview] = useState<
+    string | null
+  >(null);
+  const [betDate, setBetDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   // const [crop, setCrop] = useState({ x: 0, y: 0 });
   // const [zoom, setZoom] = useState(1);
   // const [showCropper, setShowCropper] = useState(false);
@@ -240,6 +257,32 @@ function NewPostPage() {
     }
   };
 
+  const handleOddsScreenshotChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error("Image too large", {
+        description: "Please select an image under 10MB",
+      });
+      return;
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description:
+          "Please select a valid image file (JPEG, PNG, GIF, or WebP)",
+      });
+      return;
+    }
+
+    setOddsScreenshot(file);
+    const previewUrl = URL.createObjectURL(file);
+    setOddsScreenshotPreview(previewUrl);
+  };
+
   const handleSubmit = async () => {
     try {
       // Validate required fields
@@ -305,6 +348,29 @@ function NewPostPage() {
         throw new Error(data.error || `HTTP error! status: ${response.status}`);
       }
 
+      // Then update the bet validation request in handleSubmit
+      const betValidationResponse = await fetch("/api/bets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          game: title,
+          userId: user?.id,
+          bets: bets,
+          odds: odds,
+          bookmaker: selectedBookmaker,
+          oddsScreenshot: oddsScreenshot
+            ? await fileToBase64(oddsScreenshot)
+            : "", // Send the actual file data
+          date: new Date(betDate).toISOString(),
+        }),
+      });
+
+      if (!betValidationResponse.ok) {
+        throw new Error("Failed to create bet validation entry");
+      }
+
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
       toast.success("Post created successfully!", {
@@ -321,6 +387,9 @@ function NewPostPage() {
       setImagePreview(null);
       setSelectedProduct("");
       setSelectedBookmaker("");
+      setOddsScreenshot(null);
+      setOddsScreenshotPreview(null);
+      setBetDate(new Date().toISOString().split("T")[0]);
     } catch (error) {
       console.error("Failed to create post:", error);
       toast.error("Failed to create post", {
@@ -707,6 +776,67 @@ function NewPostPage() {
                       >
                         Add Odds
                       </Button>
+                    </div>
+                  </div>
+
+                  {/* Odds Screenshot Section */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Odds Screenshot (for validation)
+                    </label>
+                    <div className="mt-2">
+                      {!oddsScreenshotPreview ? (
+                        <div
+                          className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-[#4e43ff]"
+                          onClick={() =>
+                            document.getElementById("oddsScreenshot")?.click()
+                          }
+                        >
+                          <input
+                            id="oddsScreenshot"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleOddsScreenshotChange}
+                          />
+                          <div className="text-sm text-gray-500">
+                            Upload a screenshot of your odds
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative inline-block">
+                          <img
+                            src={oddsScreenshotPreview}
+                            alt="Odds screenshot"
+                            className="max-w-xs h-auto rounded-md"
+                          />
+                          <button
+                            onClick={() => {
+                              setOddsScreenshot(null);
+                              setOddsScreenshotPreview(null);
+                            }}
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bet Placement Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bet Placement Date
+                    </label>
+                    <div className="mt-2">
+                      <input
+                        type="date"
+                        value={betDate}
+                        onChange={(e) => setBetDate(e.target.value)}
+                        className="w-full p-2 border rounded-md"
+                        max={new Date().toISOString().split("T")[0]}
+                      />
                     </div>
                   </div>
 

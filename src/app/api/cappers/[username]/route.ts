@@ -30,27 +30,25 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function GET(
-  request: NextRequest,
-
-  // context: { params: { username: string } }
-  { params }: { params: Promise<{ username: string }> }
-) {
-  const { username } = await params;
-
-  // const cookies = request.cookies;
-
-  // Basic auth check similar to your working endpoint
-  // if (!cookies) {
-  //   return NextResponse.json({ error: "No authentication" }, { status: 401 });
-  // }
-
+export async function GET(request: NextRequest) {
   try {
-    // Find the capper by username through the User relation
+    // Extract username from the URL
+    const url = new URL(request.url);
+    const segments = url.pathname.split("/");
+    const usernameIndex = segments.indexOf("cappers") + 1;
+    const username = segments[usernameIndex];
+
+    if (!username) {
+      return NextResponse.json(
+        { error: "Username is required" },
+        { status: 400 }
+      );
+    }
+
     const capper = await prisma.capper.findFirst({
       where: {
         user: {
-          username: username,
+          username,
         },
       },
       include: {
@@ -69,7 +67,6 @@ export async function GET(
       return NextResponse.json({ error: "Capper not found" }, { status: 404 });
     }
 
-    // Fetch Stripe products if the capper has a connected account
     let products: any[] = [];
     if (capper.user.stripeConnectId) {
       const stripeProducts = await stripe.products.list(
@@ -86,19 +83,9 @@ export async function GET(
 
       products = stripeProducts.data.map((product: Stripe.Product) => {
         const price = product.default_price as Stripe.Price;
-        let marketing_features = [];
-
-        // Extract marketing features from the product
-        if (Array.isArray(product.marketing_features)) {
-          marketing_features = product.marketing_features.map(
-            (feature: any) => feature.name
-          );
-        }
-
-        // Fallback if no marketing features are found
-        if (!marketing_features || marketing_features.length === 0) {
-          marketing_features = [`Access to all ${product.name} picks`];
-        }
+        const marketing_features = Array.isArray(product.marketing_features)
+          ? product.marketing_features.map((f: any) => f.name)
+          : [`Access to all ${product.name} picks`];
 
         return {
           id: product.id,
@@ -111,59 +98,16 @@ export async function GET(
             currency: price?.currency || "usd",
             type: price?.type || "one_time",
           },
-          marketing_features: marketing_features,
+          marketing_features,
         };
       });
     }
 
-    const capperWithProducts = {
-      ...capper,
-      products,
-    };
-
-    return NextResponse.json(capperWithProducts);
+    return NextResponse.json({ ...capper, products });
   } catch (error) {
     console.error("Error fetching capper:", error);
     return NextResponse.json(
-      { error: "Failed to fetch capper" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { userId, tagToRemove } = body;
-
-    if (!userId || !tagToRemove) {
-      return NextResponse.json(
-        { error: "User ID and tag are required" },
-        { status: 400 }
-      );
-    }
-
-    const capper = await prisma.capper.findUnique({
-      where: { userId },
-      select: { tags: true },
-    });
-
-    if (!capper) {
-      return NextResponse.json({ error: "Capper not found" }, { status: 404 });
-    }
-
-    const updatedTags = capper.tags.filter((tag) => tag !== tagToRemove);
-
-    const updatedCapper = await prisma.capper.update({
-      where: { userId },
-      data: { tags: updatedTags },
-    });
-
-    return NextResponse.json(updatedCapper);
-  } catch (error) {
-    console.error("Error removing tag:", error);
-    return NextResponse.json(
-      { error: "Failed to remove tag" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

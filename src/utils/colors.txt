@@ -1,3 +1,6 @@
 main text color = #4e43ff
 
-dark bg color in app = 
+dark bg color in app = #020817
+
+
+

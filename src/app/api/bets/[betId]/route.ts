@@ -1,54 +1,31 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { verifyJWT } from "@/utils/jwt";
 
-async function getUserFromToken() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token");
-
-  if (!token) {
-    return null;
-  }
-
+export async function PUT(req: NextRequest) {
   try {
-    const decoded = jwt.verify(token.value, process.env.JWT_SECRET!) as {
-      userId: string;
-    };
-    return decoded;
-  } catch (error) {
-    return null;
-  }
-}
+    const url = new URL(req.url);
+    const betId = url.pathname.split("/").pop(); // or use regex to extract [betId]
+    const { status } = await req.json();
 
-export async function PATCH(request: Request) {
-  try {
-    const user = await getUserFromToken();
-    if (!user?.userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    const token = req.cookies.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const url = new URL(request.url);
-    const betId = url.pathname.split("/").pop(); // Extract betId from URL
-
-    if (!betId) {
-      return new NextResponse("Invalid request", { status: 400 });
+    const payload = await verifyJWT(token);
+    if (!payload?.userId) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { status } = body;
-
-    if (!status || !["WON", "LOST"].includes(status)) {
-      return new NextResponse("Invalid status", { status: 400 });
-    }
-
-    // Verify the bet belongs to the user
-    const bet = await prisma.bet.findUnique({
-      where: { id: betId },
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
     });
 
-    if (!bet || bet.userId !== user.userId) {
-      return new NextResponse("Not found", { status: 404 });
+    if (!user?.isSuperUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const updatedBet = await prisma.bet.update({
@@ -58,7 +35,10 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json(updatedBet);
   } catch (error) {
-    console.error("[BET_PATCH]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error("Error updating bet:", error);
+    return NextResponse.json(
+      { error: "Failed to update bet" },
+      { status: 500 }
+    );
   }
 }
