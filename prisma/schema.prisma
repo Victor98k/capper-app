@@ -83,17 +83,19 @@ model CapperPost {
   odds          String[]
   bookmaker     String?
   capperId      String   @db.ObjectId
-  productId     String?
   capper        Capper   @relation(fields: [capperId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  productId     String?   // Optional field
+  template      String   @default("default")
   likes         Int      @default(0)
   comments      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   likedBy       PostLike[]
   capperBets    Bet[]    @relation("PostBets")
   oddsScreenshot String?
   oddsDate      DateTime?
-  units         Float     @default(1)
+  units         Float    @default(0)
+  productName   String?
 
   @@index([capperId])
   @@index([productId])

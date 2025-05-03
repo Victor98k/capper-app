@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { SideNav } from "@/components/SideNavCappers";
-import { Bell, MessageSquare, Settings } from "lucide-react";
+import { Bell, MessageSquare, Settings, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -96,6 +96,7 @@ function NewPostPage() {
   const [odds, setOdds] = useState<string[]>([]);
   const [newOdd, setNewOdd] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
+  const [selectedProductName, setSelectedProductName] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
   const [selectedBookmaker, setSelectedBookmaker] = useState<string>("");
@@ -108,6 +109,9 @@ function NewPostPage() {
   );
   const [betUnits, setBetUnits] = useState<string>("1"); // Default to 1 unit
   const [newBetUnits, setNewBetUnits] = useState<string>("1"); // Default to 1 unit
+  const [postTemplate, setPostTemplate] = useState<"standard" | "text-only">(
+    "standard"
+  );
   // const [crop, setCrop] = useState({ x: 0, y: 0 });
   // const [zoom, setZoom] = useState(1);
   // const [showCropper, setShowCropper] = useState(false);
@@ -288,7 +292,7 @@ function NewPostPage() {
 
   const handleSubmit = async () => {
     try {
-      // Validate required fields
+      // Validate required fields first
       if (!title || !content || !selectedProduct) {
         toast.error("Please fill in all required fields", {
           description: "Title, content, and bundle selection are required",
@@ -296,111 +300,67 @@ function NewPostPage() {
         return;
       }
 
-      // Validate title length
-      if (title.length > MAX_TITLE_LENGTH) {
-        toast.error("Title is too long", {
-          description: `Title must be ${MAX_TITLE_LENGTH} characters or less`,
-        });
-        return;
-      }
+      // Create the request body
+      const postData = {
+        title,
+        content,
+        tags,
+        bets,
+        odds,
+        units: betUnits,
+        bookmaker: selectedBookmaker,
+        username: localStorage.getItem("username"),
+        productId: selectedProduct,
+        template: postTemplate,
+        imageUrl: null, // Will be updated if image is uploaded
+        productName: selectedProductName,
+      };
 
-      // Add content length validation
-      if (content.length > MAX_CONTENT_LENGTH) {
-        toast.error("Content is too long", {
-          description: `Content must be ${MAX_CONTENT_LENGTH} characters or less`,
-        });
-        return;
-      }
+      // If we have an image and it's a standard template post, upload it first
+      if (image && postTemplate === "standard") {
+        const formData = new FormData();
+        formData.append("file", image);
+        formData.append("upload_preset", "capper_posts");
 
-      // Show loading toast
-      const loadingToast = toast.loading("Creating your post...");
-
-      // Get username from localStorage
-      const username = localStorage.getItem("username") || "";
-
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("content", content);
-      formData.append("tags", JSON.stringify(tags));
-      formData.append("bets", JSON.stringify(bets));
-      formData.append("odds", JSON.stringify(odds));
-      formData.append("units", betUnits);
-      formData.append("bookmaker", selectedBookmaker);
-      formData.append("username", username);
-      formData.append("productId", selectedProduct);
-
-      // If no image is uploaded, create a fallback image
-      if (!image && tags.length > 0) {
-        const selectedSport = sportEmojis.find(
-          (item) => item.sport === tags[0]
+        const uploadResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
         );
-        formData.append("useFallback", "true");
-        formData.append("fallbackEmoji", selectedSport?.emoji || "⚽");
-        formData.append("profileImage", profileImage);
-      } else if (image) {
-        formData.append("image", image);
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload image");
+        }
+
+        const uploadData = await uploadResponse.json();
+        postData.imageUrl = uploadData.secure_url;
       }
 
+      // Send the post data as JSON
       const response = await fetch("/api/posts", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-
-      // Update bet validation request to include units
-      const betValidationResponse = await fetch("/api/bets", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          game: title,
-          userId: user?.id,
-          bets: bets,
-          odds: odds,
-          units: betUnits,
-          bookmaker: selectedBookmaker,
-          oddsScreenshot: oddsScreenshot
-            ? await fileToBase64(oddsScreenshot)
-            : "", // Send the actual file data
-          date: new Date(betDate).toISOString(),
-        }),
+        body: JSON.stringify(postData),
       });
 
-      if (!betValidationResponse.ok) {
-        throw new Error("Failed to create bet validation entry");
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error("Failed to create post", {
+          description: error.error || "Something went wrong",
+        });
+        return;
       }
 
-      // Dismiss loading toast and show success
-      toast.dismiss(loadingToast);
-      toast.success("Post created successfully!", {
-        description: "Your post is now live and visible to your subscribers",
-      });
-
-      // Clear the form after successful post
-      setTitle("");
-      setContent("");
-      setTags([]);
-      setBets([]);
-      setOdds([]);
-      setImage(null);
-      setImagePreview(null);
-      setSelectedProduct("");
-      setSelectedBookmaker("");
-      setOddsScreenshot(null);
-      setOddsScreenshotPreview(null);
-      setBetDate(new Date().toISOString().split("T")[0]);
+      const data = await response.json();
+      toast.success("Post created successfully!");
+      router.push("/home");
     } catch (error) {
-      console.error("Failed to create post:", error);
-      toast.error("Failed to create post", {
-        description:
-          error instanceof Error ? error.message : "Unknown error occurred",
-      });
+      console.error("Error creating post:", error);
+      toast.error("Failed to create post");
     }
   };
 
@@ -477,6 +437,13 @@ function NewPostPage() {
     }
   };
 
+  const handleProductSelect = (productId: string) => {
+    setSelectedProduct(productId);
+    // Find the selected product's name
+    const product = products.find((p) => p.id === productId);
+    setSelectedProductName(product?.name || "");
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-100">
@@ -525,10 +492,50 @@ function NewPostPage() {
               <CardContent>
                 <div className="space-y-6">
                   <div className="space-y-2">
+                    <Label>Post Template</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          postTemplate === "standard"
+                            ? "border-[#4e43ff] bg-[#4e43ff]/10"
+                            : "border-gray-700 hover:border-[#4e43ff]/50"
+                        }`}
+                        onClick={() => setPostTemplate("standard")}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <Image className="h-5 w-5" />
+                          <span className="font-medium">Standard Post</span>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          Include an image with your post
+                        </p>
+                      </div>
+
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          postTemplate === "text-only"
+                            ? "border-[#4e43ff] bg-[#4e43ff]/10"
+                            : "border-gray-700 hover:border-[#4e43ff]/50"
+                        }`}
+                        onClick={() => setPostTemplate("text-only")}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <MessageSquare className="h-5 w-5" />
+                          <span className="font-medium">Text Only</span>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                          Focus on your analysis without images
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Add Bundle Selection */}
+                  <div className="space-y-2">
                     <Label>Select Bundle</Label>
                     <Select
                       value={selectedProduct}
-                      onValueChange={setSelectedProduct}
+                      onValueChange={handleProductSelect}
                       required
                     >
                       <SelectTrigger>
@@ -543,6 +550,85 @@ function NewPostPage() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Show image upload only for standard template */}
+                  {postTemplate === "standard" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Image
+                      </label>
+                      {!imagePreview ? (
+                        <div
+                          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                            ${
+                              isDragging
+                                ? "border-[#4e43ff] bg-[#4e43ff]/10"
+                                : "border-gray-300 hover:border-[#4e43ff]"
+                            }`}
+                          onDragEnter={handleDragEnter}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          onClick={() =>
+                            document.getElementById("imageInput")?.click()
+                          }
+                        >
+                          <div className="space-y-2">
+                            <div className="text-gray-600">
+                              <svg
+                                className="mx-auto h-12 w-12"
+                                stroke="currentColor"
+                                fill="none"
+                                viewBox="0 0 48 48"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                  strokeWidth={2}
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </div>
+                            <div className="flex text-sm text-gray-600">
+                              <span className="relative cursor-pointer rounded-md font-medium text-[#4e43ff] focus-within:outline-none">
+                                Click to upload
+                              </span>
+                              <p className="pl-1">or drag and drop</p>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Accepted formats: JPEG, PNG, GIF, WebP (Max size:
+                              10MB)
+                            </p>
+                          </div>
+                          <input
+                            id="imageInput"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-2 relative">
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="max-w-xs h-auto rounded-md"
+                            />
+                            <button
+                              onClick={handleRemoveImage}
+                              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                              type="button"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Title Input */}
                   <div>
@@ -603,83 +689,6 @@ function NewPostPage() {
                         {content.length}/{MAX_CONTENT_LENGTH}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Image Input */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Image
-                    </label>
-                    {!imagePreview ? (
-                      <div
-                        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                          ${
-                            isDragging
-                              ? "border-[#4e43ff] bg-[#4e43ff]/10"
-                              : "border-gray-300 hover:border-[#4e43ff]"
-                          }`}
-                        onDragEnter={handleDragEnter}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onClick={() =>
-                          document.getElementById("imageInput")?.click()
-                        }
-                      >
-                        <div className="space-y-2">
-                          <div className="text-gray-600">
-                            <svg
-                              className="mx-auto h-12 w-12"
-                              stroke="currentColor"
-                              fill="none"
-                              viewBox="0 0 48 48"
-                              aria-hidden="true"
-                            >
-                              <path
-                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <div className="flex text-sm text-gray-600">
-                            <span className="relative cursor-pointer rounded-md font-medium text-[#4e43ff] focus-within:outline-none">
-                              Click to upload
-                            </span>
-                            <p className="pl-1">or drag and drop</p>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Accepted formats: JPEG, PNG, GIF, WebP (Max size:
-                            10MB)
-                          </p>
-                        </div>
-                        <input
-                          id="imageInput"
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-2 relative">
-                        <div className="relative">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="max-w-xs h-auto rounded-md"
-                          />
-                          <button
-                            onClick={handleRemoveImage}
-                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                            type="button"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Tags Section */}
@@ -952,12 +961,14 @@ function NewPostPage() {
                   tags={tags}
                   capperId="preview"
                   productId={selectedProduct}
+                  productName={selectedProductName}
                   createdAt={new Date().toISOString()}
                   updatedAt={new Date().toISOString()}
+                  template={postTemplate}
                   capperInfo={{
                     firstName: user?.firstName || "",
                     lastName: user?.lastName || "",
-                    username: localStorage.getItem("userName") || "",
+                    username: localStorage.getItem("username") || "",
                     isVerified: false,
                     profileImage: profileImage,
                   }}

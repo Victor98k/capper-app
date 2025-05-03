@@ -16,6 +16,7 @@ import {
 } from "./ui/dialog";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Badge } from "./ui/badge";
 
 interface PostProps {
   _id: string;
@@ -45,6 +46,7 @@ interface PostProps {
     emoji: string;
     profileImage: string;
   };
+  template?: "standard" | "text-only";
 }
 
 const sportEmojiMap: { [key: string]: string } = {
@@ -267,6 +269,7 @@ function InstagramPost({
   },
   fallbackImage,
   isOwnPost,
+  template = "standard",
 }: PostProps) {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -360,115 +363,399 @@ function InstagramPost({
   }, [capperId, productId]);
 
   return (
-    <Card className="w-full bg-gray-900 border-gray-800 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-800">
-        <div className="flex items-center space-x-2">
-          <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-gray-700">
-            <AvatarImage
-              src={capperInfo.profileImage || ""}
-              alt={capperInfo.username}
-              sizes="28px"
-            />
-            <AvatarFallback className="bg-violet-600 text-white text-xs">
-              {capperInfo.firstName[0]}
-              {capperInfo.lastName[0]}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col sm:block">
-            <button
-              onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-              className="font-semibold text-2xl sm:text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
-            >
-              {capperInfo.username}
-            </button>
-            {productName && (
-              <span className="text-xs sm:text-[10px] text-[#4e43ff] font-semibold sm:ml-2">
-                {productName}
-              </span>
+    <Card
+      className={`${
+        template === "text-only"
+          ? "overflow-hidden bg-[#020817] border-gray-700"
+          : "w-full bg-gray-900 border-gray-800 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-xl"
+      }`}
+    >
+      {template === "text-only" ? (
+        <div className="bg-[#020817]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12 sm:h-16 sm:w-16 border border-gray-700">
+                <AvatarImage
+                  src={capperInfo.profileImage || ""}
+                  alt={capperInfo.username}
+                />
+                <AvatarFallback className="bg-violet-600 text-white text-xl sm:text-2xl">
+                  {capperInfo.firstName[0]}
+                  {capperInfo.lastName[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-lg sm:text-xl font-medium text-gray-200">
+                  @{capperInfo.username}
+                </span>
+                {productName && (
+                  <span className="text-sm sm:text-base text-[#4e43ff] font-semibold mt-1">
+                    {productName}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {bets.length > 0 && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-6 py-3 sm:px-8 sm:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                  >
+                    See Bet 🎯
+                  </Button>
+                </DialogTrigger>
+                <BetDialog
+                  bets={bets}
+                  isSubscribed={isSubscribed}
+                  isOwnPost={isOwnPost}
+                  capperInfo={capperInfo}
+                  router={router}
+                  title={title}
+                  content={content}
+                  odds={odds}
+                  tags={tags}
+                  bookmaker={bookmaker}
+                />
+              </Dialog>
             )}
           </div>
+
+          <div className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">
+              {title}
+            </h2>
+            <p className="text-base sm:text-lg text-gray-200 mb-3 whitespace-pre-wrap">
+              {content}
+            </p>
+
+            {/* Date and likes in separate divs */}
+            <p className="text-xs sm:text-sm text-gray-400 mb-2">
+              {new Date(createdAt).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+
+            <div className="flex items-center gap-1 mb-4 sm:mb-6">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLike}
+                className="h-8 w-8 hover:text-[#4e43ff] p-0"
+              >
+                <span
+                  className={`text-lg ${isLiked ? "text-[#4e43ff]" : "text-gray-300"}`}
+                >
+                  🚀
+                </span>
+              </Button>
+              <p className="text-xs font-semibold text-gray-300">{likeCount}</p>
+            </div>
+
+            <div className="border-t border-gray-700 my-4 sm:my-6"></div>
+
+            <div className="flex overflow-x-auto sm:flex-wrap sm:justify-center items-center gap-3 sm:gap-4 pb-2 sm:pb-0">
+              {odds.length > 0 && (
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] sm:min-w-[120px]">
+                  <p className="text-xs font-semibold text-white mb-2">ODDS</p>
+                  <div className="bg-[#4e43ff] w-full px-3 sm:px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                    <div className="flex items-center justify-center">
+                      {odds.map((odd, index) => (
+                        <div key={index} className="flex items-center">
+                          <span className="text-lg sm:text-xl font-bold text-white">
+                            {odd}
+                          </span>
+                          <span className="text-lg sm:text-xl font-bold text-white/80 mr-1">
+                            x
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tags.length > 0 && (
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] sm:min-w-[120px]">
+                  <p className="text-xs font-semibold text-white mb-2">SPORT</p>
+                  <div className="bg-[#4e43ff] w-full px-3 sm:px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                    <div className="flex items-center justify-center gap-2">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="text-lg sm:text-xl text-white"
+                          title={tag}
+                        >
+                          {sportEmojiMap[tag] || tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {productName && (
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] sm:min-w-[120px]">
+                  <p className="text-xs font-semibold text-white mb-2">
+                    BUNDLE
+                  </p>
+                  <div className="bg-[#4e43ff] w-full px-3 sm:px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                    <div className="flex items-center justify-center">
+                      <span className="text-sm font-bold text-white">
+                        {productName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        <p className="text-xs sm:text-[10px] text-gray-400 uppercase">
-          {new Date(createdAt).toLocaleDateString(undefined, {
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between p-2 border-b border-gray-800">
+            <div className="flex items-center space-x-2">
+              <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-gray-700">
+                <AvatarImage
+                  src={capperInfo.profileImage || ""}
+                  alt={capperInfo.username}
+                  sizes="28px"
+                />
+                <AvatarFallback className="bg-violet-600 text-white text-xs">
+                  {capperInfo.firstName[0]}
+                  {capperInfo.lastName[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col sm:flex-row sm:items-center">
+                <button
+                  onClick={() => router.push(`/cappers/${capperInfo.username}`)}
+                  className="font-semibold text-sm text-gray-100 hover:text-[#4e43ff] transition-colors"
+                >
+                  {capperInfo.username}
+                </button>
+                {productName && (
+                  <span className="text-xs text-[#4e43ff] font-semibold sm:ml-2">
+                    {productName}
+                  </span>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 uppercase">
+              {new Date(createdAt).toLocaleDateString(undefined, {
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          </div>
 
-      {/* Image container - make it taller */}
-      <div className="relative w-full h-56 md:h-[32rem] lg:h-[36rem] overflow-hidden rounded-lg mb-4">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center relative">
-            {/* Blurred background with profile image */}
-            <div className="absolute inset-0 overflow-hidden">
+          <div className="relative w-full h-56 md:h-[32rem] lg:h-[36rem] overflow-hidden rounded-lg mb-4">
+            {imageUrl ? (
               <Image
-                src={
-                  fallbackImage?.profileImage ||
-                  capperInfo.profileImage ||
-                  "/default-avatar.png"
-                }
-                alt="Background"
+                src={imageUrl}
+                alt={title}
                 fill
-                className="object-cover blur-xl opacity-20"
-                sizes="100vw"
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center relative">
+                <div className="absolute inset-0 overflow-hidden">
+                  <Image
+                    src={
+                      fallbackImage?.profileImage ||
+                      capperInfo.profileImage ||
+                      "/default-avatar.png"
+                    }
+                    alt="Background"
+                    fill
+                    className="object-cover blur-xl opacity-20"
+                    sizes="100vw"
+                  />
 
-              {/* Mock preview text */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="max-w-lg text-center space-y-6 select-none">
-                  <div className="space-y-4">
-                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                      🎯 Match Winner
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="max-w-lg text-center space-y-6 select-none">
+                      <div className="space-y-4">
+                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                          🎯 Match Winner
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                          📊 Over/Under 2.5
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                          ⚡ Special Picks
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                          🔥 Exclusive Tips
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
+                          💫 Premium Analysis
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-8 relative z-10">
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden relative shadow-lg">
+                    <Image
+                      src={
+                        fallbackImage?.profileImage ||
+                        capperInfo.profileImage ||
+                        "/default-avatar.png"
+                      }
+                      alt="Capper avatar"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 128px, 160px"
+                    />
+                  </div>
+
+                  {bets.length > 0 && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-8 py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                        >
+                          See Bet 🎯
+                        </Button>
+                      </DialogTrigger>
+                      <BetDialog
+                        bets={bets}
+                        isSubscribed={isSubscribed}
+                        isOwnPost={isOwnPost}
+                        capperInfo={capperInfo}
+                        router={router}
+                        title={title}
+                        content={content}
+                        odds={odds}
+                        tags={tags}
+                        bookmaker={bookmaker}
+                      />
+                    </Dialog>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="p-3">
+            <div className="flex items-center justify-between sm:justify-start sm:gap-4 mb-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLike}
+                  className="h-8 w-8"
+                >
+                  <span
+                    className={`text-lg ${
+                      isLiked ? "text-[#4e43ff]" : "text-gray-300"
+                    }`}
+                  >
+                    🚀
+                  </span>
+                </Button>
+                <p className="font-semibold text-xs text-gray-100">
+                  {likeCount} likes
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4">
+              <div className="space-y-2">
+                <h3 className="font-bold text-sm text-gray-100">{title}</h3>
+                <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
+                  {content}
+                </div>
+              </div>
+
+              <div className="hidden sm:flex sm:flex-col sm:gap-4 sm:w-[140px]">
+                {odds.length > 0 && (
+                  <div className="flex flex-col items-end">
+                    <p className="text-xs font-semibold text-white mb-1">
+                      ODDS
                     </p>
-                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                      📊 Over/Under 2.5
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                      ⚡ Special Picks
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                      🔥 Exclusive Tips
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                      💫 Premium Analysis
-                    </p>
+                    <div className="bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                      <div className="flex justify-end items-center">
+                        {odds.map((odd, index) => (
+                          <div key={index} className="flex items-center">
+                            <span className="text-2xl font-bold text-white px-1">
+                              {odd}
+                            </span>
+                            <span className="text-2xl font-bold text-white/80">
+                              x
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col items-end">
+                  <p className="text-xs font-semibold text-white mb-1">SPORT</p>
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-xl bg-[#4e43ff] text-white px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
+                        title={tag}
+                      >
+                        {sportEmojiMap[tag] || tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-8 relative z-10">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden relative shadow-lg">
-                <Image
-                  src={
-                    fallbackImage?.profileImage ||
-                    capperInfo.profileImage ||
-                    "/default-avatar.png"
-                  }
-                  alt="Capper avatar"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 128px, 160px"
-                />
+            <div className="sm:hidden mt-3 space-y-3">
+              <div className="flex gap-1">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-base bg-[#4e43ff]/10 text-[#4e43ff] px-2 py-1 rounded-md"
+                    title={tag}
+                  >
+                    {sportEmojiMap[tag] || tag}
+                  </span>
+                ))}
               </div>
 
-              {/* See Bet Button in fallback image */}
-              {bets.length > 0 && (
+              {odds.length > 0 && (
+                <div className="bg-[#4e43ff]/10 px-3 py-1.5 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-[#4e43ff]">
+                      ODDS
+                    </span>
+                    {odds.map((odd, index) => (
+                      <div key={index} className="flex items-center">
+                        <span className="text-sm font-bold text-[#4e43ff]">
+                          {odd}
+                        </span>
+                        <span className="text-sm font-bold text-[#4e43ff]/80">
+                          x
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {bets.length > 0 && (
+              <div className="mt-3">
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-6 py-3 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                      className="text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-8 py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
                     >
                       See Bet 🎯
                     </Button>
@@ -486,153 +773,11 @@ function InstagramPost({
                     bookmaker={bookmaker}
                   />
                 </Dialog>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Bottom section */}
-      <div className="p-3">
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between sm:justify-start sm:gap-4 mb-3">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLike}
-              className="h-8 w-8"
-            >
-              <span
-                className={`text-lg ${
-                  isLiked ? "text-[#4e43ff]" : "text-gray-300"
-                }`}
-              >
-                🚀
-              </span>
-            </Button>
-            <p className="font-semibold text-xs text-gray-100">
-              {likeCount} likes
-            </p>
-          </div>
-        </div>
-
-        {/* Grid Layout for Content and Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4">
-          {/* Left Column - Content */}
-          <div className="space-y-2">
-            <h3 className="font-bold text-sm text-gray-100">{title}</h3>
-            <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
-              {content}
-            </div>
-          </div>
-
-          {/* Right Column - Stats (Desktop) */}
-          <div className="hidden sm:flex sm:flex-col sm:gap-4 sm:w-[140px]">
-            {/* Odds section */}
-            {odds.length > 0 && (
-              <div className="flex flex-col items-end">
-                <p className="text-xs font-semibold text-white mb-1">ODDS</p>
-                <div className="bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
-                  <div className="flex justify-end items-center">
-                    {odds.map((odd, index) => (
-                      <div key={index} className="flex items-center">
-                        <span className="text-2xl font-bold text-white px-1">
-                          {odd}
-                        </span>
-                        <span className="text-2xl font-bold text-white/80">
-                          x
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
-
-            {/* Tags section */}
-            <div className="flex flex-col items-end">
-              <p className="text-xs font-semibold text-white mb-1">SPORT</p>
-              <div className="flex flex-wrap gap-2 justify-end">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xl bg-[#4e43ff] text-white px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
-                    title={tag}
-                  >
-                    {sportEmojiMap[tag] || tag}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
-        </div>
-
-        {/* Mobile Stats and Tags */}
-        <div className="sm:hidden mt-3 space-y-3">
-          {/* Mobile Tags */}
-          <div className="flex gap-1">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-base bg-[#4e43ff]/10 text-[#4e43ff] px-2 py-1 rounded-md"
-                title={tag}
-              >
-                {sportEmojiMap[tag] || tag}
-              </span>
-            ))}
-          </div>
-
-          {/* Mobile Odds */}
-          {odds.length > 0 && (
-            <div className="bg-[#4e43ff]/10 px-3 py-1.5 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#4e43ff]">
-                  ODDS
-                </span>
-                {odds.map((odd, index) => (
-                  <div key={index} className="flex items-center">
-                    <span className="text-sm font-bold text-[#4e43ff]">
-                      {odd}
-                    </span>
-                    <span className="text-sm font-bold text-[#4e43ff]/80">
-                      x
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* See Bet Button - Fixed at bottom */}
-        {bets.length > 0 && (
-          <div className="mt-3">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto text-sm font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 py-2 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
-                >
-                  See Bet 🎯
-                </Button>
-              </DialogTrigger>
-              <BetDialog
-                bets={bets}
-                isSubscribed={isSubscribed}
-                isOwnPost={isOwnPost}
-                capperInfo={capperInfo}
-                router={router}
-                title={title}
-                content={content}
-                odds={odds}
-                tags={tags}
-                bookmaker={bookmaker}
-              />
-            </Dialog>
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </Card>
   );
 }

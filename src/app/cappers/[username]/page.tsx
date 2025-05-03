@@ -58,6 +58,7 @@ import {
 
 interface PerformanceData {
   date: string;
+  title: string;
   units: number;
   status: string;
   unitChange: number;
@@ -487,6 +488,7 @@ export default function CapperProfilePage({
                           return [
                             `${value}u (${bet.status === "WON" ? "+" + bet.unitChange : bet.unitChange}u)`,
                             "Units",
+                            bet.title,
                           ];
                         }}
                       />

@@ -61,6 +61,8 @@ export async function POST(request: Request) {
             odds: data.odds.map(String),
             units: parseFloat(data.units) || 1,
             bookmaker: data.bookmaker,
+            productId: data.productId,
+            template: data.template,
             capper: {
               connect: {
                 userId: data.userId,

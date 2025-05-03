@@ -20,7 +20,7 @@ const PostSchema = z.object({
   bets: z.array(z.string()),
   odds: z.array(z.string()),
   bookmaker: z.string().min(1, "Bookmaker is required"),
-  productId: z.string().min(1, "Product ID is required"),
+  productId: z.string().optional(),
 });
 
 // Add GET handler
@@ -84,9 +84,25 @@ export async function GET(req: Request) {
       orderBy: {
         createdAt: "desc",
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        imageUrl: true,
+        odds: true,
+        bets: true,
+        tags: true,
+        bookmaker: true,
+        capperId: true,
+        productId: true, // Keep this to see actual values
+        template: true, // Include template
+        createdAt: true,
+        updatedAt: true,
+        likes: true,
+        comments: true,
         capper: {
-          include: {
+          select: {
+            profileImage: true,
             user: {
               select: {
                 firstName: true,
@@ -103,8 +119,9 @@ export async function GET(req: Request) {
 
     // Transform the posts to match the expected format
     const transformedPosts = await Promise.all(
-      posts.map(async (post) => {
+      posts.map(async (post: any) => {
         let productName = "";
+        // Only try to fetch product info if productId exists and template isn't text-only
         if (post.productId) {
           try {
             const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -127,11 +144,12 @@ export async function GET(req: Request) {
           imageUrl: post.imageUrl || "",
           odds: post.odds,
           bets: post.bets,
-          tags: post.tags,
+          tags: post.tags || [],
           bookmaker: post.bookmaker,
           capperId: post.capperId,
-          productId: post.productId || "",
+          productId: post.productId || "", // Use actual productId if exists
           productName,
+          template: post.template || "default",
           createdAt: post.createdAt.toISOString(),
           updatedAt: post.updatedAt.toISOString(),
           likes: post.likes,
@@ -159,261 +177,94 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    // Improved authentication checks
-    const cookies = req.headers.get("cookie");
-    if (!cookies) {
-      return NextResponse.json(
-        { error: "No cookies present" },
-        { status: 401 }
-      );
-    }
+    const {
+      title,
+      content,
+      tags,
+      bets,
+      odds,
+      units,
+      bookmaker,
+      username,
+      productId,
+      template,
+      imageUrl,
+      productName,
+    } = await req.json();
 
-    const cookiesArray = cookies.split(";").map((cookie) => cookie.trim());
-    const tokenCookie = cookiesArray.find((cookie) =>
-      cookie.startsWith("token=")
-    );
-
-    if (!tokenCookie) {
-      return NextResponse.json(
-        { error: "No token cookie found" },
-        { status: 401 }
-      );
-    }
-
-    const token = tokenCookie.split("=")[1];
-    if (!token) {
-      return NextResponse.json({ error: "Token is empty" }, { status: 401 });
-    }
-
-    let payload;
-    try {
-      payload = await verifyJWT(token);
-      if (!payload || !payload.userId) {
-        return NextResponse.json(
-          { error: "Invalid token payload" },
-          { status: 401 }
-        );
-      }
-    } catch (jwtError) {
-      console.error("JWT verification failed:", jwtError);
-      return NextResponse.json(
-        { error: "Token verification failed" },
-        { status: 401 }
-      );
-    }
-
-    const formData = await req.formData();
-
-    // Get all form data
-    const title = formData.get("title");
-    const content = formData.get("content");
-    const tagsString = formData.get("tags");
-    const betsString = formData.get("bets");
-    const oddsString = formData.get("odds");
-    const username = formData.get("username");
-    const productId = formData.get("productId");
-    const bookmaker = formData.get("bookmaker");
-
-    if (
-      !title ||
-      !content ||
-      !tagsString ||
-      !betsString ||
-      !oddsString ||
-      !username ||
-      !productId ||
-      !bookmaker
-    ) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    // Log received formData
-    // console.log("Received FormData entries:");
-    // for (let pair of formData.entries()) {
-    //   console.log(pair[0], pair[1]);
-    // }
-
-    // Add image handling
-    const image = formData.get("image");
-    let imageUrl = null;
-
-    if (image && image instanceof Blob) {
-      try {
-        // Convert image to base64
-        const buffer = Buffer.from(await image.arrayBuffer());
-        const base64Image = buffer.toString("base64");
-
-        // Upload to Cloudinary
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader.upload(
-            `data:${image.type};base64,${base64Image}`,
-            { folder: "capper_posts" },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-        });
-
-        imageUrl = (result as any).secure_url;
-      } catch (uploadError) {
-        console.error("Image upload error:", uploadError);
-        return NextResponse.json(
-          { error: "Failed to upload image" },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Parse JSON strings
-    const tags = JSON.parse(tagsString as string);
-    const bets = JSON.parse(betsString as string);
-    const odds = JSON.parse(oddsString as string);
-
-    // Change const to let since we need to reassign it later
-    let capperProfile = await prisma.capper.findFirst({
+    // First, find the capper by username
+    const capperProfile = await prisma.capper.findFirst({
       where: {
         user: {
-          username: username as string,
+          username: username,
         },
-      },
-      include: {
-        user: true,
       },
     });
 
-    // Add debug logging
-    console.log("Looking for capper with username:", username);
-    console.log("Found capper profile:", capperProfile);
-
     if (!capperProfile) {
-      // Try to find the user first to debug the issue
-      const user = await prisma.user.findFirst({
-        where: {
-          username: username as string,
-        },
-      });
+      return NextResponse.json(
+        { error: "Capper profile not found" },
+        { status: 404 }
+      );
+    }
 
-      // console.log("Found user:", user);
-
-      // If user exists but no capper profile, create one
-      if (user) {
-        const newCapperProfile = await prisma.capper.create({
-          data: {
-            userId: user.id,
-            tags: [],
-            subscriberIds: [],
+    // Create the post with the capper connection
+    const post = await prisma.capperPost.create({
+      data: {
+        title,
+        content,
+        imageUrl: imageUrl || null,
+        tags,
+        bets,
+        odds,
+        bookmaker,
+        template: template || "standard",
+        productId,
+        units: parseInt(units) || 0,
+        capper: {
+          connect: {
+            id: capperProfile.id,
           },
+        },
+        productName,
+      },
+      include: {
+        capper: {
           include: {
             user: true,
           },
-        });
-
-        // console.log("Created new capper profile:", newCapperProfile);
-        capperProfile = newCapperProfile;
-      } else {
-        return NextResponse.json(
-          { error: "Capper profile not found and user does not exist" },
-          { status: 404 }
-        );
-      }
-    }
-
-    // Verify the product belongs to this capper
-    if (capperProfile) {
-      try {
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-          apiVersion: "2025-02-24.acacia",
-        });
-
-        // Use the capper's Stripe Connect account ID
-        const product = await stripe.products.retrieve(
-          productId as string,
-          {
-            stripeAccount: capperProfile.user.stripeConnectId || undefined,
-          } as Stripe.RequestOptions
-        );
-
-        if (!product) {
-          return NextResponse.json(
-            { error: "Invalid product ID or product not found" },
-            { status: 400 }
-          );
-        }
-
-        // Create the post with productId
-        const post = await prisma.capperPost.create({
-          data: {
-            title: title as string,
-            content: content as string,
-            imageUrl: imageUrl,
-            tags,
-            bets,
-            odds,
-            bookmaker: (bookmaker as string) || null,
-            capperId: capperProfile.id,
-            productId: productId as string,
-            likes: 0,
-            comments: 0,
-          },
-          include: {
-            capper: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        });
-
-        // Transform the post to match the expected format
-        const transformedPost = {
-          _id: post.id,
-          title: post.title,
-          content: post.content,
-          imageUrl: post.imageUrl || "",
-          odds: post.odds,
-          bets: post.bets,
-          tags: post.tags,
-          bookmaker: post.bookmaker,
-          capperId: post.capperId,
-          createdAt: post.createdAt.toISOString(),
-          updatedAt: post.updatedAt.toISOString(),
-          likes: post.likes,
-          comments: post.comments,
-          capperInfo: {
-            firstName: post.capper.user.firstName,
-            lastName: post.capper.user.lastName,
-            username: post.capper.user.username,
-            imageUrl: post.capper.user.imageUrl,
-          },
-        };
-
-        return NextResponse.json(
-          { success: true, post: transformedPost },
-          { status: 201 }
-        );
-      } catch (error) {
-        console.error("Stripe product verification error:", error);
-        return NextResponse.json(
-          { error: "Failed to verify product ownership" },
-          { status: 400 }
-        );
-      }
-    }
-  } catch (error) {
-    console.error(
-      "Server error:",
-      error instanceof Error ? error.message : error
-    );
-    return NextResponse.json(
-      {
-        error: "Internal server error",
-        details:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        },
       },
+    });
+
+    // Transform the response to match your expected format
+    const transformedPost = {
+      _id: post.id,
+      title: post.title,
+      content: post.content,
+      imageUrl: post.imageUrl || "",
+      odds: post.odds,
+      bets: post.bets,
+      tags: post.tags,
+      bookmaker: post.bookmaker,
+      capperId: post.capper.id,
+      productId: post.productId,
+      template: post.template,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+      capperInfo: {
+        firstName: post.capper.user.firstName,
+        lastName: post.capper.user.lastName,
+        username: post.capper.user.username,
+        profileImage: post.capper.profileImage,
+      },
+    };
+
+    return NextResponse.json(transformedPost);
+  } catch (error) {
+    console.error("Error creating post:", error);
+    return NextResponse.json(
+      { error: "Failed to create post" },
       { status: 500 }
     );
   }
