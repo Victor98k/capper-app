@@ -64,6 +64,27 @@ interface PerformanceData {
   unitChange: number;
 }
 
+const calculateWinRate = (performanceData: PerformanceData[]) => {
+  // Add debug logs
+  console.log("All performance data:", performanceData);
+
+  const completedBets = performanceData.filter(
+    (bet) => bet.status === "WON" || bet.status === "LOST"
+  );
+
+  const wonBets = completedBets.filter((bet) => bet.status === "WON").length;
+  const totalBets = completedBets.length;
+
+  console.log(`Won bets: ${wonBets}, Total bets: ${totalBets}`);
+
+  if (totalBets === 0) return "0%";
+
+  const winRate = (wonBets / totalBets) * 100;
+  console.log(`Win rate calculated: ${winRate.toFixed(1)}%`);
+
+  return `${winRate.toFixed(1)}%`;
+};
+
 export default function CapperProfilePage({
   params,
 }: {
@@ -439,8 +460,16 @@ export default function CapperProfilePage({
                 title="Subscribers"
                 value={capper.subscriberIds.length.toLocaleString()}
               />
-              <StatCard icon={<Trophy />} title="Win Rate" value="67%" />
-              <StatCard icon={<TrendingUp />} title="ROI" value="+15.8%" />
+              <StatCard
+                icon={<Trophy />}
+                title="Win Rate"
+                value={calculateWinRate(performanceData)}
+              />
+              <StatCard
+                icon={<TrendingUp />}
+                title="ROI"
+                value={`${capper.roi || 0}%`}
+              />
               <StatCard
                 icon={<Calculator />}
                 title="ROI Calculator"
@@ -538,7 +567,7 @@ export default function CapperProfilePage({
                       onChange={(e) => {
                         const value = parseFloat(e.target.value);
                         if (!isNaN(value)) {
-                          const roi = value * (1 + 0.158);
+                          const roi = value * (1 + (capper.roi || 0) / 100);
                           setCalculatedAmount(roi.toFixed(2));
                         } else {
                           setCalculatedAmount("0.00");
@@ -552,8 +581,8 @@ export default function CapperProfilePage({
                   </div>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-400 mt-2">
-                  Calculate your potential returns based on historical ROI of
-                  15.8%
+                  Calculate your potential returns based on historical ROI of{" "}
+                  {capper.roi || 0}%
                 </p>
               </div>
             )}

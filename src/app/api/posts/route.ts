@@ -4,6 +4,7 @@ import { verifyJWT } from "@/utils/jwt";
 import { z } from "zod";
 import { v2 as cloudinary } from "cloudinary";
 import Stripe from "stripe";
+import { BetStatus } from "@prisma/client";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -190,6 +191,8 @@ export async function POST(req: Request) {
       template,
       imageUrl,
       productName,
+      betDate,
+      oddsScreenshot,
     } = await req.json();
 
     // First, find the capper by username
@@ -237,6 +240,32 @@ export async function POST(req: Request) {
       },
     });
 
+    // Add bet creation if odds are provided
+    if (odds.length > 0) {
+      // Create a bet record linked to the post
+      await prisma.bet.create({
+        data: {
+          game: title,
+          odds: parseFloat(odds[0]), // Using first odd as main odd
+          date: betDate ? new Date(betDate) : new Date(),
+          status: "PENDING" as BetStatus,
+          units: parseFloat(units) || 1,
+          user: {
+            connect: {
+              username: username,
+            },
+          },
+          post: {
+            connect: {
+              id: post.id,
+            },
+          },
+          oddsScreenshot: oddsScreenshot || null,
+          oddsDate: betDate ? new Date(betDate) : new Date(),
+        },
+      });
+    }
+
     // Transform the response to match your expected format
     const transformedPost = {
       _id: post.id,
@@ -264,7 +293,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error creating post:", error);
     return NextResponse.json(
-      { error: "Failed to create post" },
+      { error: "Failed to create post and bet" },
       { status: 500 }
     );
   }

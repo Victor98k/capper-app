@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           capperId: capper.capperProfile.id,
         },
         status: {
-          not: "PENDING",
+          in: ["WON", "LOST"],
         },
       },
       orderBy: {
@@ -46,21 +46,23 @@ export async function GET(request: NextRequest) {
         status: true,
         date: true,
         units: true,
+        odds: true,
+        game: true,
       },
     });
 
-    // Calculate cumulative units
-    let cumulativeUnits = 0;
+    // Calculate individual bet results without accumulation
     const performanceData = verifiedBets.map((bet) => {
-      const unitChange =
-        bet.status === "WON" ? bet.units || 0 : -(bet.units || 0);
-      cumulativeUnits += unitChange;
+      const unitResult =
+        bet.status === "WON" ? (bet.units || 0) * bet.odds : -(bet.units || 0);
 
       return {
         date: bet.date.toISOString().split("T")[0],
-        units: cumulativeUnits,
+        units: unitResult,
         status: bet.status,
-        unitChange: unitChange,
+        unitChange: unitResult,
+        odds: bet.odds,
+        title: bet.game,
       };
     });
 

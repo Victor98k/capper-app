@@ -61,6 +61,17 @@ const BOOKMAKERS = [
   "Paddy Power",
   "Other",
 ] as const;
+const CLOUDINARY_UPLOAD_PRESET =
+  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "capper_posts";
+const CLOUDINARY_UPLOAD_PRESET_BETS =
+  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_BETS_VERIFICATION ||
+  "bet_validation";
+
+// console.log("Upload Presets:", {
+//   posts: CLOUDINARY_UPLOAD_PRESET,
+//   bets: CLOUDINARY_UPLOAD_PRESET_BETS,
+//   cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+// });
 
 const isValidOdd = (odd: string): boolean => {
   const number = parseFloat(odd);
@@ -314,13 +325,46 @@ function NewPostPage() {
         template: postTemplate,
         imageUrl: null, // Will be updated if image is uploaded
         productName: selectedProductName,
+        betDate,
+        oddsScreenshot: null, // Will be updated if screenshot exists
       };
 
-      // If we have an image and it's a standard template post, upload it first
+      // If we have an odds screenshot, upload it first with the BETS preset
+      if (oddsScreenshot) {
+        console.log(
+          "Attempting odds screenshot upload with preset:",
+          CLOUDINARY_UPLOAD_PRESET_BETS
+        );
+        const formData = new FormData();
+        formData.append("file", oddsScreenshot);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET_BETS);
+
+        // Log the actual URL being used
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
+        console.log("Upload URL:", uploadUrl);
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const error = await uploadResponse.json();
+          console.error("Upload error response:", error);
+          throw new Error(
+            error.error?.message || "Failed to upload odds screenshot"
+          );
+        }
+
+        const uploadData = await uploadResponse.json();
+        postData.oddsScreenshot = uploadData.secure_url;
+      }
+
+      // If we have a post image, upload it with the POSTS preset
       if (image && postTemplate === "standard") {
         const formData = new FormData();
         formData.append("file", image);
-        formData.append("upload_preset", "capper_posts");
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET); // Use capper_posts preset
 
         const uploadResponse = await fetch(
           `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -331,7 +375,8 @@ function NewPostPage() {
         );
 
         if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
+          const error = await uploadResponse.json();
+          throw new Error(error.error?.message || "Failed to upload image");
         }
 
         const uploadData = await uploadResponse.json();
