@@ -28,6 +28,14 @@ import CapperDashboard from "@/components/capperDashboard";
 // import Cropper from "react-easy-crop";
 import { toast, Toaster } from "sonner";
 import Loader from "@/components/Loader";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Add type for product
 interface Product {
@@ -123,6 +131,7 @@ function NewPostPage() {
   const [postTemplate, setPostTemplate] = useState<"standard" | "text-only">(
     "standard"
   );
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   // const [crop, setCrop] = useState({ x: 0, y: 0 });
   // const [zoom, setZoom] = useState(1);
   // const [showCropper, setShowCropper] = useState(false);
@@ -301,7 +310,13 @@ function NewPostPage() {
     setOddsScreenshotPreview(previewUrl);
   };
 
+  const handleCreatePostClick = () => {
+    setShowConfirmDialog(true);
+  };
+
   const handleSubmit = async () => {
+    setShowConfirmDialog(false);
+
     try {
       // Validate required fields first
       if (!title || !content || !selectedProduct) {
@@ -400,9 +415,29 @@ function NewPostPage() {
         return;
       }
 
-      const data = await response.json();
-      toast.success("Post created successfully!");
-      router.push("/home");
+      await response.json();
+
+      // Show success toast instead of redirecting
+      toast.success("Post created successfully!", {
+        description:
+          "Your post has been published and is now visible to subscribers",
+        duration: 5000, // Show for 5 seconds
+      });
+
+      // Optional: Clear the form after successful submission
+      setTitle("");
+      setContent("");
+      setTags([]);
+      setBets([]);
+      setOdds([]);
+      setBetUnits("1");
+      setSelectedBookmaker("");
+      setImage(null);
+      setImagePreview(null);
+      setOddsScreenshot(null);
+      setOddsScreenshotPreview(null);
+      setBetDate(new Date().toISOString().split("T")[0]);
+      setPostTemplate("standard");
     } catch (error) {
       console.error("Error creating post:", error);
       toast.error("Failed to create post");
@@ -973,15 +1008,59 @@ function NewPostPage() {
 
                   {/* Submit Button */}
                   <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => router.back()}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowConfirmDialog(false)}
+                    >
                       Cancel
                     </Button>
                     <Button
-                      onClick={handleSubmit}
+                      onClick={handleCreatePostClick}
                       className="px-8 py-6 text-lg bg-[#4e43ff] hover:bg-[#4e43ff]/90"
                     >
                       Create Post
                     </Button>
+                    <Dialog
+                      open={showConfirmDialog}
+                      onOpenChange={setShowConfirmDialog}
+                    >
+                      <DialogContent className="border-[#4e43ff]/20 bg-[#020817]">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold text-[#4e43ff]">
+                            Confirm Post Submission
+                          </DialogTitle>
+                          <DialogDescription className="text-white/80">
+                            Please review these important details before
+                            submitting:
+                            <ul className="list-disc pl-6 mt-2 space-y-2">
+                              <li>Posts cannot be deleted once published</li>
+                              <li>
+                                If changes are needed, you must contact customer
+                                support
+                              </li>
+                              <li>
+                                All posts are subject to our content guidelines
+                              </li>
+                            </ul>
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowConfirmDialog(false)}
+                            className="border-[#4e43ff] text-white hover:bg-[#4e43ff]/10"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleSubmit}
+                            className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+                          >
+                            Confirm & Submit
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </CardContent>
