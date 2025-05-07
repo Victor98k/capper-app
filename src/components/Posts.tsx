@@ -366,8 +366,8 @@ function InstagramPost({
     <Card
       className={`${
         template === "text-only"
-          ? "overflow-hidden bg-[#020817] border-gray-700"
-          : "w-full bg-gray-900 border-gray-800 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-xl"
+          ? "overflow-hidden bg-[#020817] border-0"
+          : "w-full bg-gray-900 border-0 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-xl"
       }`}
     >
       {template === "text-only" ? (
@@ -461,16 +461,16 @@ function InstagramPost({
 
             <div className="flex overflow-x-auto sm:flex-wrap sm:justify-center items-center gap-3 sm:gap-4 pb-2 sm:pb-0">
               {odds.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] sm:min-w-[120px]">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[120px]">
                   <p className="text-xs font-semibold text-white mb-2">ODDS</p>
-                  <div className="bg-[#4e43ff] w-full px-3 sm:px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                  <div className="bg-[#4e43ff] w-full h-[44px] px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
                     <div className="flex items-center justify-center">
                       {odds.map((odd, index) => (
                         <div key={index} className="flex items-center">
-                          <span className="text-lg sm:text-xl font-bold text-white">
+                          <span className="text-lg font-bold text-white">
                             {odd}
                           </span>
-                          <span className="text-lg sm:text-xl font-bold text-white/80 mr-1">
+                          <span className="text-lg font-bold text-white/80 mr-1">
                             x
                           </span>
                         </div>
@@ -481,14 +481,14 @@ function InstagramPost({
               )}
 
               {tags.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] sm:min-w-[120px]">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[120px]">
                   <p className="text-xs font-semibold text-white mb-2">SPORT</p>
-                  <div className="bg-[#4e43ff] w-full px-3 sm:px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                  <div className="bg-[#4e43ff] w-full h-[44px] px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
                     <div className="flex items-center justify-center gap-2">
                       {tags.map((tag) => (
                         <span
                           key={tag}
-                          className="text-lg sm:text-xl text-white"
+                          className="text-lg text-white"
                           title={tag}
                         >
                           {sportEmojiMap[tag] || tag}
@@ -500,16 +500,14 @@ function InstagramPost({
               )}
 
               {productName && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] sm:min-w-[120px]">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[120px]">
                   <p className="text-xs font-semibold text-white mb-2">
                     BUNDLE
                   </p>
-                  <div className="bg-[#4e43ff] w-full px-3 sm:px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
-                    <div className="flex items-center justify-center">
-                      <span className="text-sm font-bold text-white">
-                        {productName}
-                      </span>
-                    </div>
+                  <div className="bg-[#4e43ff] w-full h-[44px] px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
+                    <span className="text-lg font-bold text-white truncate">
+                      {productName}
+                    </span>
                   </div>
                 </div>
               )}
@@ -778,6 +776,7 @@ function InstagramPost({
           </div>
         </>
       )}
+      <div className="border-b border-gray-700/50"></div>
     </Card>
   );
 }
