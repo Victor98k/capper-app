@@ -516,7 +516,7 @@ function InstagramPost({
                     BUNDLE
                   </p>
                   <div className="bg-[#4e43ff] w-full h-[36px] sm:h-[48px] px-2 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
-                    <span className="text-sm sm:text-lg font-bold text-white truncate">
+                    <span className="text-sm sm:text-lg md:text-xs font-bold text-white truncate">
                       {productName}
                     </span>
                   </div>
