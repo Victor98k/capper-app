@@ -385,9 +385,12 @@ function InstagramPost({
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="text-base sm:text-xl font-medium text-gray-200">
+                <button
+                  onClick={() => router.push(`/cappers/${capperInfo.username}`)}
+                  className="text-base sm:text-xl font-medium text-gray-200 hover:text-[#4e43ff] transition-colors text-left"
+                >
                   @{capperInfo.username}
-                </span>
+                </button>
                 {productName && (
                   <span className="text-xs sm:text-base text-[#4e43ff] font-semibold mt-0.5 sm:mt-1">
                     {productName}
