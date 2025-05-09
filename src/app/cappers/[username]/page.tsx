@@ -65,9 +65,6 @@ interface PerformanceData {
 }
 
 const calculateWinRate = (performanceData: PerformanceData[]) => {
-  // Add debug logs
-  console.log("All performance data:", performanceData);
-
   const completedBets = performanceData.filter(
     (bet) => bet.status === "WON" || bet.status === "LOST"
   );
@@ -75,12 +72,9 @@ const calculateWinRate = (performanceData: PerformanceData[]) => {
   const wonBets = completedBets.filter((bet) => bet.status === "WON").length;
   const totalBets = completedBets.length;
 
-  console.log(`Won bets: ${wonBets}, Total bets: ${totalBets}`);
-
   if (totalBets === 0) return "0%";
 
   const winRate = (wonBets / totalBets) * 100;
-  console.log(`Win rate calculated: ${winRate.toFixed(1)}%`);
 
   return `${winRate.toFixed(1)}%`;
 };
@@ -116,16 +110,6 @@ export default function CapperProfilePage({
           throw new Error(data.error);
         }
 
-        console.log("Received capper data:", {
-          id: data.id,
-          username: data.user.username,
-          products: data.products.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            features: p.marketing_features,
-          })),
-        });
-
         setCapper(data);
       } catch (error: unknown) {
         console.error(
@@ -143,7 +127,6 @@ export default function CapperProfilePage({
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       try {
-        console.log("Checking subscription for capper:", capper?.id);
         const response = await fetch(
           `/api/subscriptions/check?capperId=${capper?.id}`,
           {
@@ -153,7 +136,6 @@ export default function CapperProfilePage({
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Subscription check response:", data);
           setIsSubscribed(data.subscribedProducts.length > 0);
           setSubscribedProducts(data.subscribedProducts || []);
           setSubscriptionDetails(data.subscriptionDetails);
@@ -207,7 +189,6 @@ export default function CapperProfilePage({
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Subscription check response:", data);
           setSubscribedProducts(data.subscribedProducts || []);
         }
       } catch (error) {

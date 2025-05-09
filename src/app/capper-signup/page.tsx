@@ -26,8 +26,6 @@ function CapperSignupContent() {
       }
 
       try {
-        console.log("Verifying token:", token.substring(0, 20) + "...");
-
         const response = await fetch("/api/verify-capper-token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -75,12 +75,6 @@ const CLOUDINARY_UPLOAD_PRESET_BETS =
   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_BETS_VERIFICATION ||
   "bet_validation";
 
-// console.log("Upload Presets:", {
-//   posts: CLOUDINARY_UPLOAD_PRESET,
-//   bets: CLOUDINARY_UPLOAD_PRESET_BETS,
-//   cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-// });
-
 const isValidOdd = (odd: string): boolean => {
   const number = parseFloat(odd);
   return (
@@ -346,17 +340,12 @@ function NewPostPage() {
 
       // If we have an odds screenshot, upload it first with the BETS preset
       if (oddsScreenshot) {
-        console.log(
-          "Attempting odds screenshot upload with preset:",
-          CLOUDINARY_UPLOAD_PRESET_BETS
-        );
         const formData = new FormData();
         formData.append("file", oddsScreenshot);
         formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET_BETS);
 
         // Log the actual URL being used
         const uploadUrl = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
-        console.log("Upload URL:", uploadUrl);
 
         const uploadResponse = await fetch(uploadUrl, {
           method: "POST",

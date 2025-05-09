@@ -8,9 +8,6 @@ import Loader from "@/components/Loader";
 export default function Home() {
   const { user, loading } = useAuth();
 
-  // console.log("User data:", user);
-  // console.log("Is super user:", user?.isSuperUser);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">

@@ -70,8 +70,6 @@ function UserProfileContent() {
     const fetchUserProfile = async () => {
       if (user?.id) {
         try {
-          // console.log("Fetching user profile");
-
           const response = await fetch("/api/users/profile", {
             credentials: "include",
             headers: {
@@ -79,14 +77,11 @@ function UserProfileContent() {
             },
           });
 
-          // console.log("Profile response status:", response.status);
-
           if (!response.ok) {
             throw new Error("Failed to fetch profile data");
           }
 
           const data = await response.json();
-          // console.log("Profile data:", data);
 
           setUserData(data);
           setUsername(data.username || "");
@@ -104,17 +99,12 @@ function UserProfileContent() {
     const fetchSubscriptions = async () => {
       if (user?.id) {
         try {
-          // console.log("Starting subscription fetch for user:", user.id);
-
           const response = await fetch("/api/subscriptions/user", {
             credentials: "include",
             headers: {
               userId: user.id,
             },
           });
-
-          // console.log("Fetch URL:", response.url);
-          // console.log("Response status:", response.status);
 
           if (!response.ok) {
             throw new Error(
@@ -123,7 +113,6 @@ function UserProfileContent() {
           }
 
           const data = await response.json();
-          // console.log("Subscription data received:", data);
 
           setSubscriptions(data.subscriptions || []);
         } catch (error) {

@@ -154,7 +154,6 @@ export function CapperDashboard() {
       }
 
       const data = await response.json();
-      console.log("Bio updated successfully:", data);
       setIsEditingBio(false);
     } catch (error) {
       console.error("Failed to update bio:", error);

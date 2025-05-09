@@ -145,7 +145,6 @@ function CapperProfileContent() {
       if (user?.id) {
         try {
           const token = localStorage.getItem("token");
-          console.log("Fetching profile for user ID:", user.id); // Debug log
 
           const response = await fetch("/api/cappers", {
             headers: {
@@ -159,11 +158,8 @@ function CapperProfileContent() {
           }
 
           const data = await response.json();
-          console.log("Raw API response:", data); // Debug log
 
           const capperData = data.find((c: any) => c.userId === user.id);
-          console.log("Found capper data:", capperData); // Debug log
-          console.log("Social links in capper data:", capperData?.socialLinks); // Debug log
 
           if (capperData) {
             setCapperData(capperData);
@@ -173,7 +169,6 @@ function CapperProfileContent() {
 
             // Initialize socials with existing data
             const socialLinks = capperData.socialLinks || {};
-            console.log("Social links before processing:", socialLinks); // Debug log
 
             const initialSocials = {
               instagram: socialLinks.instagram || { username: "", url: "" },
@@ -183,7 +178,6 @@ function CapperProfileContent() {
               youtube: socialLinks.youtube || { username: "", url: "" },
             };
 
-            console.log("Initial socials state:", initialSocials); // Debug log
             setSocials(initialSocials);
           }
         } catch (error) {
@@ -288,8 +282,6 @@ function CapperProfileContent() {
         isOnboarded: data.onboarded || false,
         isLoading: false,
       });
-
-      console.log("Stripe status check:", data); // Debug log
     } catch (error) {
       console.error("Failed to fetch Stripe status:", error);
       setStripeStatus({
@@ -356,7 +348,6 @@ function CapperProfileContent() {
       }
 
       const data = await response.json();
-      // console.log("Bio update response:", data); // Debug the update response
 
       // Extract the updated bio from the response if available
       if (data && "bio" in data) {
@@ -377,7 +368,6 @@ function CapperProfileContent() {
           (c: any) => c.userId === user.id
         );
         if (updatedCapperData) {
-          console.log("Refetched capper data:", updatedCapperData);
           setBio(updatedCapperData.bio || "");
           setTags(updatedCapperData.tags || []);
           setUsername(updatedCapperData.user?.username || "");

@@ -69,8 +69,6 @@ export default function StripeProductDisplay() {
     fetchProducts();
   }, []);
 
-  // console.log("Current products state:", products);
-
   const openStripeDashboard = async (path: string = "") => {
     try {
       const response = await fetch("/api/stripe/dashboard");
@@ -104,10 +102,6 @@ export default function StripeProductDisplay() {
   }
 
   const shouldShowEmptyState = !products || products.length === 0;
-  console.log("Showing empty state:", shouldShowEmptyState, {
-    productsExists: !!products,
-    productsLength: products?.length,
-  });
 
   if (shouldShowEmptyState) {
     return (
