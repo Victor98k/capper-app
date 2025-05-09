@@ -156,7 +156,7 @@ export default function StripeConnectOnboarding({
         disabled={loading}
         className="bg-[#4e43ff] hover:bg-blue-600 w-full sm:w-auto text-lg"
       >
-        {loading ? "Setting up..." : "Connect Stripe Account"}
+        {loading ? "Setting up..." : "Set up Stripe Account"}
       </Button>
     </div>
   );
