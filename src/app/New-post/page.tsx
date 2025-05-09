@@ -77,11 +77,7 @@ const CLOUDINARY_UPLOAD_PRESET_BETS =
 
 const isValidOdd = (odd: string): boolean => {
   const number = parseFloat(odd);
-  return (
-    !isNaN(number) &&
-    (number % 1 === 0 || number % 1 === 0.5) && // Only whole numbers or .5
-    number >= 1
-  ); // Ensure odds are 1 or greater
+  return !isNaN(number) && number >= 1 && /^\d+(\.\d{0,2})?$/.test(odd);
 };
 
 // First, add a function to convert the file to base64
@@ -255,7 +251,7 @@ function NewPostPage() {
     if (!isValidOdd(trimmedOdd)) {
       toast.error("Invalid odds format", {
         description:
-          "Odds must be whole numbers or end with .5 (e.g., 1.5, 2, 2.5)",
+          "Odds must be 1 or greater with up to 2 decimal places (e.g., 1.87, 2.25)",
       });
       return;
     }
@@ -271,9 +267,8 @@ function NewPostPage() {
   };
 
   const handleOddChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numbers and one decimal point
     const value = e.target.value;
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d{0,2}$/.test(value)) {
       setNewOdd(value);
     }
   };
@@ -899,7 +894,7 @@ function NewPostPage() {
                             handleAddOdd();
                           }
                         }}
-                        placeholder="Add odds (e.g., 1.5, 2)"
+                        placeholder="Add odds (e.g., 1.87, 2.25)"
                         className="flex-1 p-2 border rounded-md"
                         disabled={odds.length >= MAX_ODDS}
                       />
