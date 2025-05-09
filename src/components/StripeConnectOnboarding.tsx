@@ -5,6 +5,30 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, ExternalLink, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
+export async function startStripeOnboarding(): Promise<string | undefined> {
+  try {
+    const response = await fetch("/api/stripe/connect", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Onboarding error:", error);
+      return undefined;
+    }
+
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error("Onboarding error:", error);
+    return undefined;
+  }
+}
+
 export default function StripeConnectOnboarding({
   isOnboarded = false,
 }: {
@@ -15,27 +39,10 @@ export default function StripeConnectOnboarding({
   const startOnboarding = async () => {
     try {
       setLoading(true);
-
-      const response = await fetch("/api/stripe/connect", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error("Onboarding error:", error);
-        return;
+      const url = await startStripeOnboarding();
+      if (url) {
+        window.location.href = url;
       }
-
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error("Onboarding error:", error);
     } finally {
       setLoading(false);
     }
