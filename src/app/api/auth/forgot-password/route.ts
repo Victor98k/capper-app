@@ -16,14 +16,11 @@ export async function POST(request: Request) {
   try {
     const { email } = await request.json();
 
-    console.log("Processing password reset for email:", email);
-
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      console.log("No user found with email:", email);
       return NextResponse.json({
         success: true,
         message:
@@ -41,8 +38,6 @@ export async function POST(request: Request) {
       .update(resetToken)
       .digest("hex");
 
-    // console.log("Generated reset token for user:", user.id);
-
     // Save the reset token and expiry to the user record
     await prisma.user.update({
       where: { email },
@@ -55,8 +50,6 @@ export async function POST(request: Request) {
     // Create reset URL
     // const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
     const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${resetToken}`;
-
-    console.log("Reset URL generated:", resetUrl);
 
     try {
       // Send email
@@ -71,7 +64,6 @@ export async function POST(request: Request) {
           <p>This link will expire in 1 hour.</p>
         `,
       });
-      console.log("Email sent successfully:", emailResponse);
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
       throw emailError;
@@ -83,7 +75,6 @@ export async function POST(request: Request) {
         "If an account exists with this email, you will receive a password reset link",
     });
   } catch (error) {
-    console.error("Password reset request error:", error);
     return NextResponse.json(
       { error: "Failed to process password reset request" },
       { status: 500 }

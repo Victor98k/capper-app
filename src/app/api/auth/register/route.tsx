@@ -138,10 +138,10 @@ export async function POST(request: Request) {
       path: "/",
     });
 
-    console.log("Setting token cookie for new registration:", {
-      token: token.substring(0, 20) + "...",
-      cookieString: response.headers.get("set-cookie"),
-    });
+    // console.log("Setting token cookie for new registration:", {
+    //   token: token.substring(0, 20) + "...",
+    //   cookieString: response.headers.get("set-cookie"),
+    // });
 
     return response;
   } catch (error) {

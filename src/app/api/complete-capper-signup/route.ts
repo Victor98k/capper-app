@@ -6,20 +6,16 @@ import { hashPassword } from "@/utils/bcrypt";
 export async function POST(request: Request) {
   try {
     const { token, password } = await request.json();
-    console.log("Received token:", token);
 
     const payload = await verifyJWT(token);
-    console.log("Token payload:", payload);
 
     if (!payload?.userId) {
       throw new Error("Invalid token");
     }
 
-    // Log the user lookup
     const existingUser = await prisma.user.findUnique({
       where: { id: payload.userId },
     });
-    console.log("Found user:", existingUser);
 
     const hashedPassword = await hashPassword(password);
 

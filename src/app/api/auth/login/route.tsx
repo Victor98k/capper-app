@@ -69,14 +69,10 @@ export async function POST(request: NextRequest) {
       path: "/",
     });
 
-    console.log("Setting token cookie:", {
-      token: token.substring(0, 20) + "...",
-      cookieString: response.headers.get("set-cookie"),
-    });
+    return response;
 
     return response;
   } catch (error: any) {
-    console.log("Error: failed to login", error.message);
     return NextResponse.json(
       {
         message: "user matching credentials not found",

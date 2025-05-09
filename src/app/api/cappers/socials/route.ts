@@ -25,7 +25,6 @@ export async function PUT(request: Request) {
       userId: string;
       socials: SocialLinks;
     };
-    console.log("Received update request:", { userId, socials }); // Debug log
 
     if (!userId) {
       return NextResponse.json(
@@ -40,8 +39,6 @@ export async function PUT(request: Request) {
       select: { socialLinks: true },
     })) as ExistingCapper | null;
 
-    console.log("Existing capper social links:", existingCapper?.socialLinks); // Debug log
-
     // Create the updated socials object, maintaining existing values if not updated
     const updatedSocials = {
       instagram:
@@ -53,8 +50,6 @@ export async function PUT(request: Request) {
       youtube: socials.youtube || existingCapper?.socialLinks?.youtube || null,
     };
 
-    console.log("Updating with socials:", updatedSocials); // Debug log
-
     const updatedCapper = await prisma.capper.update({
       where: { userId },
       data: {
@@ -64,8 +59,6 @@ export async function PUT(request: Request) {
         user: true,
       },
     });
-
-    console.log("Updated capper:", updatedCapper); // Debug log
 
     return NextResponse.json(updatedCapper);
   } catch (error) {

@@ -179,14 +179,11 @@ export async function PUT(request: Request) {
       .find((c) => c.trim().startsWith("token="))
       ?.split("=")[1];
 
-    console.log("Token:", token?.substring(0, 20) + "..."); // Debug log
-
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const payload = await verifyJWT(token);
-    console.log("Payload:", payload); // Debug log
 
     if (!payload?.userId) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
@@ -203,7 +200,6 @@ export async function PUT(request: Request) {
     }
 
     const { applicationId, status } = await request.json();
-    console.log("Application update:", { applicationId, status }); // Debug log
 
     if (!applicationId || !status) {
       return NextResponse.json(
@@ -229,11 +225,9 @@ export async function PUT(request: Request) {
     // If application is approved, update user to be a capper
     if (status === "APPROVED") {
       try {
-        console.log("Generating signup token..."); // Debug log
         const signupToken = await signJWT({
           userId: application.userId,
         });
-        console.log("Token generated successfully"); // Debug log
 
         await prisma.user.update({
           where: { id: application.userId },
@@ -242,7 +236,6 @@ export async function PUT(request: Request) {
           },
         });
 
-        console.log("Sending approval email to:", application.user.email); // Debug log
         const emailResponse = await resend.emails.send({
           from: "Cappers <hello@cappersports.co>",
           to: application.user.email,
@@ -256,19 +249,12 @@ export async function PUT(request: Request) {
         });
 
         // Add debug logging
-        console.log("Email sending environment:", process.env.NODE_ENV);
-        console.log(
-          "Email recipient:",
-          process.env.NODE_ENV === "development"
-            ? "victorgustav98@gmail.com"
-            : application.user.email
-        );
 
-        console.log("Sending email with:", {
-          baseUrl: BASE_URL,
-          signupToken,
-          fullUrl: `${BASE_URL}/capper-signup?token=${signupToken}`,
-        });
+        // console.log("Sending email with:", {
+        //   baseUrl: BASE_URL,
+        //   signupToken,
+        //   fullUrl: `${BASE_URL}/capper-signup?token=${signupToken}`,
+        // });
       } catch (emailError) {
         console.error("Error in approval process:", emailError);
         // Continue with the response even if email fails

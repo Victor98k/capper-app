@@ -34,11 +34,6 @@ export async function POST(req: Request) {
 
     // Add this before creating the account
     const platform = await stripe.accounts.retrieve("acct_1QWIPQKdsW3avvJO");
-    console.log("Platform status:", {
-      charges_enabled: platform.charges_enabled,
-      payouts_enabled: platform.payouts_enabled,
-      details_submitted: platform.details_submitted,
-    });
 
     // Ensure we have the base URL with proper format for general use
     const baseUrl =
@@ -46,8 +41,6 @@ export async function POST(req: Request) {
     const websiteUrl = baseUrl.startsWith("http")
       ? baseUrl
       : `https://${baseUrl}`;
-
-    console.log("Using base URL:", websiteUrl); // Debug log
 
     // Create a Stripe Connect account
     const account = await stripe.accounts.create({

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { log } from "console";
 
 // Comment out environment logging
 /*
@@ -20,13 +21,6 @@ const webhookSecret =
   process.env.NODE_ENV === "development"
     ? process.env.STRIPE_WEBHOOK_SECRET_LOCAL
     : process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL;
-
-console.log("Webhook Configuration:", {
-  environment: process.env.NODE_ENV,
-  hasSecret: !!webhookSecret,
-  secretPrefix: webhookSecret?.substring(0, 6),
-  isProduction: process.env.NODE_ENV === "production",
-});
 
 if (!webhookSecret) {
   /*
@@ -65,22 +59,16 @@ const logWebhookError = (error: any, context: string) => {
 // export const runtime = "edge";
 
 // At the top of the file
-const log = (type: "info" | "error", message: string, data?: any) => {
-  const logData = {
-    message,
-    timestamp: new Date().toISOString(),
-    ...data,
-  };
-  console.log(`[Webhook ${type}]:`, logData);
-};
+// const log = (type: "info" | "error", message: string, data?: any) => {
+//   const logData = {
+//     message,
+//     timestamp: new Date().toISOString(),
+//     ...data,
+//   };
+//   console.log(`[Webhook ${type}]:`, logData);
+// };
 
 // Add this temporarily to debug production
-log("info", "Webhook configuration", {
-  isDev: process.env.NODE_ENV === "development",
-  hasProductionSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
-  hasLocalSecret: !!process.env.STRIPE_WEBHOOK_SECRET_LOCAL,
-  secretPrefix: webhookSecret?.substring(0, 6),
-});
 
 // Cache setup
 const cache = new Map();
@@ -102,13 +90,13 @@ const setCachedData = (key: string, data: any) => {
 };
 
 // At the top of your webhook handler
-log("info", "Webhook environment details", {
-  nodeEnv: process.env.NODE_ENV,
-  webhookSecretType:
-    process.env.NODE_ENV === "development" ? "CLI" : "Dashboard",
-  hasWebhookSecret: !!webhookSecret,
-  webhookSecretPrefix: webhookSecret?.substring(0, 6),
-});
+// log("info", "Webhook environment details", {
+//   nodeEnv: process.env.NODE_ENV,
+//   webhookSecretType:
+//     process.env.NODE_ENV === "development" ? "CLI" : "Dashboard",
+//   hasWebhookSecret: !!webhookSecret,
+//   webhookSecretPrefix: webhookSecret?.substring(0, 6),
+// });
 
 export async function POST(req: Request) {
   try {
@@ -116,11 +104,11 @@ export async function POST(req: Request) {
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
-    log("info", "Webhook received", {
-      NODE_ENV: process.env.NODE_ENV,
-      hasWebhookSecret: !!webhookSecret,
-      hasSignature: !!sig,
-    });
+    // log("info", "Webhook received", {
+    //   NODE_ENV: process.env.NODE_ENV,
+    //   hasWebhookSecret: !!webhookSecret,
+    //   hasSignature: !!sig,
+    // });
 
     if (!sig || !webhookSecret) {
       log("error", "Webhook validation failed", {
@@ -154,25 +142,25 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object;
-        console.log("Checkout Session Data:", {
-          id: session.id,
-          mode: session.mode,
-          paymentStatus: session.payment_status,
-          metadata: session.metadata,
-          customer: session.customer,
-          paymentIntent: session.payment_intent,
-          subscription: session.subscription,
-        });
+        // console.log("Checkout Session Data:", {
+        //   id: session.id,
+        //   mode: session.mode,
+        //   paymentStatus: session.payment_status,
+        //   metadata: session.metadata,
+        //   customer: session.customer,
+        //   paymentIntent: session.payment_intent,
+        //   subscription: session.subscription,
+        // });
         return await handleSubscriptionCreation(session);
 
       case "charge.succeeded":
         const charge = event.data.object;
-        console.log("Charge succeeded:", {
-          id: charge.id,
-          paymentIntent: charge.payment_intent,
-          amount: charge.amount,
-          metadata: charge.metadata,
-        });
+        // console.log("Charge succeeded:", {
+        //   id: charge.id,
+        //   paymentIntent: charge.payment_intent,
+        //   amount: charge.amount,
+        //   metadata: charge.metadata,
+        // });
         // For one-time payments, we might want to handle this
         if (charge.metadata?.userId && charge.metadata?.capperId) {
           const paymentIntent = await stripe.paymentIntents.retrieve(
@@ -194,11 +182,11 @@ export async function POST(req: Request) {
         return await handleSubscriptionUpdate(subscription);
 
       case "payment_intent.succeeded":
-        console.log("Payment intent succeeded:", {
-          id: event.data.object.id,
-          amount: event.data.object.amount,
-          metadata: event.data.object.metadata,
-        });
+        // console.log("Payment intent succeeded:", {
+        //   id: event.data.object.id,
+        //   amount: event.data.object.amount,
+        //   metadata: event.data.object.metadata,
+        // });
         return NextResponse.json({ received: true });
 
       default:
@@ -218,13 +206,13 @@ export async function POST(req: Request) {
 
 async function handleSubscriptionCreation(session: any) {
   try {
-    console.log("Creating subscription for:", {
-      userId: session.metadata?.userId,
-      capperId: session.metadata?.capperId,
-      mode: session.mode,
-      paymentIntent: session.payment_intent,
-      subscription: session.subscription,
-    });
+    // console.log("Creating subscription for:", {
+    //   userId: session.metadata?.userId,
+    //   capperId: session.metadata?.capperId,
+    //   mode: session.mode,
+    //   paymentIntent: session.payment_intent,
+    //   subscription: session.subscription,
+    // });
 
     if (!session.metadata?.userId || !session.metadata?.capperId) {
       log("error", "Missing required metadata", {
@@ -292,12 +280,12 @@ async function handleSubscriptionCreation(session: any) {
     });
 
     console.log("Subscription created:", {
-      id: subscription.id,
-      userId: subscription.userId,
-      capperId: subscription.capperId,
-      status: subscription.status,
-      paymentIntentId: subscription.stripePaymentIntentId,
-      subscriptionId: subscription.stripeSubscriptionId,
+      //   id: subscription.id,
+      //   userId: subscription.userId,
+      //   capperId: subscription.capperId,
+      //   status: subscription.status,
+      //   paymentIntentId: subscription.stripePaymentIntentId,
+      //   subscriptionId: subscription.stripeSubscriptionId,
     });
 
     return NextResponse.json({ received: true });
