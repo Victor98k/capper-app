@@ -162,25 +162,7 @@ export function SideNav() {
           onClick={() => router.push("/home-capper")}
         >
           <BarChart3 className="h-5 w-5 mr-3" />
-          Capper Dashboard
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start border border-white/20 hover:border-white/40 transition-colors duration-200"
-          size="lg"
-          onClick={openStripeDashboard}
-        >
-          <ExternalLink className="h-5 w-5 mr-3" />
-          Subs Dashboard
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start border border-white/20 hover:border-white/40 transition-colors duration-200"
-          size="lg"
-          onClick={openStripeDashboard}
-        >
-          <ExternalLink className="h-5 w-5 mr-3" />
-          Stripe Dashboard
+          Product Dashboard
         </Button>
 
         <Button
@@ -192,15 +174,7 @@ export function SideNav() {
           <Compass className="h-5 w-5 mr-3" />
           Add new post
         </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          size="lg"
-          onClick={() => router.push("/profile")}
-        >
-          <Heart className="h-5 w-5 mr-3" />
-          Profile info
-        </Button>
+
         <Button
           variant="ghost"
           className="w-full justify-start"
@@ -219,6 +193,15 @@ export function SideNav() {
           <Settings className="h-5 w-5 mr-3" />
           My profile
         </Button> */}
+        <Button
+          variant="ghost"
+          className="w-full justify-start border border-white/20 hover:border-white/40 transition-colors duration-200"
+          size="lg"
+          onClick={openStripeDashboard}
+        >
+          <ExternalLink className="h-5 w-5 mr-3" />
+          Stripe Dashboard
+        </Button>
 
         <div className="pt-4 border-t border-gray-700">
           <div className="flex items-center space-x-3 mb-4">

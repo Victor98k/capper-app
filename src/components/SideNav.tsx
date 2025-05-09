@@ -122,17 +122,6 @@ export function SideNav() {
               Home
             </Button>
 
-            {isCapper && (
-              <Button
-                variant="ghost"
-                className="w-full justify-start py-4 px-2 text-base border border-white/20 hover:border-white/40 transition-colors duration-200"
-                onClick={() => router.push("/home-capper")}
-              >
-                <LineChart className="h-5 w-5 mr-3" />
-                Capper Dashboard
-              </Button>
-            )}
-
             <Button
               variant="ghost"
               className="w-full justify-start py-4 px-2 text-base"
@@ -165,8 +154,18 @@ export function SideNav() {
               onClick={() => router.push("/My-bets")}
             >
               <TicketIcon className="h-5 w-5 mr-3" />
-              My Bets
+              Bet tracker
             </Button>
+            {isCapper && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start py-4 px-2 text-base border border-white/20 hover:border-white/40 transition-colors duration-200"
+                onClick={() => router.push("/home-capper")}
+              >
+                <LineChart className="h-5 w-5 mr-3" />
+                Capper Dashboard
+              </Button>
+            )}
           </div>
         </nav>
 
