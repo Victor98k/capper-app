@@ -7,8 +7,12 @@ import Loader from "@/components/Loader";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Trophy } from "lucide-react";
+import { Trophy, TrendingUp, Users, Zap, Compass } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { sportEmojiMap } from "@/lib/sportEmojiMap";
 
 type Post = {
   _id: string;
@@ -29,6 +33,18 @@ type Subscription = {
   productId: string;
 };
 
+type Capper = {
+  id: string;
+  userId: string;
+  user: {
+    username: string;
+    firstName: string;
+    lastName: string;
+  };
+  profileImage: string;
+  tags: string[];
+};
+
 // Dynamically import the component with SSR disabled
 const MyCappers = dynamic(
   () =>
@@ -39,6 +55,7 @@ const MyCappers = dynamic(
       }, []);
 
       const { user } = useAuth();
+      const router = useRouter();
 
       const { data: subscriptions = [], isLoading: subsLoading } = useQuery<
         Subscription[]
@@ -72,6 +89,28 @@ const MyCappers = dynamic(
         enabled: subscriptions.length > 0,
       });
 
+      const { data: featuredCappers = [] } = useQuery<Capper[]>({
+        queryKey: ["featuredCappers"],
+        queryFn: async () => {
+          const response = await fetch("/api/cappers");
+          const data = await response.json();
+          // Filter cappers that have both sports tags and a profile picture
+          const cappersWithSportsAndImage = data
+            .filter(
+              (capper: Capper) =>
+                capper.tags && capper.tags.length > 0 && capper.profileImage // Only include cappers with profile images
+            )
+            .slice(0, 3);
+
+          // If we have less than 3 qualified cappers, don't show the section
+          if (cappersWithSportsAndImage.length < 3) {
+            return [];
+          }
+
+          return cappersWithSportsAndImage;
+        },
+      });
+
       const isLoading = subsLoading || postsLoading;
 
       if (isLoading) {
@@ -92,29 +131,134 @@ const MyCappers = dynamic(
 
       if (posts.length === 0) {
         return (
-          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4">
-            <div className="bg-gray-800/50 rounded-xl p-8 max-w-md w-full text-center space-y-6 border border-gray-700">
-              <div className="bg-[#4e43ff]/10 p-4 rounded-full w-fit mx-auto">
-                <Trophy className="w-12 h-12 text-[#4e43ff]" />
+          <div className="w-full px-4 py-6">
+            <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 md:p-8 backdrop-blur-sm border border-gray-700/50">
+              {/* Header Section */}
+              <div className="text-center space-y-4 mb-8">
+                {/* Animated Icon */}
+                <div className="relative w-20 h-20 mx-auto">
+                  <div className="absolute inset-0 bg-[#4e43ff]/20 rounded-full animate-ping" />
+                  <div className="relative bg-[#4e43ff]/10 rounded-full p-5">
+                    <Trophy className="w-10 h-10 text-[#4e43ff]" />
+                  </div>
+                </div>
+
+                <h2 className="text-2xl md:text-3xl font-bold text-white">
+                  Start Following Cappers
+                </h2>
+
+                <p className="text-gray-400 text-base md:text-lg max-w-lg mx-auto">
+                  Follow expert cappers to see their exclusive picks and
+                  analysis in your feed
+                </p>
               </div>
 
-              <h3 className="text-2xl font-bold text-white">No Posts Yet</h3>
+              {/* Features Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-8">
+                <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
+                  <TrendingUp className="w-8 h-8 text-[#4e43ff] mb-3" />
+                  <h3 className="font-semibold text-white mb-2">
+                    Expert Analysis
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Get detailed insights from experienced cappers
+                  </p>
+                </div>
 
-              <p className="text-gray-400 text-lg">
-                Subscribe to some cappers to see their exclusive content and
-                picks right here!
-              </p>
+                <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
+                  <Zap className="w-8 h-8 text-[#4e43ff] mb-3" />
+                  <h3 className="font-semibold text-white mb-2">
+                    Real-time Picks
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Access picks as soon as they're posted
+                  </p>
+                </div>
 
-              <Link href="/Explore" className="block">
-                <Button className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white px-8 py-4 rounded-lg w-full">
-                  Discover Cappers
+                <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
+                  <Users className="w-8 h-8 text-[#4e43ff] mb-3" />
+                  <h3 className="font-semibold text-white mb-2">Community</h3>
+                  <p className="text-sm text-gray-400">
+                    Join a community of successful bettors
+                  </p>
+                </div>
+              </div>
+
+              {/* Featured Cappers */}
+              {featuredCappers.length > 0 && (
+                <div className="my-12">
+                  <h3 className="text-xl font-semibold text-white text-center mb-6">
+                    Featured Cappers
+                  </h3>
+                  <div className="flex flex-col sm:flex-row justify-center items-center gap-8">
+                    {featuredCappers.map((capper) => (
+                      <div
+                        key={capper.id}
+                        onClick={() =>
+                          router.push(`/cappers/${capper.user.username}`)
+                        }
+                        className="flex flex-col items-center gap-3 cursor-pointer group w-full sm:w-auto max-w-[200px]"
+                      >
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-[#4e43ff]/20 rounded-full group-hover:animate-ping" />
+                          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-[#4e43ff] relative">
+                            <AvatarImage src={capper.profileImage} />
+                            <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff]">
+                              {capper.user.firstName?.[0]}
+                              {capper.user.lastName?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <span className="font-medium text-white group-hover:text-[#4e43ff] transition-colors text-sm sm:text-base">
+                          @{capper.user.username}
+                        </span>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {capper.tags.slice(0, 2).map((tag, index) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="bg-gray-800/50 border-[#4e43ff]/20 text-xs sm:text-sm"
+                            >
+                              <span className="mr-1">
+                                {sportEmojiMap[tag] || "🎯"}
+                              </span>
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CTA Section */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+                <Button
+                  onClick={() => router.push("/Explore")}
+                  className="w-full sm:w-auto bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white px-8 py-6 text-lg rounded-xl"
+                >
+                  <Compass className="w-5 h-5 mr-2" />
+                  Explore Cappers
                 </Button>
-              </Link>
 
-              <p className="text-sm text-gray-500">
-                Once you subscribe, their posts will appear in your feed
-                automatically
-              </p>
+                <Button
+                  onClick={() => router.push("/Explore")}
+                  variant="outline"
+                  className="w-full sm:w-auto border-[#4e43ff]/50 text-[#4e43ff] hover:bg-[#4e43ff]/10 px-8 py-6 text-lg rounded-xl"
+                >
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  View Trending
+                </Button>
+              </div>
+
+              {/* Bottom Info */}
+              <div className="mt-8 pt-6 border-t border-gray-700/50">
+                <p className="text-center text-sm text-gray-400">
+                  Subscribe to cappers to unlock exclusive content and real-time
+                  picks
+                </p>
+              </div>
             </div>
           </div>
         );
