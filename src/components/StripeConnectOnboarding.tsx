@@ -114,8 +114,12 @@ const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = ({
   const StripeInfoModal = () => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-gray-400">
-          <Info className="h-4 w-4 mr-2" />
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:border-white/30 transition-all flex items-center gap-2"
+        >
+          <Info className="h-4 w-4" />
           More Info
         </Button>
       </DialogTrigger>
