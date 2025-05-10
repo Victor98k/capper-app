@@ -128,11 +128,11 @@ export function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen w-full flex">
       {/* Left side with video */}
       <div className="hidden md:block w-1/2 relative">
         <video
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover absolute inset-0"
           autoPlay
           muted
           loop
