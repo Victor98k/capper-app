@@ -10,6 +10,7 @@ import {
   Users,
   CheckCircle,
   PlusCircle,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -105,7 +106,7 @@ export function CapperDashboard() {
   }, [user?.id]);
 
   // Add this inside your CapperDashboard component
-  const { data: stripeAccountData } = useQuery({
+  const { data: stripeAccountData, isLoading: isLoadingStripeData } = useQuery({
     queryKey: ["stripeAccountData"],
     queryFn: async () => {
       const response = await fetch("/api/stripe/account-data");
@@ -344,106 +345,58 @@ export function CapperDashboard() {
 
             {user?.isCapper && stripeStatus?.onboarded && (
               <div className="mb-6">
-                <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg p-8 text-white mb-6">
-                  <div className="flex items-center justify-between gap-4 mb-6">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <button className="flex items-center gap-4 hover:opacity-90 transition-opacity">
-                          <CheckCircle className="h-10 w-10" />
-                          <div>
-                            <h2 className="text-2xl font-bold text-left">
-                              Stripe Account Connected
-                            </h2>
-                            <p className="text-gray-100 text-left text-sm">
-                              Click to view account capabilities
-                            </p>
-                          </div>
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Stripe Account Capabilities</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="flex items-center gap-6 text-sm">
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-600">Payouts:</span>
-                              <span
-                                className={
-                                  stripeAccountData?.payoutEnabled
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                }
-                              >
-                                {stripeAccountData?.payoutEnabled
-                                  ? "Enabled"
-                                  : "Disabled"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-600">Charges:</span>
-                              <span
-                                className={
-                                  stripeAccountData?.chargesEnabled
-                                    ? "text-green-600"
-                                    : "text-red-600"
-                                }
-                              >
-                                {stripeAccountData?.chargesEnabled
-                                  ? "Enabled"
-                                  : "Disabled"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-600">Currency:</span>
-                              <span className="text-gray-900 uppercase">
-                                {stripeAccountData?.defaultCurrency}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="border-t pt-4">
-                            <h4 className="font-medium mb-3">
-                              Account Features:
-                            </h4>
-                            <ul className="space-y-3">
-                              <li className="flex items-center gap-2 text-gray-600">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                View your earnings and payment history
-                              </li>
-                              <li className="flex items-center gap-2 text-gray-600">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                Track your active subscribers
-                              </li>
-                              <li className="flex items-center gap-2 text-gray-600">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                Manage your payout settings
-                              </li>
-                              <li className="flex items-center gap-2 text-gray-600">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                Access detailed analytics and reports
-                              </li>
-                            </ul>
-                          </div>
-
-                          <div className="border-t pt-4">
-                            <StripeConnectOnboarding
-                              isOnboarded={true}
-                              stripeAccountData={{
-                                payoutEnabled: stripeAccountData?.payoutEnabled,
-                                chargesEnabled:
-                                  stripeAccountData?.chargesEnabled,
-                                defaultCurrency:
-                                  stripeAccountData?.defaultCurrency,
-                              }}
-                              className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-6 py-2 rounded-lg font-semibold"
-                            />
-                          </div>
+                <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-xl p-8 text-white mb-6">
+                  {/* Header Section */}
+                  <div className="flex items-center gap-4 mb-8 border-b border-white/10 pb-6">
+                    <div className="bg-white/10 p-3 rounded-lg">
+                      <CheckCircle className="h-8 w-8" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold text-left mb-2">
+                        Stripe Account Connected
+                      </h2>
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                        <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full">
+                          <span className="text-gray-200">Payouts:</span>
+                          <span
+                            className={
+                              stripeAccountData?.payoutEnabled
+                                ? "text-green-400 font-medium"
+                                : "text-red-400 font-medium"
+                            }
+                          >
+                            {stripeAccountData?.payoutEnabled
+                              ? "Enabled"
+                              : "Disabled"}
+                          </span>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                        <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full">
+                          <span className="text-gray-200">Charges:</span>
+                          <span
+                            className={
+                              stripeAccountData?.chargesEnabled
+                                ? "text-green-400 font-medium"
+                                : "text-red-400 font-medium"
+                            }
+                          >
+                            {stripeAccountData?.chargesEnabled
+                              ? "Enabled"
+                              : "Disabled"}
+                          </span>
+                        </div>
+                        {stripeAccountData?.defaultCurrency && (
+                          <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full">
+                            <span className="text-gray-200">Currency:</span>
+                            <span className="text-white uppercase font-medium">
+                              {stripeAccountData.defaultCurrency}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Stats Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <Card className="bg-white/10 backdrop-blur-lg border-none">
                       <CardHeader>
@@ -452,14 +405,23 @@ export function CapperDashboard() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-2xl font-bold">
-                          $
-                          {stripeAccountData?.totalBalance?.toFixed(2) ||
-                            "0.00"}
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          Ready to be paid out
-                        </p>
+                        {isLoadingStripeData ? (
+                          <div className="flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-gray-300">Loading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-2xl font-bold">
+                              $
+                              {stripeAccountData?.totalBalance?.toFixed(2) ||
+                                "0.00"}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              Ready to be paid out
+                            </p>
+                          </>
+                        )}
                       </CardContent>
                     </Card>
 
@@ -470,12 +432,21 @@ export function CapperDashboard() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-2xl font-bold">
-                          {stripeAccountData?.subscriptions?.total || 0}
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          Current subscribers
-                        </p>
+                        {isLoadingStripeData ? (
+                          <div className="flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-gray-300">Loading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-2xl font-bold">
+                              {stripeAccountData?.subscriptions?.total || 0}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              Current subscribers
+                            </p>
+                          </>
+                        )}
                       </CardContent>
                     </Card>
 
@@ -486,15 +457,24 @@ export function CapperDashboard() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-2xl font-bold">
-                          $
-                          {stripeAccountData?.subscriptions?.monthlyRecurringRevenue?.toFixed(
-                            2
-                          ) || "0.00"}
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          Recurring revenue
-                        </p>
+                        {isLoadingStripeData ? (
+                          <div className="flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-gray-300">Loading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-2xl font-bold">
+                              $
+                              {stripeAccountData?.subscriptions?.monthlyRecurringRevenue?.toFixed(
+                                2
+                              ) || "0.00"}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              Recurring revenue
+                            </p>
+                          </>
+                        )}
                       </CardContent>
                     </Card>
 
@@ -503,29 +483,48 @@ export function CapperDashboard() {
                         <CardTitle className="text-lg">Recent Payout</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {stripeAccountData?.recentPayouts?.[0] ? (
-                          <>
-                            <p className="text-2xl font-bold">
-                              $
-                              {stripeAccountData.recentPayouts[0].amount.toFixed(
-                                2
-                              )}
-                            </p>
-                            <p className="text-sm text-gray-300">
-                              {new Date(
-                                stripeAccountData.recentPayouts[0].arrivalDate *
-                                  1000
-                              ).toLocaleDateString()}
-                            </p>
-                          </>
+                        {isLoadingStripeData ? (
+                          <div className="flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-gray-300">Loading...</span>
+                          </div>
                         ) : (
-                          <p className="text-gray-300">No recent payouts</p>
+                          <>
+                            {stripeAccountData?.recentPayouts?.[0] ? (
+                              <>
+                                <p className="text-2xl font-bold">
+                                  $
+                                  {stripeAccountData.recentPayouts[0].amount.toFixed(
+                                    2
+                                  )}
+                                </p>
+                                <p className="text-sm text-gray-300">
+                                  {new Date(
+                                    stripeAccountData.recentPayouts[0]
+                                      .arrivalDate * 1000
+                                  ).toLocaleDateString()}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-gray-300">No recent payouts</p>
+                            )}
+                          </>
                         )}
                       </CardContent>
                     </Card>
                   </div>
 
-                  <div className="flex justify-end bg-black/20 rounded-lg p-8">
+                  {/* Action Section */}
+                  <div className="flex items-center justify-between bg-black/20 rounded-xl p-6">
+                    <div className="space-y-1">
+                      <h3 className="font-medium text-lg">
+                        Manage Your Account
+                      </h3>
+                      <p className="text-sm text-gray-300">
+                        Access your Stripe dashboard to manage payments and
+                        settings
+                      </p>
+                    </div>
                     <StripeConnectOnboarding
                       isOnboarded={true}
                       stripeAccountData={{
@@ -533,7 +532,7 @@ export function CapperDashboard() {
                         chargesEnabled: stripeAccountData?.chargesEnabled,
                         defaultCurrency: stripeAccountData?.defaultCurrency,
                       }}
-                      className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-6 py-2 rounded-lg font-semibold"
+                      className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-6 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl"
                     />
                   </div>
                 </div>
