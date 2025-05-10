@@ -246,11 +246,16 @@ export function SideNav() {
   return (
     <>
       {/* Mobile Menu */}
-      <div className="lg:hidden fixed top-6 left-6 z-50">
+      <div className="lg:hidden fixed top-4 left-4 z-50">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-8 w-8 text-black" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden text-white bg-transparent hover:bg-white/10"
+            >
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent

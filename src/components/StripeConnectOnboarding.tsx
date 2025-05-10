@@ -156,18 +156,18 @@ const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = ({
 
   if (isOnboarded) {
     return (
-      <div className="p-6 bg-gray-800 rounded-xl border border-green-500/20">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-4 md:p-6 bg-gray-800 rounded-xl border border-green-500/20 overflow-x-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 space-y-4 md:space-y-0">
           <div className="flex items-center gap-3">
-            <CheckCircle className="h-8 w-8 text-green-500" />
-            <h3 className="text-2xl font-semibold text-white">
+            <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-500" />
+            <h3 className="text-xl md:text-2xl font-semibold text-white">
               Stripe Account Connected
             </h3>
           </div>
 
           {stripeAccountData && (
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm">
+              <div className="flex items-center gap-2 bg-gray-700/50 px-2 py-1 rounded-full">
                 <span className="text-gray-400">Payouts:</span>
                 <span
                   className={
@@ -179,7 +179,7 @@ const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = ({
                   {stripeAccountData.payoutEnabled ? "Enabled" : "Disabled"}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-gray-700/50 px-2 py-1 rounded-full">
                 <span className="text-gray-400">Charges:</span>
                 <span
                   className={
@@ -192,7 +192,7 @@ const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = ({
                 </span>
               </div>
               {stripeAccountData.defaultCurrency && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-gray-700/50 px-2 py-1 rounded-full">
                   <span className="text-gray-400">Currency:</span>
                   <span className="text-white uppercase">
                     {stripeAccountData.defaultCurrency}
@@ -203,12 +203,12 @@ const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 md:gap-4 mt-4">
           <StripeInfoModal />
           <Button
             onClick={openStripeDashboard}
             variant="outline"
-            className="flex items-center gap-2 text-lg"
+            className="flex items-center justify-center gap-2 text-base md:text-lg w-full md:w-auto"
             disabled={loading}
           >
             {loading ? (
@@ -226,18 +226,22 @@ const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = ({
   }
 
   return (
-    <div className="p-6 bg-gray-900/50 rounded-xl border border-red-500/20">
+    <div className="p-4 md:p-6 bg-gray-900/50 rounded-xl border border-red-500/20">
       <div className="flex items-center gap-3 mb-4">
-        <AlertCircle className="h-8 w-8 text-red-500" />
-        <h3 className="text-2xl font-semibold text-white">
+        <AlertCircle className="h-6 w-6 md:h-8 md:w-8 text-red-500" />
+        <h3 className="text-xl md:text-2xl font-semibold text-white break-words">
           Connect Your Stripe Account
         </h3>
       </div>
-      <p className="text-lg text-gray-300 mb-6">
+      <p className="text-base md:text-lg text-gray-300 mb-6">
         To receive payments as a Capper, you need to connect your Stripe
         account. This will allow you to receive payouts from your subscribers.
       </p>
-      <Button onClick={handleConnect} className={className} disabled={loading}>
+      <Button
+        onClick={handleConnect}
+        className={`w-full md:w-auto ${className}`}
+        disabled={loading}
+      >
         {loading ? "Setting up..." : "Connect with Stripe"}
       </Button>
     </div>

@@ -259,33 +259,33 @@ export function CapperDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#020817]">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#020817]">
       <SideNav />
 
       <div className="flex-1">
-        <header className="bg-[#020817] shadow pl-16 lg:pl-0">
-          <div className="max-w-7xl mx-auto pt-10 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-4xl font-bold text-white">
-              Welcome back, {user?.username}
+        <header className="bg-[#020817] shadow px-4 md:pl-16 lg:pl-0">
+          <div className="max-w-7xl mx-auto pt-6 md:pt-10 px-4 sm:px-6 lg:px-8">
+            <h1 className="text-2xl md:text-4xl font-bold text-white break-words pl-12 md:pl-0">
+              Dashboard Overview
             </h1>
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
+        <main className="max-w-7xl mx-auto py-4 md:py-6 px-4 sm:px-6 lg:px-8">
+          <div className="py-4 md:py-6">
             {user?.isCapper && !stripeStatus?.onboarded && (
-              <div className="mb-6">
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-8 text-white">
-                  <h2 className="text-3xl font-bold mb-4">
+              <div className="mb-4 md:mb-6">
+                <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-4 md:p-8 text-white">
+                  <h2 className="text-2xl md:text-3xl font-bold mb-4">
                     Welcome to Your Capper Journey! 🎉
                   </h2>
-                  <p className="text-lg mb-6">
+                  <p className="text-base md:text-lg mb-6">
                     You're just a few steps away from starting your journey as a
                     professional capper. Let's get your account set up so you
                     can start sharing your insights and earning!
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
                     <Card className="bg-white/10 backdrop-blur-lg border-none">
                       <CardHeader>
                         <CardTitle className="text-xl flex items-center gap-2">
@@ -329,12 +329,12 @@ export function CapperDashboard() {
                     </Card>
                   </div>
 
-                  <div className="text-center">
+                  <div className="text-center px-4 md:px-0">
                     <StripeConnectOnboarding
                       isOnboarded={false}
-                      className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-8 py-4 rounded-full font-semibold text-lg"
+                      className="w-full md:w-auto bg-white text-purple-600 hover:bg-gray-100 transition-colors px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold text-base md:text-lg"
                     />
-                    <p className="mt-4 text-sm opacity-80">
+                    <p className="mt-4 text-sm opacity-80 px-2 md:px-4">
                       By connecting with Stripe, you'll be able to receive
                       payments securely and manage your earnings.
                     </p>
@@ -344,18 +344,17 @@ export function CapperDashboard() {
             )}
 
             {user?.isCapper && stripeStatus?.onboarded && (
-              <div className="mb-6">
-                <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-xl p-8 text-white mb-6">
-                  {/* Header Section */}
-                  <div className="flex items-center gap-4 mb-8 border-b border-white/10 pb-6">
+              <div className="mb-4 md:mb-6">
+                <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-xl p-4 md:p-8 text-white mb-4 md:mb-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6 md:mb-8 border-b border-white/10 pb-6">
                     <div className="bg-white/10 p-3 rounded-lg">
-                      <CheckCircle className="h-8 w-8" />
+                      <CheckCircle className="h-6 w-6 md:h-8 md:w-8" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-left mb-2">
+                      <h2 className="text-xl md:text-2xl font-bold text-left mb-2">
                         Stripe Account Connected
                       </h2>
-                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                      <div className="flex flex-wrap items-center gap-2 md:gap-x-6 text-sm">
                         <div className="flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full">
                           <span className="text-gray-200">Payouts:</span>
                           <span
@@ -396,8 +395,7 @@ export function CapperDashboard() {
                     </div>
                   </div>
 
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
                     <Card className="bg-white/10 backdrop-blur-lg border-none">
                       <CardHeader>
                         <CardTitle className="text-lg">
@@ -514,10 +512,9 @@ export function CapperDashboard() {
                     </Card>
                   </div>
 
-                  {/* Action Section */}
-                  <div className="flex items-center justify-between bg-black/20 rounded-xl p-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-black/20 rounded-xl p-4 md:p-6 space-y-4 md:space-y-0">
                     <div className="space-y-1">
-                      <h3 className="font-medium text-lg">
+                      <h3 className="font-medium text-base md:text-lg">
                         Manage Your Account
                       </h3>
                       <p className="text-sm text-gray-300">
@@ -532,7 +529,7 @@ export function CapperDashboard() {
                         chargesEnabled: stripeAccountData?.chargesEnabled,
                         defaultCurrency: stripeAccountData?.defaultCurrency,
                       }}
-                      className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-6 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl"
+                      className="w-full md:w-auto bg-white text-purple-600 hover:bg-gray-100 transition-colors px-4 md:px-6 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl text-center"
                     />
                   </div>
                 </div>
@@ -542,8 +539,6 @@ export function CapperDashboard() {
                 </div>
               </div>
             )}
-
-            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2"></div>
           </div>
         </main>
       </div>
