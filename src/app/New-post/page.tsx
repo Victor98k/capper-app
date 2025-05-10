@@ -588,12 +588,12 @@ function NewPostPage() {
                   your subscribers.
                 </p>
                 <div className="flex gap-4">
-                  <Button
-                    onClick={startStripeOnboarding}
+                  <Link
+                    href="/home-capper"
                     className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#4e43ff] hover:bg-[#4e43ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4e43ff] transform transition-all hover:scale-105"
                   >
                     Connect Stripe Account
-                  </Button>
+                  </Link>
                   <Button
                     variant="outline"
                     className="px-6 py-3 border-[#4e43ff] text-[#4e43ff] hover:bg-[#4e43ff]/5"

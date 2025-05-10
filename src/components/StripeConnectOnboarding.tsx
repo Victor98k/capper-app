@@ -29,11 +29,21 @@ export async function startStripeOnboarding(): Promise<string | undefined> {
   }
 }
 
-export default function StripeConnectOnboarding({
-  isOnboarded = false,
-}: {
-  isOnboarded?: boolean;
-}) {
+interface StripeConnectOnboardingProps {
+  isOnboarded: boolean;
+  className?: string;
+  stripeAccountData?: {
+    payoutEnabled?: boolean;
+    chargesEnabled?: boolean;
+    defaultCurrency?: string;
+  };
+}
+
+const StripeConnectOnboarding: React.FC<StripeConnectOnboardingProps> = ({
+  isOnboarded,
+  className = "",
+  stripeAccountData,
+}) => {
   const [loading, setLoading] = useState(false);
 
   const startOnboarding = async () => {
@@ -92,57 +102,96 @@ export default function StripeConnectOnboarding({
     }
   };
 
+  const handleConnect = isOnboarded ? openStripeDashboard : startOnboarding;
+
   if (isOnboarded) {
     return (
-      <>
-        <div className="p-6 bg-gray-800 rounded-xl border border-green-500/20">
-          <div className="flex items-center gap-3 mb-4">
+      <div className="p-6 bg-gray-800 rounded-xl border border-green-500/20">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <CheckCircle className="h-8 w-8 text-green-500" />
             <h3 className="text-2xl font-semibold text-white">
               Stripe Account Connected
             </h3>
           </div>
 
-          <div className="space-y-4">
-            <p className="text-lg text-gray-300">
-              Your Stripe account is connected and ready to receive payments.
-              You can now:
-            </p>
-
-            <ul className="list-disc list-inside text-gray-300 ml-2 space-y-2">
-              <li>View your earnings and payment history</li>
-              <li>Track your active subscribers</li>
-              <li>Manage your payout settings</li>
-              <li>Access detailed analytics and reports</li>
-            </ul>
-
-            <div className="bg-gray-700/50 p-4 rounded-lg mt-6">
-              <h4 className="text-white font-medium mb-2">
-                Manage Your Business with Stripe Dashboard
-              </h4>
-              <p className="text-gray-300 mb-4">
-                Access your full Stripe dashboard to manage subscriptions, view
-                detailed analytics, and handle payouts all in one place.
-              </p>
-              <Button
-                onClick={openStripeDashboard}
-                variant="outline"
-                className="flex items-center gap-2 text-lg"
-                disabled={loading}
-              >
-                {loading ? (
-                  "Opening dashboard..."
-                ) : (
-                  <>
-                    <ExternalLink className="h-4 w-4" />
-                    View Stripe Dashboard
-                  </>
-                )}
-              </Button>
+          {stripeAccountData && (
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">Payouts:</span>
+                <span
+                  className={
+                    stripeAccountData.payoutEnabled
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }
+                >
+                  {stripeAccountData.payoutEnabled ? "Enabled" : "Disabled"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">Charges:</span>
+                <span
+                  className={
+                    stripeAccountData.chargesEnabled
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }
+                >
+                  {stripeAccountData.chargesEnabled ? "Enabled" : "Disabled"}
+                </span>
+              </div>
+              {stripeAccountData.defaultCurrency && (
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Currency:</span>
+                  <span className="text-white uppercase">
+                    {stripeAccountData.defaultCurrency}
+                  </span>
+                </div>
+              )}
             </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <p className="text-lg text-gray-300">
+            Your Stripe account is connected and ready to receive payments. You
+            can now:
+          </p>
+
+          <ul className="list-disc list-inside text-gray-300 ml-2 space-y-2">
+            <li>View your earnings and payment history</li>
+            <li>Track your active subscribers</li>
+            <li>Manage your payout settings</li>
+            <li>Access detailed analytics and reports</li>
+          </ul>
+
+          <div className="bg-gray-700/50 p-4 rounded-lg mt-6">
+            <h4 className="text-white font-medium mb-2">
+              Manage Your Business with Stripe Dashboard
+            </h4>
+            <p className="text-gray-300 mb-4">
+              Access your full Stripe dashboard to manage subscriptions, view
+              detailed analytics, and handle payouts all in one place.
+            </p>
+            <Button
+              onClick={openStripeDashboard}
+              variant="outline"
+              className="flex items-center gap-2 text-lg"
+              disabled={loading}
+            >
+              {loading ? (
+                "Opening dashboard..."
+              ) : (
+                <>
+                  <ExternalLink className="h-4 w-4" />
+                  View Stripe Dashboard
+                </>
+              )}
+            </Button>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -158,13 +207,11 @@ export default function StripeConnectOnboarding({
         To receive payments as a Capper, you need to connect your Stripe
         account. This will allow you to receive payouts from your subscribers.
       </p>
-      <Button
-        onClick={startOnboarding}
-        disabled={loading}
-        className="bg-[#4e43ff] hover:bg-blue-600 w-full sm:w-auto text-lg"
-      >
-        {loading ? "Setting up..." : "Set up Stripe Account"}
+      <Button onClick={handleConnect} className={className} disabled={loading}>
+        {loading ? "Setting up..." : "Connect with Stripe"}
       </Button>
     </div>
   );
-}
+};
+
+export default StripeConnectOnboarding;

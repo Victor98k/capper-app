@@ -8,6 +8,8 @@ import {
   Settings,
   Terminal,
   Users,
+  CheckCircle,
+  PlusCircle,
 } from "lucide-react";
 import {
   Card,
@@ -101,6 +103,21 @@ export function CapperDashboard() {
 
     fetchCapperProfile();
   }, [user?.id]);
+
+  // Add this inside your CapperDashboard component
+  const { data: stripeAccountData } = useQuery({
+    queryKey: ["stripeAccountData"],
+    queryFn: async () => {
+      const response = await fetch("/api/stripe/account-data");
+      if (!response.ok) {
+        throw new Error("Failed to fetch Stripe account data");
+      }
+      const data = await response.json();
+      console.log("Stripe Account Data from API:", data);
+      return data;
+    },
+    enabled: !!stripeStatus?.onboarded,
+  });
 
   // Show loading state
   if (loading) {
@@ -255,17 +272,275 @@ export function CapperDashboard() {
 
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
-            {user?.isCapper && (
+            {user?.isCapper && !stripeStatus?.onboarded && (
               <div className="mb-6">
-                <StripeConnectOnboarding
-                  isOnboarded={stripeStatus?.onboarded || false}
-                />
+                <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-8 text-white">
+                  <h2 className="text-3xl font-bold mb-4">
+                    Welcome to Your Capper Journey! 🎉
+                  </h2>
+                  <p className="text-lg mb-6">
+                    You're just a few steps away from starting your journey as a
+                    professional capper. Let's get your account set up so you
+                    can start sharing your insights and earning!
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-xl flex items-center gap-2">
+                          <Users className="h-6 w-6" />
+                          Build Your Profile
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p>
+                          Create your unique identity and showcase your
+                          expertise
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-xl flex items-center gap-2">
+                          <PieChart className="h-6 w-6" />
+                          Track Your Success
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p>Monitor your performance and grow your following</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-xl flex items-center gap-2">
+                          <Terminal className="h-6 w-6" />
+                          Start Earning
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p>
+                          Connect with Stripe to receive payments from
+                          subscribers
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="text-center">
+                    <StripeConnectOnboarding
+                      isOnboarded={false}
+                      className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-8 py-4 rounded-full font-semibold text-lg"
+                    />
+                    <p className="mt-4 text-sm opacity-80">
+                      By connecting with Stripe, you'll be able to receive
+                      payments securely and manage your earnings.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
             {user?.isCapper && stripeStatus?.onboarded && (
               <div className="mb-6">
-                <StripeProductDisplay />
+                <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg p-8 text-white mb-6">
+                  <div className="flex items-center justify-between gap-4 mb-6">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="flex items-center gap-4 hover:opacity-90 transition-opacity">
+                          <CheckCircle className="h-10 w-10" />
+                          <div>
+                            <h2 className="text-2xl font-bold text-left">
+                              Stripe Account Connected
+                            </h2>
+                            <p className="text-gray-100 text-left text-sm">
+                              Click to view account capabilities
+                            </p>
+                          </div>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Stripe Account Capabilities</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="flex items-center gap-6 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600">Payouts:</span>
+                              <span
+                                className={
+                                  stripeAccountData?.payoutEnabled
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {stripeAccountData?.payoutEnabled
+                                  ? "Enabled"
+                                  : "Disabled"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600">Charges:</span>
+                              <span
+                                className={
+                                  stripeAccountData?.chargesEnabled
+                                    ? "text-green-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {stripeAccountData?.chargesEnabled
+                                  ? "Enabled"
+                                  : "Disabled"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600">Currency:</span>
+                              <span className="text-gray-900 uppercase">
+                                {stripeAccountData?.defaultCurrency}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="border-t pt-4">
+                            <h4 className="font-medium mb-3">
+                              Account Features:
+                            </h4>
+                            <ul className="space-y-3">
+                              <li className="flex items-center gap-2 text-gray-600">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                View your earnings and payment history
+                              </li>
+                              <li className="flex items-center gap-2 text-gray-600">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                Track your active subscribers
+                              </li>
+                              <li className="flex items-center gap-2 text-gray-600">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                Manage your payout settings
+                              </li>
+                              <li className="flex items-center gap-2 text-gray-600">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                                Access detailed analytics and reports
+                              </li>
+                            </ul>
+                          </div>
+
+                          <div className="border-t pt-4">
+                            <StripeConnectOnboarding
+                              isOnboarded={true}
+                              stripeAccountData={{
+                                payoutEnabled: stripeAccountData?.payoutEnabled,
+                                chargesEnabled:
+                                  stripeAccountData?.chargesEnabled,
+                                defaultCurrency:
+                                  stripeAccountData?.defaultCurrency,
+                              }}
+                              className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-6 py-2 rounded-lg font-semibold"
+                            />
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          Available Balance
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">
+                          $
+                          {stripeAccountData?.totalBalance?.toFixed(2) ||
+                            "0.00"}
+                        </p>
+                        <p className="text-sm text-gray-300">
+                          Ready to be paid out
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          Active Subscribers
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">
+                          {stripeAccountData?.subscriptions?.total || 0}
+                        </p>
+                        <p className="text-sm text-gray-300">
+                          Current subscribers
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          Monthly Revenue
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">
+                          $
+                          {stripeAccountData?.subscriptions?.monthlyRecurringRevenue?.toFixed(
+                            2
+                          ) || "0.00"}
+                        </p>
+                        <p className="text-sm text-gray-300">
+                          Recurring revenue
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Recent Payout</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {stripeAccountData?.recentPayouts?.[0] ? (
+                          <>
+                            <p className="text-2xl font-bold">
+                              $
+                              {stripeAccountData.recentPayouts[0].amount.toFixed(
+                                2
+                              )}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              {new Date(
+                                stripeAccountData.recentPayouts[0].arrivalDate *
+                                  1000
+                              ).toLocaleDateString()}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-gray-300">No recent payouts</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="flex justify-end bg-black/20 rounded-lg p-8">
+                    <StripeConnectOnboarding
+                      isOnboarded={true}
+                      stripeAccountData={{
+                        payoutEnabled: stripeAccountData?.payoutEnabled,
+                        chargesEnabled: stripeAccountData?.chargesEnabled,
+                        defaultCurrency: stripeAccountData?.defaultCurrency,
+                      }}
+                      className="bg-white text-purple-600 hover:bg-gray-100 transition-colors px-6 py-2 rounded-lg font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <StripeProductDisplay />
+                </div>
               </div>
             )}
 
