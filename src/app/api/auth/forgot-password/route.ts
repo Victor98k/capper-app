@@ -8,9 +8,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 if (!process.env.RESEND_API_KEY) {
   console.error("RESEND_API_KEY is not set in environment variables");
 }
-if (!process.env.NEXT_PUBLIC_APP_URL) {
-  console.error("NEXT_PUBLIC_APP_URL is not set in environment variables");
-}
+
+const BASE_URL = "https://app.cappersports.co"; // Hardcode the production URL
 
 export async function POST(request: Request) {
   try {
@@ -48,13 +47,12 @@ export async function POST(request: Request) {
     });
 
     // Create reset URL
-    // const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
-    const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${BASE_URL}/reset-password?token=${resetToken}`;
 
     try {
       // Send email
       const emailResponse = await resend.emails.send({
-        from: "Cappers Platform <onboarding@resend.dev>",
+        from: "Cappers <hello@cappersports.co>",
         to: user.email,
         subject: "Reset Your Password",
         html: `
