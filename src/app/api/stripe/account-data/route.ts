@@ -86,22 +86,22 @@ export async function GET(request: Request) {
       { stripeAccount: user.stripeConnectId }
     );
 
-    console.log(
-      "Recent Payouts:",
-      payouts.data.map((payout) => ({
-        amount: payout.amount / 100,
-        status: payout.status,
-        arrivalDate: new Date(payout.arrival_date * 1000).toISOString(),
-      }))
-    );
+    // console.log(
+    //   "Recent Payouts:",
+    //   payouts.data.map((payout) => ({
+    //     amount: payout.amount / 100,
+    //     status: payout.status,
+    //     arrivalDate: new Date(payout.arrival_date * 1000).toISOString(),
+    //   }))
+    // );
 
-    console.log("Subscription Data:", {
-      activeSubscriptions: allSubscriptions.length,
-      monthlyRecurringRevenue: allSubscriptions.reduce(
-        (sum, sub) => sum + (sub.items.data[0]?.price?.unit_amount || 0) / 100,
-        0
-      ),
-    });
+    // console.log("Subscription Data:", {
+    //   activeSubscriptions: allSubscriptions.length,
+    //   monthlyRecurringRevenue: allSubscriptions.reduce(
+    //     (sum, sub) => sum + (sub.items.data[0]?.price?.unit_amount || 0) / 100,
+    //     0
+    //   ),
+    // });
 
     return NextResponse.json({
       totalBalance: totalBalance / 100,
