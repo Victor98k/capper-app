@@ -99,6 +99,78 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+// First, let's extract the Welcome UI into a separate component
+const WelcomeUI = ({ router }: { router: any }) => (
+  <div className="flex min-h-screen bg-[#020817]">
+    <SideNav />
+    <div className="flex-1 flex items-center justify-center">
+      <div className="max-w-2xl w-full px-4">
+        <Card className="bg-[#020817] border border-[#4e43ff]/20">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
+              <span className="inline-flex items-center">
+                <img
+                  src={capperLogo.src}
+                  alt="Cappers Logo"
+                  className="h-16 md:h-20 lg:h-24"
+                />
+              </span>
+            </h1>
+            <div className="rounded-full bg-[#4e43ff]/10 p-4 mb-6 animate-pulse">
+              <Settings className="h-8 w-8 text-[#4e43ff]" />
+            </div>
+            <div className="mb-6 text-center">
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Welcome to <span className="text-[#4e43ff]">CapperSports</span>
+              </h2>
+              <p className="text-lg text-gray-300">
+                We're excited to have you as a new capper
+              </p>
+            </div>
+            <h3 className="text-xl text-gray-300 mb-4 text-center">
+              Let's Set Up Your Payment Account
+            </h3>
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-3 text-gray-300">
+                <div className="rounded-full bg-[#4e43ff]/10 p-2">
+                  <Bell className="h-5 w-5 text-[#4e43ff]" />
+                </div>
+                <p>Receive instant notifications for new subscribers</p>
+              </div>
+              <div className="flex items-center gap-3 text-gray-300">
+                <div className="rounded-full bg-[#4e43ff]/10 p-2">
+                  <MessageSquare className="h-5 w-5 text-[#4e43ff]" />
+                </div>
+                <p>Start earning from your betting insights</p>
+              </div>
+            </div>
+            <p className="text-gray-400 text-center max-w-md mb-8">
+              Before you can start creating posts, you need to connect your
+              account to Stripe. This allows you to receive payments from your
+              subscribers.
+            </p>
+            <div className="flex gap-4">
+              <Link
+                href="/home-capper"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#4e43ff] hover:bg-[#4e43ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4e43ff] transform transition-all hover:scale-105"
+              >
+                Connect Stripe Account
+              </Link>
+              <Button
+                variant="outline"
+                className="px-6 py-3 border-[#4e43ff] text-[#4e43ff] hover:bg-[#4e43ff]/5"
+                onClick={() => router.push("/home")}
+              >
+                Go Back
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </div>
+);
+
 function NewPostPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -135,6 +207,12 @@ function NewPostPage() {
   // const [zoom, setZoom] = useState(1);
   // const [showCropper, setShowCropper] = useState(false);
   // const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+  // Add a useEffect to check Stripe status
+  const [stripeStatus, setStripeStatus] = useState<{
+    onboarded: boolean;
+  } | null>(null);
+  const [checkingStripeStatus, setCheckingStripeStatus] = useState(true);
 
   const handleLogout = async () => {
     try {
@@ -317,9 +395,10 @@ function NewPostPage() {
 
     try {
       // Validate required fields first
-      if (!title || !content || !selectedProduct) {
+      if (!title || !content || !selectedProduct || !oddsScreenshot) {
         toast.error("Please fill in all required fields", {
-          description: "Title, content, and bundle selection are required",
+          description:
+            "Title, content, bundle selection, and odds screenshot are required",
         });
         return;
       }
@@ -517,7 +596,35 @@ function NewPostPage() {
     setSelectedProductName(product?.name || "");
   };
 
-  if (loading) {
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      if (user?.isCapper) {
+        try {
+          const response = await fetch("/api/stripe/connect", {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch Stripe status");
+          }
+
+          const data = await response.json();
+          setStripeStatus(data);
+        } catch (error) {
+          console.error("Error checking Stripe status:", error);
+        }
+      }
+      setCheckingStripeStatus(false);
+    };
+
+    checkStripeStatus();
+  }, [user?.isCapper]);
+
+  // Show loading state while checking status
+  if (loading || checkingStripeStatus) {
     return (
       <div className="flex min-h-screen bg-gray-100">
         <SideNav />
@@ -535,83 +642,13 @@ function NewPostPage() {
     return null;
   }
 
-  // Add this check for Stripe connection
-  if (!user.stripeConnectOnboarded) {
-    return (
-      <div className="flex min-h-screen bg-[#020817]">
-        <SideNav />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="max-w-2xl w-full px-4">
-            <Card className="bg-[#020817] border border-[#4e43ff]/20">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6 text-center">
-                  <span className="inline-flex items-center">
-                    <img
-                      src={capperLogo.src}
-                      alt="Cappers Logo"
-                      className="h-16 md:h-20 lg:h-24"
-                    />
-                  </span>
-                </h1>
-                <div className="rounded-full bg-[#4e43ff]/10 p-4 mb-6 animate-pulse">
-                  <Settings className="h-8 w-8 text-[#4e43ff]" />
-                </div>
-                <div className="mb-6 text-center">
-                  <h2 className="text-3xl font-bold text-white mb-2">
-                    Welcome to{" "}
-                    <span className="text-[#4e43ff]">CapperSports</span>
-                  </h2>
-                  <p className="text-lg text-gray-300">
-                    We're excited to have you as a new capper
-                  </p>
-                </div>
-                <h3 className="text-xl text-gray-300 mb-4 text-center">
-                  Let's Set Up Your Payment Account
-                </h3>
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center gap-3 text-gray-300">
-                    <div className="rounded-full bg-[#4e43ff]/10 p-2">
-                      <Bell className="h-5 w-5 text-[#4e43ff]" />
-                    </div>
-                    <p>Receive instant notifications for new subscribers</p>
-                  </div>
-                  <div className="flex items-center gap-3 text-gray-300">
-                    <div className="rounded-full bg-[#4e43ff]/10 p-2">
-                      <MessageSquare className="h-5 w-5 text-[#4e43ff]" />
-                    </div>
-                    <p>Start earning from your betting insights</p>
-                  </div>
-                </div>
-                <p className="text-gray-400 text-center max-w-md mb-8">
-                  Before you can start creating posts, you need to connect your
-                  account to Stripe. This allows you to receive payments from
-                  your subscribers.
-                </p>
-                <div className="flex gap-4">
-                  <Link
-                    href="/home-capper"
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#4e43ff] hover:bg-[#4e43ff]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4e43ff] transform transition-all hover:scale-105"
-                  >
-                    Connect Stripe Account
-                  </Link>
-                  <Button
-                    variant="outline"
-                    className="px-6 py-3 border-[#4e43ff] text-[#4e43ff] hover:bg-[#4e43ff]/5"
-                    onClick={() => router.push("/home")}
-                  >
-                    Go Back
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
+  // Check if the user is not connected to Stripe
+  if (!stripeStatus?.onboarded) {
+    return <WelcomeUI router={router} />;
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#020817]">
       <SideNav />
       <Toaster
         position="top-right"
@@ -999,13 +1036,23 @@ function NewPostPage() {
 
                   {/* Odds Screenshot Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Odds Screenshot (for validation)
-                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Odds Screenshot
+                      </label>
+                      <span className="text-red-500">*</span>
+                      <span className="text-xs text-gray-500">
+                        (required for bet validation)
+                      </span>
+                    </div>
                     <div className="mt-2">
                       {!oddsScreenshotPreview ? (
                         <div
-                          className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-[#4e43ff]"
+                          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all ${
+                            !oddsScreenshot
+                              ? "border-red-300 hover:border-red-400"
+                              : "hover:border-[#4e43ff]"
+                          }`}
                           onClick={() =>
                             document.getElementById("oddsScreenshot")?.click()
                           }
@@ -1016,9 +1063,16 @@ function NewPostPage() {
                             className="hidden"
                             accept="image/*"
                             onChange={handleOddsScreenshotChange}
+                            required
                           />
-                          <div className="text-sm text-gray-500">
-                            Upload a screenshot of your odds
+                          <div className="flex flex-col items-center gap-2">
+                            <ImageIcon className="h-8 w-8 text-gray-400" />
+                            <div className="text-sm text-gray-500">
+                              Upload a screenshot of your odds
+                            </div>
+                            <div className="text-xs text-red-500">
+                              Required - Please upload an odds screenshot
+                            </div>
                           </div>
                         </div>
                       ) : (
