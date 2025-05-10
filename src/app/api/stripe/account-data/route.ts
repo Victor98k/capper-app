@@ -42,38 +42,43 @@ export async function GET(request: Request) {
     }
 
     // Fetch account data from Stripe
-    const [account, balance, subscriptions] = await Promise.all([
+    const [account, balance] = await Promise.all([
       stripe.accounts.retrieve(user.stripeConnectId),
       stripe.balance.retrieve({
         stripeAccount: user.stripeConnectId,
       }),
-      stripe.subscriptions.list(
-        {
-          status: "active",
-          expand: ["data.customer"],
-        },
-        {
-          stripeAccount: user.stripeConnectId,
-        }
-      ),
     ]);
 
-    // console.log("Stripe Account Data:", {
-    //   payoutsEnabled: account.payouts_enabled,
-    //   chargesEnabled: account.charges_enabled,
-    //   defaultCurrency: account.default_currency,
-    // });
+    // Fetch all subscriptions
+    let allSubscriptions: Stripe.Subscription[] = [];
+    let hasMore = true;
+    let startingAfter: string | undefined = undefined;
+
+    while (hasMore) {
+      const subResponse: Stripe.Response<Stripe.ApiList<Stripe.Subscription>> =
+        await stripe.subscriptions.list(
+          {
+            status: "active",
+            expand: ["data.customer"],
+            starting_after: startingAfter,
+          },
+          {
+            stripeAccount: user.stripeConnectId,
+          }
+        );
+
+      allSubscriptions = [...allSubscriptions, ...subResponse.data];
+      hasMore = subResponse.has_more;
+
+      if (hasMore && subResponse.data.length > 0) {
+        startingAfter = subResponse.data[subResponse.data.length - 1].id;
+      }
+    }
 
     // Calculate total balance
     const totalBalance = balance.available.reduce((sum, bal) => {
       return sum + bal.amount;
     }, 0);
-
-    // console.log("Stripe Balance:", {
-    //   available: balance.available,
-    //   pending: balance.pending,
-    //   totalBalance: totalBalance / 100,
-    // });
 
     // Get recent payouts
     const payouts = await stripe.payouts.list(
@@ -91,8 +96,8 @@ export async function GET(request: Request) {
     );
 
     console.log("Subscription Data:", {
-      activeSubscriptions: subscriptions.data.length,
-      monthlyRecurringRevenue: subscriptions.data.reduce(
+      activeSubscriptions: allSubscriptions.length,
+      monthlyRecurringRevenue: allSubscriptions.reduce(
         (sum, sub) => sum + (sub.items.data[0]?.price?.unit_amount || 0) / 100,
         0
       ),
@@ -109,8 +114,8 @@ export async function GET(request: Request) {
         arrivalDate: payout.arrival_date,
       })),
       subscriptions: {
-        total: subscriptions.data.length,
-        monthlyRecurringRevenue: subscriptions.data.reduce(
+        total: allSubscriptions.length,
+        monthlyRecurringRevenue: allSubscriptions.reduce(
           (sum, sub) =>
             sum + (sub.items.data[0]?.price?.unit_amount || 0) / 100,
           0
