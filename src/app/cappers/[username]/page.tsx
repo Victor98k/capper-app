@@ -155,6 +155,17 @@ export default function CapperProfilePage({
           throw new Error(data.error);
         }
 
+        // Add detailed console logs
+        console.log("Capper Products Data:", data.products);
+        data.products.forEach((product: any, index: number) => {
+          console.log(`Product ${index + 1}:`, {
+            name: product.name,
+            price_details: product.default_price,
+            currency: product.default_price?.currency,
+            unit_amount: product.default_price?.unit_amount,
+          });
+        });
+
         setCapper(data);
       } catch (error: unknown) {
         console.error(
@@ -717,7 +728,13 @@ export default function CapperProfilePage({
                             >
                               {product.default_price.unit_amount === 0
                                 ? "Free"
-                                : `$${(product.default_price.unit_amount / 100).toFixed(2)}`}
+                                : new Intl.NumberFormat("en-US", {
+                                    style: "currency",
+                                    currency:
+                                      product.default_price.currency || "USD",
+                                  }).format(
+                                    product.default_price.unit_amount / 100
+                                  )}
                             </span>
                             {product.default_price.unit_amount > 0 && (
                               <span
@@ -727,9 +744,11 @@ export default function CapperProfilePage({
                                     : "text-gray-400"
                                 }`}
                               >
-                                /
-                                {product.default_price?.recurring?.interval ||
-                                  "month"}
+                                {product.default_price?.recurring?.interval
+                                  ? `/${product.default_price.recurring.interval}`
+                                  : product.default_price.type === "one_time"
+                                    ? " one-time"
+                                    : ""}
                               </span>
                             )}
                           </div>
