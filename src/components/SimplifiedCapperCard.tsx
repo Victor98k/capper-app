@@ -11,6 +11,7 @@ interface SimplifiedCapperCardProps {
   tags: string[];
   firstName?: string;
   lastName?: string;
+  onClick?: () => void;
 }
 
 export function SimplifiedCapperCard({
@@ -19,11 +20,15 @@ export function SimplifiedCapperCard({
   tags,
   firstName,
   lastName,
+  onClick,
 }: SimplifiedCapperCardProps) {
   const router = useRouter();
 
   return (
-    <div className="flex items-center space-x-4 p-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer">
+    <div
+      className="flex items-center space-x-4 p-2 rounded-lg cursor-pointer transition-colors hover:opacity-80"
+      onClick={onClick}
+    >
       <Avatar className="w-12 h-12 border-2 border-[#4e43ff]">
         <AvatarImage src={imageUrl} />
         <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff]">

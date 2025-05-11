@@ -82,6 +82,7 @@ export function CappersSidebar() {
                 tags={capper.tags}
                 firstName={capper.user.firstName}
                 lastName={capper.user.lastName}
+                onClick={() => router.push(`/cappers/${capper.user.username}`)}
               />
             </div>
           ))}
