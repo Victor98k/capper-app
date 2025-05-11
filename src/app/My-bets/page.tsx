@@ -212,90 +212,14 @@ export default function MyBets() {
                     Add New Bet
                   </DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="game" className="text-gray-200">
-                      Game
-                    </Label>
-                    <Input
-                      id="game"
-                      value={newBet.game}
-                      onChange={(e) =>
-                        setNewBet({ ...newBet, game: e.target.value })
-                      }
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="amount" className="text-gray-200">
-                      Amount
-                    </Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={newBet.amount}
-                      onChange={(e) =>
-                        setNewBet({ ...newBet, amount: e.target.value })
-                      }
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="currency" className="text-gray-200">
-                      Currency
-                    </Label>
-                    <select
-                      id="currency"
-                      value={newBet.currency}
-                      onChange={(e) =>
-                        setNewBet({
-                          ...newBet,
-                          currency: e.target.value as Currency,
-                        })
-                      }
-                      className="bg-gray-800 border-gray-700 text-white rounded-md p-2"
-                    >
-                      <option value="USD">USD ($) - US Dollar</option>
-                      <option value="EUR">EUR (€) - Euro</option>
-                      <option value="SEK">SEK (kr) - Swedish Krona</option>
-                      <option value="NOK">NOK (kr) - Norwegian Krone</option>
-                    </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="odds" className="text-gray-200">
-                      Odds
-                    </Label>
-                    <Input
-                      id="odds"
-                      type="number"
-                      step="0.01"
-                      value={newBet.odds}
-                      onChange={(e) =>
-                        setNewBet({ ...newBet, odds: e.target.value })
-                      }
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="date" className="text-gray-200">
-                      Game Date
-                    </Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={newBet.date}
-                      onChange={(e) =>
-                        setNewBet({ ...newBet, date: e.target.value })
-                      }
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
-                  <Button
-                    onClick={addBet}
-                    className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
-                  >
-                    Add Bet
-                  </Button>
+                <div className="py-6 text-center">
+                  <p className="text-gray-300 mb-4">
+                    This feature is currently under development and not yet
+                    available.
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    Please check back later for updates.
+                  </p>
                 </div>
               </DialogContent>
             </Dialog>
