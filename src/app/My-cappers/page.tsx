@@ -8,11 +8,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Trophy, TrendingUp, Users, Zap, Compass } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { sportEmojiMap } from "@/lib/sportEmojiMap";
+import { useInView } from "react-intersection-observer";
 
 type Post = {
   _id: string;
@@ -45,17 +46,34 @@ type Capper = {
   tags: string[];
 };
 
+type PostsResponse = {
+  _id: string;
+  title: string;
+  content: string;
+  imageUrl: string;
+  odds: string[];
+  bets: string[];
+  tags: string[];
+  capperId: string;
+  createdAt: string;
+  updatedAt: string;
+  productId: string;
+};
+
+type PageData = {
+  posts: PostsResponse[];
+  nextPage: number;
+  hasMore: boolean;
+};
+
 // Dynamically import the component with SSR disabled
 const MyCappers = dynamic(
   () =>
     Promise.resolve(function MyCappers() {
-      // Disable pre-rendering for this page
-      useEffect(() => {
-        // This ensures the component only runs on client
-      }, []);
-
       const { user } = useAuth();
       const router = useRouter();
+      const { ref, inView } = useInView();
+      const POSTS_PER_PAGE = 10;
 
       const { data: subscriptions = [], isLoading: subsLoading } = useQuery<
         Subscription[]
@@ -73,21 +91,46 @@ const MyCappers = dynamic(
       });
 
       const {
-        data: posts = [],
+        data,
         isLoading: postsLoading,
         error,
-      } = useQuery<Post[]>({
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+      } = useInfiniteQuery<PageData>({
         queryKey: ["posts", subscriptions],
-        queryFn: async () => {
+        initialPageParam: 0,
+        queryFn: async ({ pageParam = 0 }) => {
           const response = await fetch("/api/posts");
           const data = await response.json();
           const subscribedCapperIds = subscriptions.map((sub) => sub.capperId);
-          return data.filter((post: Post) =>
+          const filteredPosts = data.filter((post: PostsResponse) =>
             subscribedCapperIds.includes(post.capperId)
           );
+
+          const start = (pageParam as number) * POSTS_PER_PAGE;
+          const end = start + POSTS_PER_PAGE;
+          const paginatedPosts = filteredPosts.slice(start, end);
+
+          return {
+            posts: paginatedPosts,
+            nextPage: (pageParam as number) + 1,
+            hasMore: end < filteredPosts.length,
+          };
         },
+        getNextPageParam: (lastPage) =>
+          lastPage.hasMore ? lastPage.nextPage : undefined,
         enabled: subscriptions.length > 0,
       });
+
+      useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      }, [inView, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+      const isLoading = subsLoading || postsLoading;
+      const allPosts = data?.pages.flatMap((page) => page.posts) ?? [];
 
       const { data: featuredCappers = [] } = useQuery<Capper[]>({
         queryKey: ["featuredCappers"],
@@ -111,8 +154,6 @@ const MyCappers = dynamic(
         },
       });
 
-      const isLoading = subsLoading || postsLoading;
-
       if (isLoading) {
         return (
           <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
@@ -129,7 +170,7 @@ const MyCappers = dynamic(
         );
       }
 
-      if (posts.length === 0) {
+      if (allPosts.length === 0) {
         return (
           <div className="w-full px-4 py-6">
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 md:p-8 backdrop-blur-sm border border-gray-700/50">
@@ -267,7 +308,7 @@ const MyCappers = dynamic(
       return (
         <div className="w-full mx-auto">
           <div className="space-y-6 md:space-y-8 py-4">
-            {posts.map((post) => (
+            {allPosts.map((post) => (
               <div
                 key={post._id}
                 className="flex justify-center border-b border-gray-800 pb-6 md:pb-8 last:border-b-0 last:pb-0"
@@ -275,6 +316,11 @@ const MyCappers = dynamic(
                 <Post {...post} />
               </div>
             ))}
+
+            {/* Loading indicator */}
+            <div ref={ref} className="flex justify-center py-4">
+              {isFetchingNextPage && <Loader />}
+            </div>
           </div>
         </div>
       );

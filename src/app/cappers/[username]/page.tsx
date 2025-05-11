@@ -55,6 +55,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInView } from "react-intersection-observer";
 
 interface PerformanceData {
   date: string;
@@ -79,6 +81,12 @@ const calculateWinRate = (performanceData: PerformanceData[]) => {
   return `${winRate.toFixed(1)}%`;
 };
 
+type PageData = {
+  posts: Post[];
+  nextPage: number;
+  hasMore: boolean;
+};
+
 export default function CapperProfilePage({
   params,
 }: {
@@ -89,13 +97,50 @@ export default function CapperProfilePage({
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionDetails, setSubscriptionDetails] = useState<any>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
   const [subscribedProducts, setSubscribedProducts] = useState<string[]>([]);
   const [calculatedAmount, setCalculatedAmount] = useState("0.00");
   const [showROICalculator, setShowROICalculator] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 6;
+  const POSTS_PER_PAGE = 6;
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
+
+  const {
+    data,
+    isLoading: postsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<PageData>({
+    queryKey: ["capper-posts", capper?.id],
+    enabled: !!capper?.id,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await fetch(`/api/posts?capperId=${capper?.id}`);
+      const data = await response.json();
+
+      const start = (pageParam as number) * POSTS_PER_PAGE;
+      const end = start + POSTS_PER_PAGE;
+      const paginatedPosts = data.slice(start, end);
+
+      return {
+        posts: paginatedPosts,
+        nextPage: (pageParam as number) + 1,
+        hasMore: end < data.length,
+      };
+    },
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.nextPage : undefined,
+  });
+
+  const { ref, inView } = useInView();
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const allPosts = data?.pages.flatMap((page) => page.posts) ?? [];
 
   useEffect(() => {
     const fetchCapperProfile = async () => {
@@ -150,53 +195,6 @@ export default function CapperProfilePage({
     if (capper?.id) {
       checkSubscriptionStatus();
     }
-  }, [capper?.id]);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      if (!capper?.id) return;
-
-      try {
-        const response = await fetch(`/api/posts?capperId=${capper.id}`, {
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch posts");
-        }
-
-        const data = await response.json();
-        setPosts(data);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      }
-    };
-
-    fetchPosts();
-  }, [capper?.id]);
-
-  useEffect(() => {
-    const checkSubscriptions = async () => {
-      if (!capper?.id) return;
-
-      try {
-        const response = await fetch(
-          `/api/subscriptions/check?capperId=${capper.id}`,
-          {
-            credentials: "include",
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setSubscribedProducts(data.subscribedProducts || []);
-        }
-      } catch (error) {
-        console.error("Error checking subscriptions:", error);
-      }
-    };
-
-    checkSubscriptions();
   }, [capper?.id]);
 
   useEffect(() => {
@@ -586,7 +584,7 @@ export default function CapperProfilePage({
             {!isSubscribed && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  {posts.slice(0, 4).map((post) => (
+                  {allPosts.slice(0, 4).map((post) => (
                     <InstagramPost
                       key={post._id}
                       {...post}
@@ -602,7 +600,7 @@ export default function CapperProfilePage({
                 </div>
 
                 {/* Subscription prompt */}
-                {posts.length > 4 && (
+                {allPosts.length > 4 && (
                   <div className="relative my-12">
                     <div className="relative bg-gray-800/50 rounded-xl p-8 text-center backdrop-blur-sm border border-violet-500/20">
                       <h3 className="text-2xl font-bold mb-4">
@@ -630,49 +628,25 @@ export default function CapperProfilePage({
             {isSubscribed && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {posts
-                    .slice(
-                      (currentPage - 1) * postsPerPage,
-                      currentPage * postsPerPage
-                    )
-                    .map((post) => (
-                      <InstagramPost
-                        key={post._id}
-                        {...post}
-                        capperInfo={{
-                          firstName: capper.user.firstName,
-                          lastName: capper.user.lastName,
-                          username: capper.user.username,
-                          profileImage: capper.profileImage,
-                          isVerified: true,
-                        }}
-                      />
-                    ))}
+                  {allPosts.map((post) => (
+                    <InstagramPost
+                      key={post._id}
+                      {...post}
+                      capperInfo={{
+                        firstName: capper.user.firstName,
+                        lastName: capper.user.lastName,
+                        username: capper.user.username,
+                        profileImage: capper.profileImage,
+                        isVerified: true,
+                      }}
+                    />
+                  ))}
                 </div>
 
-                {/* Pagination Controls */}
-                {posts.length > postsPerPage && (
-                  <div className="flex justify-center gap-4 mt-8">
-                    <PaginationButton
-                      onClick={() => setCurrentPage((prev) => prev - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </PaginationButton>
-                    <span className="flex items-center text-gray-400">
-                      Page {currentPage} of{" "}
-                      {Math.ceil(posts.length / postsPerPage)}
-                    </span>
-                    <PaginationButton
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      disabled={
-                        currentPage === Math.ceil(posts.length / postsPerPage)
-                      }
-                    >
-                      Next
-                    </PaginationButton>
-                  </div>
-                )}
+                {/* Loading indicator */}
+                <div ref={ref} className="flex justify-center py-4">
+                  {isFetchingNextPage && <Loader />}
+                </div>
               </>
             )}
 
@@ -831,7 +805,7 @@ export default function CapperProfilePage({
             </div>
 
             {/* No Posts Message */}
-            {posts.length === 0 && (
+            {allPosts.length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-400">No posts available yet.</p>
               </div>
