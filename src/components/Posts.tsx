@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heart, MoreHorizontal } from "lucide-react";
+import { Heart, MoreHorizontal, Lock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
@@ -457,10 +457,10 @@ function InstagramPost({
               })}
             </p>
 
-            {/* Badges section */}
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-nowrap sm:overflow-x-auto sm:items-center sm:gap-4 pb-2">
-              {/* First row on mobile: Likes and Sport */}
-              <div className="flex-shrink-0 flex flex-col items-center w-full sm:w-[100px] md:w-[140px] order-1 sm:order-1">
+            {/* Badges section - Update this part */}
+            <div className="flex flex-wrap gap-3 pb-2">
+              {/* Likes */}
+              <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
                 <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                   LIKES
                 </p>
@@ -485,8 +485,9 @@ function InstagramPost({
                 </div>
               </div>
 
+              {/* Sport */}
               {tags.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center w-full sm:w-[100px] md:w-[140px] order-2 sm:order-3">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
                   <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                     SPORT
                   </p>
@@ -506,13 +507,26 @@ function InstagramPost({
                 </div>
               )}
 
-              {/* Second row on mobile: Odds and Bundle */}
+              {/* Odds */}
               {odds.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center w-full sm:w-[100px] md:w-[140px] order-3 sm:order-2">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
                   <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                     ODDS
                   </p>
-                  <div className="bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-2 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
+                  <div
+                    className={`bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-2 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center ${
+                      !isSubscribed && !isOwnPost
+                        ? "cursor-pointer blur-[8px] hover:blur-[6px] transition-all"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (!isSubscribed && !isOwnPost) {
+                        router.push(
+                          `/cappers/${capperInfo.username}#subscription-plans`
+                        );
+                      }
+                    }}
+                  >
                     <div className="flex items-center justify-center">
                       {odds.map((odd, index) => (
                         <div key={index} className="flex items-center">
@@ -529,8 +543,9 @@ function InstagramPost({
                 </div>
               )}
 
+              {/* Bundle */}
               {productName && (
-                <div className="flex-shrink-0 flex flex-col items-center w-full sm:w-[100px] md:w-[140px] order-4">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
                   <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                     BUNDLE
                   </p>
@@ -709,7 +724,20 @@ function InstagramPost({
                     <p className="text-xs font-semibold text-white mb-1">
                       ODDS
                     </p>
-                    <div className="bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20">
+                    <div
+                      className={`bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20 ${
+                        !isSubscribed && !isOwnPost
+                          ? "cursor-pointer blur-[8px] hover:blur-[6px] transition-all"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        if (!isSubscribed && !isOwnPost) {
+                          router.push(
+                            `/cappers/${capperInfo.username}#subscription-plans`
+                          );
+                        }
+                      }}
+                    >
                       <div className="flex justify-end items-center">
                         {odds.map((odd, index) => (
                           <div key={index} className="flex items-center">
@@ -757,7 +785,20 @@ function InstagramPost({
               </div>
 
               {odds.length > 0 && (
-                <div className="bg-[#4e43ff]/10 px-3 py-1.5 rounded-lg">
+                <div
+                  className={`bg-[#4e43ff]/10 px-3 py-1.5 rounded-lg ${
+                    !isSubscribed && !isOwnPost
+                      ? "cursor-pointer blur-[8px] hover:blur-[6px] transition-all"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    if (!isSubscribed && !isOwnPost) {
+                      router.push(
+                        `/cappers/${capperInfo.username}#subscription-plans`
+                      );
+                    }
+                  }}
+                >
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-[#4e43ff]">
                       ODDS

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 // Components
 import { SideNav } from "@/components/SideNav";
@@ -33,6 +34,7 @@ const shuffleArray = (array: CapperProfile[]) => {
 };
 
 export default function ExplorePage() {
+  const router = useRouter();
   const [cappers, setCappers] = useState<CapperProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,16 +138,19 @@ export default function ExplorePage() {
                   {cappers.map((capper) => (
                     <div
                       key={capper.id}
-                      className="bg-gray-800 rounded-lg p-4 md:p-6 flex flex-col items-center hover:bg-gray-700 transition-colors cursor-pointer"
+                      onClick={() =>
+                        router.push(`/cappers/${capper.user.username}`)
+                      }
+                      className="bg-gray-800 rounded-lg p-4 md:p-6 flex flex-col items-center hover:bg-gray-700 transition-colors cursor-pointer group"
                     >
-                      <Avatar className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 border-2 border-[#4e43ff]">
+                      <Avatar className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 border-2 border-[#4e43ff] group-hover:border-[#4e43ff]/80">
                         <AvatarImage src={capper.profileImage} />
                         <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff] text-2xl md:text-3xl lg:text-4xl">
                           {capper.user.firstName?.[0]}
                           {capper.user.lastName?.[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center">
+                      <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff] transition-colors">
                         {capper.user.username}
                       </h3>
                       <p className="text-sm md:text-base text-gray-400 mb-2 md:mb-4 truncate w-full text-center">
