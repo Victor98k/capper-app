@@ -250,14 +250,14 @@ export function Login() {
                 </Button>
               </form>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-2 gap-4">
               <Button variant="outline">
                 <Mail className="mr-2 h-4 w-4" /> Google
               </Button>
               <Button variant="outline">
                 <Facebook className="mr-2 h-4 w-4" /> Facebook
               </Button>
-            </div>
+            </div> */}
             <Button
               variant="link"
               className="w-full text-xs md:text-sm text-muted-foreground"

@@ -247,9 +247,16 @@ export function Signup() {
                   htmlFor="terms"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  I agree to the terms and conditions
+                  I agree to the{" "}
+                  <a
+                    href="https://www.cappersports.co/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#4e43ff] hover:underline"
+                  >
+                    terms and conditions
+                  </a>
                 </label>
-                {/* TODO Add terms and conditions, link to that. */}
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? <Loader size="sm" /> : "Sign Up"}
