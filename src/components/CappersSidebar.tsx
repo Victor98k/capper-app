@@ -5,6 +5,7 @@ import { SimplifiedCapperCard } from "@/components/SimplifiedCapperCard";
 import { SidebarCapper } from "@/types/capper";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function CappersSidebar() {
   const router = useRouter();
@@ -79,6 +80,8 @@ export function CappersSidebar() {
                 username={capper.user.username}
                 imageUrl={capper.imageUrl}
                 tags={capper.tags}
+                firstName={capper.user.firstName}
+                lastName={capper.user.lastName}
               />
             </div>
           ))}
