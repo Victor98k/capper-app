@@ -38,16 +38,16 @@ export async function GET(request: Request) {
     // Extract product IDs from active subscriptions
     const subscribedProducts = activeSubscriptions.map((sub) => sub.productId);
 
-    console.log("Subscription check details:", {
-      userId: payload.userId,
-      capperId,
-      productId,
-      activeCount: activeSubscriptions.length,
-      totalCount: activeSubscriptions.length,
-      currentTime: new Date().toISOString(),
-      activeSubscriptions,
-      subscribedProducts,
-    });
+    // console.log("Subscription check details:", {
+    //   userId: payload.userId,
+    //   capperId,
+    //   productId,
+    //   activeCount: activeSubscriptions.length,
+    //   totalCount: activeSubscriptions.length,
+    //   currentTime: new Date().toISOString(),
+    //   activeSubscriptions,
+    //   subscribedProducts,
+    // });
 
     return NextResponse.json({
       isSubscribed: activeSubscriptions.length > 0,
