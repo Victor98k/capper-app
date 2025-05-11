@@ -386,7 +386,7 @@ function UserProfileContent() {
                 <p className="text-gray-400">No active subscriptions</p>
                 <Button
                   className="mt-4 bg-[#4e43ff]"
-                  onClick={() => router.push("/cappers")}
+                  onClick={() => router.push("/Explore")}
                 >
                   Browse Cappers
                 </Button>
