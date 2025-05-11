@@ -40,8 +40,6 @@ export function SideNav() {
       try {
         if (!user?.email) return;
 
-        console.log("Checking capper status for email:", user.email);
-
         const response = await fetch(
           `/api/cappers?email=${encodeURIComponent(user.email)}`,
           {
@@ -53,7 +51,6 @@ export function SideNav() {
         );
 
         const data = await response.json();
-        console.log("Raw API response:", data);
 
         if (typeof data.isCapper !== "boolean") {
           console.warn("Unexpected API response structure:", data);
@@ -213,9 +210,7 @@ export function SideNav() {
     );
   };
 
-  useEffect(() => {
-    console.log("isCapper state updated:", isCapper);
-  }, [isCapper]);
+  useEffect(() => {}, [isCapper]);
 
   return (
     <>

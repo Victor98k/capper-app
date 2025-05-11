@@ -156,15 +156,8 @@ export default function CapperProfilePage({
         }
 
         // Add detailed console logs
-        console.log("Capper Products Data:", data.products);
-        data.products.forEach((product: any, index: number) => {
-          console.log(`Product ${index + 1}:`, {
-            name: product.name,
-            price_details: product.default_price,
-            currency: product.default_price?.currency,
-            unit_amount: product.default_price?.unit_amount,
-          });
-        });
+        // console.log("Capper Products Data:", data.products);
+        data.products.forEach((product: any, index: number) => {});
 
         setCapper(data);
       } catch (error: unknown) {
