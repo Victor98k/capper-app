@@ -26,18 +26,18 @@ export const CappersWelcomeEmail = ({
   <Html>
     <Head />
     <Body style={main}>
-      <Preview>Welcome to CapperSportsContent</Preview>
+      <Preview>Welcome to Cappers</Preview>
       <Container style={container}>
-        {/* <Img
-          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1746916303/Favicon_thstsk.png"
+        <Img
+          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1746969438/Cappers_Logo_PNG_z5ikpb.png"
           width="170"
           height="50"
           alt="Cappers"
           style={logo}
-        /> */}
+        />
         <Text style={paragraph}>Hi {userFirstname},</Text>
         <Text style={paragraph}>
-          Welcome to CapperSportsContent, your platform to follow and learn from
+          Welcome to Cappers, your platform to follow and learn from
           professional sports bettors. Get exclusive access to expert picks and
           content to help improve your sports betting success.
         </Text>
@@ -49,10 +49,10 @@ export const CappersWelcomeEmail = ({
         <Text style={paragraph}>
           Best,
           <br />
-          The CapperSportsContent team
+          The Cappers team
         </Text>
         <Hr style={hr} />
-        <Text style={footer}>CapperSportsContent</Text>
+        <Text style={footer}>Cappers</Text>
       </Container>
     </Body>
   </Html>
