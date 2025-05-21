@@ -29,12 +29,34 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // First, let's get the bets with minimal information to debug
+    const simpleBets = await prisma.bet.findMany({
+      where: {
+        status: "PENDING",
+        postId: {
+          not: null,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        postId: true,
+      },
+    });
+
+    console.log("Simple bets:", simpleBets);
+
     // Fetch pending bets with user and post information
     const pendingBets = await prisma.bet.findMany({
       where: {
         status: "PENDING",
         postId: {
           not: null,
+        },
+        userId: {
+          in: await prisma.user
+            .findMany()
+            .then((users) => users.map((u) => u.id)),
         },
       },
       include: {
@@ -71,33 +93,51 @@ export async function GET(req: Request) {
       },
     });
 
-    // Transform the data to include post information
-    const formattedBets = pendingBets.map((bet) => ({
-      id: bet.id,
-      game: bet.game,
-      odds: bet.odds,
-      units: bet.units,
-      date: bet.date.toISOString(),
-      status: bet.status,
-      createdAt: bet.createdAt.toISOString(),
-      updatedAt: bet.updatedAt.toISOString(),
-      userId: bet.userId,
-      oddsScreenshot: bet.oddsScreenshot,
-      oddsDate: bet.oddsDate?.toISOString() || null,
-      userInfo: {
-        username: bet.user.username,
-        firstName: bet.user.firstName,
-        lastName: bet.user.lastName,
-      },
-      postInfo: {
-        title: bet.post?.title,
-        bets: bet.post?.bets,
-        odds: bet.post?.odds,
-        units: bet.post?.units || 1,
-        bookmaker: bet.post?.bookmaker,
-        capper: bet.post?.capper.user.username,
-      },
-    }));
+    console.log("Number of pending bets found:", pendingBets.length);
+
+    // Log a sample bet to debug the structure
+    if (pendingBets.length > 0) {
+      console.log(
+        "Sample bet structure:",
+        JSON.stringify(pendingBets[0], null, 2)
+      );
+    }
+
+    // Transform the data to include post information and handle null user
+    const formattedBets = pendingBets
+      .filter((bet) => bet.user !== null && bet.post !== null)
+      .map((bet) => ({
+        id: bet.id,
+        game: bet.game,
+        odds: bet.odds,
+        units: bet.units,
+        date: bet.date.toISOString(),
+        status: bet.status,
+        createdAt: bet.createdAt.toISOString(),
+        updatedAt: bet.updatedAt.toISOString(),
+        userId: bet.userId,
+        oddsScreenshot: bet.oddsScreenshot,
+        oddsDate: bet.oddsDate?.toISOString() || null,
+        userInfo: bet.user
+          ? {
+              username: bet.user.username,
+              firstName: bet.user.firstName,
+              lastName: bet.user.lastName,
+            }
+          : null,
+        postInfo: bet.post
+          ? {
+              title: bet.post.title,
+              bets: bet.post.bets,
+              odds: bet.post.odds,
+              units: bet.post.units || 1,
+              bookmaker: bet.post.bookmaker,
+              capper: bet.post.capper?.user?.username || null,
+            }
+          : null,
+      }));
+
+    console.log("Number of formatted bets:", formattedBets.length);
 
     return NextResponse.json(formattedBets);
   } catch (error) {

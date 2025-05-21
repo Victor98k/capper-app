@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         name: "Cappers Club",
         product_description: "Sports betting tips and predictions",
         mcc: "7999", // Merchant Category Code for Recreation Services
-        // Only include URL if not localhost
+
         ...(process.env.NODE_ENV === "production" && {
           url: websiteUrl,
         }),

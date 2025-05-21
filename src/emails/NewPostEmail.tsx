@@ -39,7 +39,7 @@ export const NewPostEmail = ({
       </Preview>
       <Container style={container}>
         <Img
-          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1739624651/Cappers_Logga_uyalpf.png"
+          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1746969438/Cappers_Logo_PNG_z5ikpb.png"
           width="170"
           height="50"
           alt="Cappers"
@@ -70,7 +70,7 @@ export const NewPostEmail = ({
             You received this email because you're subscribed to {capperName}.
             <br />
             <a
-              href="https://cappersports.co/settings/notifications"
+              href="https://cappersports.co/my-profile"
               style={unsubscribeLink}
             >
               Manage your notification settings
