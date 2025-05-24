@@ -45,17 +45,17 @@ export function SideNav() {
         const cappers = await response.json();
 
         // Add console.log for debugging
-        console.log("Cappers:", cappers);
-        console.log("Current user email:", user?.email);
+        // console.log("Cappers:", cappers);
+        // console.log("Current user email:", user?.email);
 
         const isUserCapper = cappers.some(
           (capper: any) => capper.user?.email === user?.email
         );
 
-        console.log("Is user capper:", isUserCapper);
+        // console.log("Is user capper:", isUserCapper);
         setIsCapper(isUserCapper);
       } catch (error) {
-        console.error("Error checking capper status:", error);
+        // console.error("Error checking capper status:", error);
         setIsCapper(false);
       }
     };
@@ -72,9 +72,9 @@ export function SideNav() {
       try {
         const response = await fetch("/api/cappers");
         const data = await response.json();
-        console.log("Capper data:", data);
+        // console.log("Capper data:", data);
         const capperData = data.find((c: any) => c.userId === user.id);
-        console.log("Found capper:", capperData);
+        // console.log("Found capper:", capperData);
         if (capperData?.profileImage) {
           setProfileImage(capperData.profileImage);
         }

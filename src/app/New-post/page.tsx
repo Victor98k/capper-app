@@ -449,25 +449,51 @@ function NewPostPage() {
 
       // If we have a post image, upload it with the POSTS preset
       if (image && postTemplate === "standard") {
-        const formData = new FormData();
-        formData.append("file", image);
-        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET); // Use capper_posts preset
+        try {
+          console.log("=== Client Upload Configuration ===");
+          console.log("Upload Configuration:", {
+            cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+            uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+          });
 
-        const uploadResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
+          const formData = new FormData();
+          formData.append("file", image);
+          formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+          const uploadUrl = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
+          console.log("Upload URL:", uploadUrl);
+
+          const uploadResponse = await fetch(uploadUrl, {
             method: "POST",
             body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            const errorData = await uploadResponse.json();
+            console.error("Upload Error Details:", {
+              status: uploadResponse.status,
+              statusText: uploadResponse.statusText,
+              errorData,
+            });
+            throw new Error(
+              errorData.error?.message || "Failed to upload image"
+            );
           }
-        );
 
-        if (!uploadResponse.ok) {
-          const error = await uploadResponse.json();
-          throw new Error(error.error?.message || "Failed to upload image");
+          const uploadData = await uploadResponse.json();
+          console.log("Upload Success:", {
+            url: uploadData.secure_url,
+            publicId: uploadData.public_id,
+          });
+          postData.imageUrl = uploadData.secure_url;
+        } catch (error) {
+          console.error("Upload Error:", error);
+          toast.error("Failed to upload image", {
+            description:
+              error instanceof Error ? error.message : "Unknown error occurred",
+          });
+          return;
         }
-
-        const uploadData = await uploadResponse.json();
-        postData.imageUrl = uploadData.secure_url;
       }
 
       // Send the post data as JSON
