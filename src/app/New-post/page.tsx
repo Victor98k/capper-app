@@ -513,13 +513,28 @@ function NewPostPage() {
         return;
       }
 
-      await response.json();
+      const newPost = await response.json();
+      console.log("Created post:", newPost);
 
-      // Show success toast instead of redirecting
+      // Send email notifications to subscribers
+      await fetch("/api/email/new-post-notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          capperId: newPost.capperId,
+          postId: newPost.id,
+          postTitle: title,
+          postPreview: content.substring(0, 200) + "...",
+        }),
+      });
+
+      // Show success toast
       toast.success("Post created successfully!", {
         description:
-          "Your post has been published and is now visible to subscribers",
-        duration: 5000, // Show for 5 seconds
+          "Your post has been published and subscribers have been notified",
+        duration: 5000,
       });
 
       // Optional: Clear the form after successful submission
