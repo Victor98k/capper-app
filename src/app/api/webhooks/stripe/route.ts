@@ -16,32 +16,21 @@ console.log("Webhook environment check:", {
 });
 */
 
-// Use a more descriptive variable name
+// Update the webhook secret selection
 const webhookSecret =
-  process.env.NODE_ENV === "development"
+  process.env.STRIPE_WEBHOOK_SECRET ||
+  (process.env.NODE_ENV === "development"
     ? process.env.STRIPE_WEBHOOK_SECRET_LOCAL
-    : process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL;
+    : process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL);
 
-if (!webhookSecret) {
-  /*
-  console.error(
-    "Critical Error: Stripe webhook secret is not configured in environment variables",
-    {
-      nodeEnv: process.env.NODE_ENV,
-      hasSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
-    }
-  );
-  */
-}
-
-// Add debug logging
-/*
-console.log("Environment check:", {
-  hasWebhookSecret: !!webhookSecret,
-  environment: process.env.NODE_ENV,
-  webhookSecretPrefix: webhookSecret?.substring(0, 8),
+// Add debug logging to see which secret is being used
+console.log("Webhook environment check:", {
+  NODE_ENV: process.env.NODE_ENV,
+  hasMainSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+  hasProductionSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
+  hasLocalSecret: !!process.env.STRIPE_WEBHOOK_SECRET_LOCAL,
+  actualSecret: webhookSecret?.substring(0, 10) + "...", // Only log first 10 chars
 });
-*/
 
 const logWebhookError = (error: any, context: string) => {
   /*
@@ -104,11 +93,13 @@ export async function POST(req: Request) {
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
 
-    // log("info", "Webhook received", {
-    //   NODE_ENV: process.env.NODE_ENV,
-    //   hasWebhookSecret: !!webhookSecret,
-    //   hasSignature: !!sig,
-    // });
+    console.log("Webhook request debug:", {
+      hasSignature: !!sig,
+      signaturePrefix: sig?.substring(0, 10) + "...",
+      hasWebhookSecret: !!webhookSecret,
+      webhookSecretPrefix: webhookSecret?.substring(0, 10) + "...",
+      environment: process.env.NODE_ENV,
+    });
 
     if (!sig || !webhookSecret) {
       log("error", "Webhook validation failed", {
