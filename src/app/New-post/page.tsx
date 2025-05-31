@@ -567,7 +567,7 @@ function NewPostPage() {
     { emoji: "🏒", sport: "Ice Hockey" },
     { emoji: "⛳", sport: "Golf" },
     { emoji: "🥊", sport: "Boxing" },
-    { emoji: "🏎️", sport: "Formula 1" },
+    { emoji: "🏎️", sport: "F1" },
     { emoji: "🏇", sport: "Horse Racing" },
     { emoji: "🎮", sport: "E-Sports" },
   ];

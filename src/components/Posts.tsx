@@ -60,6 +60,9 @@ const sportEmojiMap: { [key: string]: string } = {
   Golf: "🏌️‍♂️",
   MMA: "🥊",
   Boxing: "🥊",
+  F1: "🏎️",
+  "Horse Racing": "🏇",
+  "E-Sports": "🎮",
 };
 
 // First, let's create a reusable BetDialog component at the top of the file
