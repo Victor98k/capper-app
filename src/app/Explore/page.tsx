@@ -141,16 +141,16 @@ export default function ExplorePage() {
                       onClick={() =>
                         router.push(`/cappers/${capper.user.username}`)
                       }
-                      className="bg-gray-800 rounded-lg p-4 md:p-6 flex flex-col items-center hover:bg-gray-700 transition-colors cursor-pointer group"
+                      className="bg-gray-800/50 rounded-lg p-4 md:p-6 flex flex-col items-center hover:bg-gray-800 transition-all duration-300 cursor-pointer group"
                     >
-                      <Avatar className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 border-2 border-[#4e43ff] group-hover:border-[#4e43ff]/80">
+                      <Avatar className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 border-2 border-[#4e43ff]/80 group-hover:border-[#4e43ff] transition-colors duration-300">
                         <AvatarImage src={capper.profileImage} />
                         <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff] text-2xl md:text-3xl lg:text-4xl">
                           {capper.user.firstName?.[0]}
                           {capper.user.lastName?.[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff] transition-colors">
+                      <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff]/90 transition-colors duration-300">
                         {capper.user.username}
                       </h3>
                       <p className="text-sm md:text-base text-gray-400 mb-2 md:mb-4 truncate w-full text-center">
@@ -160,7 +160,7 @@ export default function ExplorePage() {
                         {capper.tags?.map((tag, index) => (
                           <span
                             key={index}
-                            className="text-xs md:text-sm bg-[#4e43ff] px-2 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1 md:gap-2"
+                            className="text-xs md:text-sm bg-[#4e43ff]/80 hover:bg-[#4e43ff] px-2 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1 md:gap-2 transition-colors duration-300"
                           >
                             <span className="text-sm md:text-base">
                               {sportEmojiMap[tag] || "🎯"}

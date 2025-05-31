@@ -33,6 +33,7 @@ import {
   MessageSquare,
   Phone,
   Zap,
+  Mail,
 } from "lucide-react";
 import { use } from "react";
 // Components
@@ -339,16 +340,18 @@ export default function CapperProfilePage({
                 </div>
 
                 {/* Tags */}
-                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-4">
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3 mb-4">
                   {capper.tags.map((tag) => (
                     <Badge
                       key={tag}
-                      className="bg-[#4e43ff] text-gray-300 flex items-center gap-2 border-0"
+                      className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 bg-[#4e43ff] text-gray-300 border-0"
                     >
-                      <span className="text-lg">
+                      <span className="text-base sm:text-lg md:text-xl">
                         {sportEmojiMap[tag] || "🎯"}
                       </span>
-                      <span>{tag}</span>
+                      <span className="text-xs sm:text-sm md:text-base">
+                        {tag}
+                      </span>
                     </Badge>
                   ))}
                 </div>
@@ -358,81 +361,102 @@ export default function CapperProfilePage({
                   {capper.bio}
                 </p>
 
-                {/* Social Links */}
-                {capper.socialLinks && (
-                  <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
-                    {capper.socialLinks.instagram?.username &&
-                      capper.socialLinks.instagram?.url && (
-                        <a
-                          href={capper.socialLinks.instagram.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-pink-500 hover:text-pink-400 transition-colors"
-                        >
-                          <Instagram className="h-5 w-5" />
-                          <span className="text-sm">
-                            @{capper.socialLinks.instagram.username}
+                {/* Social Links - Compact Version */}
+                {capper.socialLinks &&
+                  Object.keys(capper.socialLinks).length > 0 && (
+                    <div className="mt-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
+                        <p className="text-xs sm:text-sm md:text-base text-gray-400">
+                          Communication channels for details and analysis
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        {/* Email Notifications Badge */}
+                        <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-violet-600/20 to-violet-400/20 border border-violet-500/20">
+                          <Mail className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-violet-400" />
+                          <span className="text-xs sm:text-sm md:text-base text-gray-200">
+                            Platform Notifications
                           </span>
-                        </a>
-                      )}
-                    {capper.socialLinks.x?.username &&
-                      capper.socialLinks.x?.url && (
-                        <a
-                          href={capper.socialLinks.x.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-                        >
-                          <Twitter className="h-5 w-5" />
-                          <span className="text-sm">
-                            @{capper.socialLinks.x.username}
-                          </span>
-                        </a>
-                      )}
-                    {capper.socialLinks.youtube?.username &&
-                      capper.socialLinks.youtube?.url && (
-                        <a
-                          href={capper.socialLinks.youtube.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-red-500 hover:text-red-400 transition-colors"
-                        >
-                          <Youtube className="h-5 w-5" />
-                          <span className="text-sm">
-                            {capper.socialLinks.youtube.username}
-                          </span>
-                        </a>
-                      )}
-                    {capper.socialLinks.discord?.username &&
-                      capper.socialLinks.discord?.url && (
-                        <a
-                          href={capper.socialLinks.discord.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-indigo-500 hover:text-indigo-400 transition-colors"
-                        >
-                          <MessageSquare className="h-5 w-5" />
-                          <span className="text-sm">
-                            {capper.socialLinks.discord.username}
-                          </span>
-                        </a>
-                      )}
-                    {capper.socialLinks.whatsapp?.username &&
-                      capper.socialLinks.whatsapp?.url && (
-                        <a
-                          href={capper.socialLinks.whatsapp.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-green-500 hover:text-green-400 transition-colors"
-                        >
-                          <Phone className="h-5 w-5" />
-                          <span className="text-sm">
-                            {capper.socialLinks.whatsapp.username}
-                          </span>
-                        </a>
-                      )}
-                  </div>
-                )}
+                        </div>
+
+                        {capper.socialLinks.instagram?.username &&
+                          capper.socialLinks.instagram?.url && (
+                            <a
+                              href={capper.socialLinks.instagram.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-pink-600/20 to-purple-600/20 hover:from-pink-600/30 hover:to-purple-600/30 transition-all border border-pink-500/20 hover:border-pink-500/40"
+                            >
+                              <Instagram className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-pink-400" />
+                              <span className="text-xs sm:text-sm md:text-base text-gray-200">
+                                @{capper.socialLinks.instagram.username}
+                              </span>
+                            </a>
+                          )}
+
+                        {capper.socialLinks.x?.username &&
+                          capper.socialLinks.x?.url && (
+                            <a
+                              href={capper.socialLinks.x.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-600/20 to-blue-400/20 hover:from-blue-600/30 hover:to-blue-400/30 transition-all border border-blue-500/20 hover:border-blue-500/40"
+                            >
+                              <Twitter className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-blue-400" />
+                              <span className="text-xs sm:text-sm md:text-base text-gray-200">
+                                @{capper.socialLinks.x.username}
+                              </span>
+                            </a>
+                          )}
+
+                        {capper.socialLinks.youtube?.username &&
+                          capper.socialLinks.youtube?.url && (
+                            <a
+                              href={capper.socialLinks.youtube.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-red-600/20 to-red-400/20 hover:from-red-600/30 hover:to-red-400/30 transition-all border border-red-500/20 hover:border-red-500/40"
+                            >
+                              <Youtube className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-red-400" />
+                              <span className="text-xs sm:text-sm md:text-base text-gray-200">
+                                {capper.socialLinks.youtube.username}
+                              </span>
+                            </a>
+                          )}
+
+                        {capper.socialLinks.discord?.username &&
+                          capper.socialLinks.discord?.url && (
+                            <a
+                              href={capper.socialLinks.discord.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-indigo-600/20 to-indigo-400/20 hover:from-indigo-600/30 hover:to-indigo-400/30 transition-all border border-indigo-500/20 hover:border-indigo-500/40"
+                            >
+                              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-indigo-400" />
+                              <span className="text-xs sm:text-sm md:text-base text-gray-200">
+                                {capper.socialLinks.discord.username}
+                              </span>
+                            </a>
+                          )}
+
+                        {capper.socialLinks.whatsapp?.username &&
+                          capper.socialLinks.whatsapp?.url && (
+                            <a
+                              href={capper.socialLinks.whatsapp.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-green-600/20 to-green-400/20 hover:from-green-600/30 hover:to-green-400/30 transition-all border border-green-500/20 hover:border-green-500/40"
+                            >
+                              <Phone className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-400" />
+                              <span className="text-xs sm:text-sm md:text-base text-gray-200">
+                                {capper.socialLinks.whatsapp.username}
+                              </span>
+                            </a>
+                          )}
+                      </div>
+                    </div>
+                  )}
               </div>
             </div>
 
