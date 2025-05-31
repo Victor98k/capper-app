@@ -171,6 +171,23 @@ const WelcomeUI = ({ router }: { router: any }) => (
   </div>
 );
 
+// Add this helper component near the top of the file
+const LabelWithTooltip = ({
+  label,
+  tooltip,
+  required = false,
+}: {
+  label: string;
+  tooltip: string;
+  required?: boolean;
+}) => (
+  <div className="flex items-center gap-2 mb-2">
+    <label className="block text-sm font-medium text-gray-700">{label}</label>
+    {required && <span className="text-red-500">*</span>}
+    <span className="text-xs text-gray-500 italic">({tooltip})</span>
+  </div>
+);
+
 function NewPostPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -716,9 +733,31 @@ function NewPostPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="mb-6 p-4 bg-[#4e43ff]/10 rounded-lg">
+                  <h3 className="text-lg font-semibold text-[#4e43ff] mb-2">
+                    Tips for a Great Post:
+                  </h3>
+                  <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
+                    <li>Be specific with your predictions and analysis</li>
+                    <li>Include relevant statistics to support your picks</li>
+                    <li>
+                      Always upload clear odds screenshots for verification
+                    </li>
+                    <li>
+                      Use appropriate units (0.5-10) to indicate confidence
+                    </li>
+                    <li>
+                      Double-check all information before posting - posts cannot
+                      be edited after submission
+                    </li>
+                  </ul>
+                </div>
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label>Post Template</Label>
+                    <LabelWithTooltip
+                      label="Post Template"
+                      tooltip="Choose between including an image or a text-only post"
+                    />
                     <div className="grid grid-cols-2 gap-4">
                       <div
                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -764,7 +803,11 @@ function NewPostPage() {
 
                   {/* Add Bundle Selection */}
                   <div className="space-y-2">
-                    <Label>Select Bundle</Label>
+                    <LabelWithTooltip
+                      label="Select Bundle"
+                      tooltip="Choose which subscription bundle this post belongs to"
+                      required
+                    />
                     <Select
                       value={selectedProduct}
                       onValueChange={handleProductSelect}
@@ -786,9 +829,10 @@ function NewPostPage() {
                   {/* Show image upload only for standard template */}
                   {postTemplate === "standard" && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Image
-                      </label>
+                      <LabelWithTooltip
+                        label="Image"
+                        tooltip="Add a visual representation of your prediction"
+                      />
                       {!imagePreview ? (
                         <div
                           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
@@ -864,9 +908,11 @@ function NewPostPage() {
 
                   {/* Title Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Title
-                    </label>
+                    <LabelWithTooltip
+                      label="Title"
+                      tooltip="Keep it clear and specific - this is what attracts subscribers"
+                      required
+                    />
                     <div className="relative">
                       <input
                         type="text"
@@ -895,9 +941,11 @@ function NewPostPage() {
 
                   {/* Content Input */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Content
-                    </label>
+                    <LabelWithTooltip
+                      label="Content"
+                      tooltip="Provide detailed analysis and reasoning for your picks"
+                      required
+                    />
                     <div className="relative">
                       <textarea
                         value={content}
@@ -925,9 +973,10 @@ function NewPostPage() {
 
                   {/* Tags Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Tags
-                    </label>
+                    <LabelWithTooltip
+                      label="Tags"
+                      tooltip="Select the primary sport for this prediction"
+                    />
                     <div className="flex flex-wrap gap-2 mb-4">
                       <p className="w-full text-sm text-gray-500">
                         Select sport type:
@@ -952,9 +1001,11 @@ function NewPostPage() {
 
                   {/* Bets Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Bets
-                    </label>
+                    <LabelWithTooltip
+                      label="Bets"
+                      tooltip="Enter specific betting selections (e.g., 'Manchester United to win')"
+                      required
+                    />
                     <div className="mt-2 flex flex-wrap gap-2">
                       {bets.map((bet) => (
                         <div
@@ -986,9 +1037,10 @@ function NewPostPage() {
 
                   {/* Units Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Units
-                    </label>
+                    <LabelWithTooltip
+                      label="Units"
+                      tooltip="Indicate bet confidence (0.5-10 units, default is 1)"
+                    />
                     <div className="mt-2 flex flex-wrap gap-2">
                       {betUnits !== "1" && (
                         <div className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full">
@@ -1029,9 +1081,11 @@ function NewPostPage() {
 
                   {/* Odds Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Odds ({odds.length}/{MAX_ODDS})
-                    </label>
+                    <LabelWithTooltip
+                      label={`Odds (${odds.length}/${MAX_ODDS})`}
+                      tooltip="Enter decimal odds (e.g., 1.87, 2.25)"
+                      required
+                    />
                     <div className="mt-2 flex flex-wrap gap-2">
                       {odds.map((odd) => (
                         <div
@@ -1077,15 +1131,11 @@ function NewPostPage() {
 
                   {/* Odds Screenshot Section */}
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Odds Screenshot
-                      </label>
-                      <span className="text-red-500">*</span>
-                      <span className="text-xs text-gray-500">
-                        (required for bet validation)
-                      </span>
-                    </div>
+                    <LabelWithTooltip
+                      label="Odds Screenshot"
+                      tooltip="Upload a clear screenshot showing the odds from your bookmaker"
+                      required
+                    />
                     <div className="mt-2">
                       {!oddsScreenshotPreview ? (
                         <div
@@ -1139,9 +1189,11 @@ function NewPostPage() {
 
                   {/* Bet Placement Date */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Bet Placement Date
-                    </label>
+                    <LabelWithTooltip
+                      label="Bet Placement Date"
+                      tooltip="When did you place this bet? Cannot be in the future"
+                      required
+                    />
                     <div className="mt-2">
                       <input
                         type="date"
@@ -1155,9 +1207,10 @@ function NewPostPage() {
 
                   {/* Bookmaker Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Bookmaker
-                    </label>
+                    <LabelWithTooltip
+                      label="Bookmaker"
+                      tooltip="Select the betting site where you placed this bet"
+                    />
                     <Select
                       value={selectedBookmaker}
                       onValueChange={setSelectedBookmaker}
