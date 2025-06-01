@@ -37,14 +37,14 @@ export async function POST(req: Request) {
 
     // Ensure we have the base URL with proper format for general use
     const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || "https://cappers-app.vercel.app";
+      process.env.NEXT_PUBLIC_APP_URL || "https://www.cappersports.co/";
     const websiteUrl = baseUrl.startsWith("http")
       ? baseUrl
       : `https://${baseUrl}`;
 
     // Create a Stripe Connect account
     const account = await stripe.accounts.create({
-      type: "standard",
+      type: "express",
       country: "SE",
       email: user.email,
       capabilities: {
@@ -53,13 +53,13 @@ export async function POST(req: Request) {
       },
       settings: {
         payments: {
-          statement_descriptor: "CAPPERS CLUB",
+          statement_descriptor: "CAPPERS",
         },
       },
       business_type: "individual",
       business_profile: {
-        name: "Cappers Club",
-        product_description: "Sports betting tips and predictions",
+        name: "Cappers Content Creator",
+        product_description: "Sports content",
         mcc: "7999", // Merchant Category Code for Recreation Services
 
         ...(process.env.NODE_ENV === "production" && {
