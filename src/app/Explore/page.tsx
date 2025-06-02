@@ -153,9 +153,6 @@ export default function ExplorePage() {
                       <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff]/90 transition-colors duration-300">
                         {capper.user.username}
                       </h3>
-                      <p className="text-sm md:text-base text-gray-400 mb-2 md:mb-4 truncate w-full text-center">
-                        {capper.user.firstName} {capper.user.lastName}
-                      </p>
                       <div className="flex flex-wrap gap-1 md:gap-2 justify-center">
                         {capper.tags?.map((tag, index) => (
                           <span

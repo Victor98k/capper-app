@@ -20,8 +20,6 @@ const sportEmojiMap: { [key: string]: string } = {
 export function ExploreCapperCard({
   username,
   imageUrl,
-  firstName = username[0],
-  lastName = username[1] || username[0],
   profileImage,
   sport,
   likes = 0,
@@ -94,8 +92,7 @@ export function ExploreCapperCard({
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-2 border-violet-500">
               <AvatarImage src={profileImage} />
               <AvatarFallback className="bg-violet-600 text-white text-4xl">
-                {firstName[0].toUpperCase()}
-                {lastName[0].toUpperCase()}
+                {username[0].toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </div>
