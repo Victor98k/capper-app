@@ -28,7 +28,6 @@ export function CappersSidebar() {
         }
 
         const text = await response.text();
-        console.log("Raw response:", text); // Uncomment this line
 
         if (!text) {
           setCappers([]);
