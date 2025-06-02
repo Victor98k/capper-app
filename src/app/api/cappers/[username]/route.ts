@@ -32,11 +32,12 @@ export async function PUT(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    // Extract username from the URL
+    // Extract username from the URL and decode it
     const url = new URL(request.url);
     const segments = url.pathname.split("/");
     const usernameIndex = segments.indexOf("cappers") + 1;
-    const username = segments[usernameIndex];
+    const encodedUsername = segments[usernameIndex];
+    const username = decodeURIComponent(encodedUsername);
 
     if (!username) {
       return NextResponse.json(
