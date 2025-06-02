@@ -5,8 +5,11 @@ export const sportEmojiMap: { [key: string]: string } = {
   "American Football": "🏈",
   Baseball: "⚾",
   Soccer: "⚽",
-  Hockey: "🏒",
-  Golf: "🏌️‍♂️",
+  "Ice Hockey": "🏒",
+  Golf: "⛳",
   MMA: "🥊",
   Boxing: "🥊",
+  F1: "🏎️",
+  "Horse Racing": "🏇",
+  "E-Sports": "🎮",
 };

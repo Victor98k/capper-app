@@ -18,10 +18,14 @@ const quickFilterSports = [
   "Basketball",
   "Tennis",
   "American Football",
+  "MMA",
   "Baseball",
   "Ice Hockey",
-  "MMA",
   "Golf",
+  "Boxing",
+  "F1",
+  "Horse Racing",
+  "E-Sports",
 ];
 
 export function SearchBar({
