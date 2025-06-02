@@ -467,19 +467,6 @@ export default function BecomeCapper() {
                 </button>
               </form>
             </div>
-
-            <div className="mt-12 bg-gray-800/20 backdrop-blur-lg rounded-xl p-6 border border-gray-700/50">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                Requirements to Become a Capper
-              </h3>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
-                <li>Proven track record of successful sports betting</li>
-                <li>Detailed understanding of sports analytics</li>
-                <li>Strong communication skills</li>
-                <li>Commitment to providing quality insights</li>
-                <li>Professional conduct and integrity</li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>
