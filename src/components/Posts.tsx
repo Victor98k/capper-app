@@ -383,8 +383,7 @@ function InstagramPost({
                   alt={capperInfo.username}
                 />
                 <AvatarFallback className="bg-violet-600 text-white text-lg sm:text-2xl">
-                  {capperInfo.firstName[0]}
-                  {capperInfo.lastName[0]}
+                  {capperInfo.username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
@@ -573,8 +572,7 @@ function InstagramPost({
                   sizes="28px"
                 />
                 <AvatarFallback className="bg-violet-600 text-white text-xs">
-                  {capperInfo.firstName[0]}
-                  {capperInfo.lastName[0]}
+                  {capperInfo.username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col sm:flex-row sm:items-center">

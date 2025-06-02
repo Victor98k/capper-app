@@ -80,8 +80,7 @@ export function DisplayCapperCard({
           <Avatar className="h-32 w-32 border-4 border-violet-500 mb-4">
             <AvatarImage src={imageUrl} />
             <AvatarFallback className="bg-violet-600 text-white text-3xl">
-              {firstName.charAt(0)}
-              {lastName.charAt(0)}
+              {username.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="text-center">

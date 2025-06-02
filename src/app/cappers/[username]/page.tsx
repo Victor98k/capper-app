@@ -290,8 +290,7 @@ export default function CapperProfilePage({
                   }`}
                 />
                 <AvatarFallback className="bg-[#4e43ff] text-white text-2xl sm:text-4xl uppercase">
-                  {capper?.user?.firstName?.charAt(0) || ""}
-                  {capper?.user?.lastName?.charAt(0) || ""}
+                  {capper?.user?.username?.slice(0, 2).toUpperCase() || ""}
                 </AvatarFallback>
               </Avatar>
 

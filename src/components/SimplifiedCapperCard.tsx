@@ -32,8 +32,7 @@ export function SimplifiedCapperCard({
       <Avatar className="w-12 h-12 border-2 border-[#4e43ff]">
         <AvatarImage src={imageUrl} />
         <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff]">
-          {firstName?.[0]}
-          {lastName?.[0]}
+          {username.slice(0, 2).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       <div>
