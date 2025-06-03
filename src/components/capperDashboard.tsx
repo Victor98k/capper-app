@@ -35,6 +35,7 @@ import {
 import StripeProductDisplay from "./StripeProductDisplay";
 import Loader from "@/components/Loader";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function CapperDashboard() {
   const { user, loading } = useAuth();
@@ -45,6 +46,11 @@ export function CapperDashboard() {
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [username, setUsername] = useState("");
+  const [dashboardCache, setDashboardCache] = useState<{
+    url: string;
+    timestamp: number;
+  } | null>(null);
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   // Add searchParams to check for success parameter
   const searchParams = useSearchParams();
@@ -119,6 +125,58 @@ export function CapperDashboard() {
     },
     enabled: !!stripeStatus?.onboarded,
   });
+
+  const openStripeDashboard = async () => {
+    try {
+      // Check cache first
+      if (
+        dashboardCache &&
+        Date.now() - dashboardCache.timestamp < CACHE_DURATION
+      ) {
+        window.open(dashboardCache.url, "_blank");
+        return;
+      }
+
+      const response = await fetch("/api/stripe/connect", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        // Cache the URL
+        setDashboardCache({
+          url: data.url,
+          timestamp: Date.now(),
+        });
+        window.open(data.url, "_blank");
+      } else {
+        switch (data.code) {
+          case "NO_STRIPE_ACCOUNT":
+            toast.error("You need to connect your Stripe account first");
+            break;
+          case "ONBOARDING_INCOMPLETE":
+            toast.error("Please complete your Stripe account setup first");
+            break;
+          case "ACCOUNT_INVALID":
+            toast.error(
+              "Your Stripe account needs attention. Please check your email for instructions."
+            );
+            break;
+          default:
+            toast.error(
+              "Unable to access Stripe dashboard. Please try again later."
+            );
+        }
+      }
+    } catch (error) {
+      console.error("Error opening Stripe dashboard:", error);
+      toast.error("Failed to open Stripe dashboard");
+    }
+  };
 
   // Show loading state
   if (loading) {
@@ -522,15 +580,12 @@ export function CapperDashboard() {
                         settings
                       </p>
                     </div>
-                    <StripeConnectOnboarding
-                      isOnboarded={true}
-                      stripeAccountData={{
-                        payoutEnabled: stripeAccountData?.payoutEnabled,
-                        chargesEnabled: stripeAccountData?.chargesEnabled,
-                        defaultCurrency: stripeAccountData?.defaultCurrency,
-                      }}
+                    <Button
+                      onClick={openStripeDashboard}
                       className="w-full md:w-auto bg-white text-purple-600 hover:bg-gray-100 transition-colors px-4 md:px-6 py-2.5 rounded-lg font-semibold shadow-lg hover:shadow-xl text-center"
-                    />
+                    >
+                      Manage Stripe Account
+                    </Button>
                   </div>
                 </div>
 
