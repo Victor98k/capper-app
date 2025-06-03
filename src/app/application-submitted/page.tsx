@@ -1,11 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import CapperLogo from "@/images/Cappers Logga (1).svg";
 
 export default function ApplicationSubmitted() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4">
-      <div className="max-w-md mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 flex items-center">
+      <div className="max-w-md mx-auto w-full">
+        <div className="flex justify-center mb-8">
+          <Image
+            src={CapperLogo}
+            alt="Capper Logo"
+            className="w-[320px] h-auto sm:w-[400px] md:w-[450px] px-4"
+            priority
+          />
+        </div>
+
         <div className="bg-gray-800/50 rounded-xl p-8 backdrop-blur-sm text-center">
           <div className="mb-6">
             <svg
