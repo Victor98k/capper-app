@@ -42,7 +42,7 @@ export function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.toLowerCase(), password }),
         credentials: "include",
       });
 
@@ -213,7 +213,11 @@ export function Login() {
                   className="w-full bg-[#4e43ff] text-white hover:bg-[#3d35cc]"
                   disabled={isLoading}
                 >
-                  {isLoading ? <Loader size="sm" /> : "Log in"}
+                  {isLoading ? (
+                    <Loader size="sm" className="text-white" />
+                  ) : (
+                    "Log in"
+                  )}
                 </Button>
                 <Button
                   variant="link"
