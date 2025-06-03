@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import Image from "next/image";
+import CapperLogo from "@/images/Cappers Logga (1).svg";
 
 function CapperSignupContent() {
   const router = useRouter();
@@ -14,6 +16,7 @@ function CapperSignupContent() {
   });
   const [loading, setLoading] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
+  const [passwordsMatch, setPasswordsMatch] = useState(true);
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -50,6 +53,14 @@ function CapperSignupContent() {
 
     verifyToken();
   }, [searchParams, router]);
+
+  useEffect(() => {
+    if (formData.confirmPassword) {
+      setPasswordsMatch(formData.password === formData.confirmPassword);
+    } else {
+      setPasswordsMatch(true);
+    }
+  }, [formData.password, formData.confirmPassword]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,10 +100,18 @@ function CapperSignupContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4">
-      <div className="max-w-md mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 flex items-center">
+      <div className="max-w-md mx-auto w-full">
+        <div className="flex justify-center mb-8">
+          <Image
+            src={CapperLogo}
+            alt="Capper Logo"
+            className="w-[320px] h-auto sm:w-[400px] md:w-[450px] px-4"
+            priority
+          />
+        </div>
         <div className="bg-gray-800/50 rounded-xl p-8 backdrop-blur-sm">
-          <h1 className="text-2xl font-bold text-white mb-6">
+          <h1 className="text-2xl font-bold text-white mb-6 text-center">
             Complete Your Capper Account Setup
           </h1>
 
@@ -115,6 +134,10 @@ function CapperSignupContent() {
                 required
                 minLength={8}
               />
+              <p className="text-gray-400 text-xs mt-1">
+                Password must be at least 8 characters long and contain a mix of
+                letters, numbers, and special characters
+              </p>
             </div>
 
             <div>
@@ -131,15 +154,25 @@ function CapperSignupContent() {
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
-                className="w-full bg-gray-700 text-white rounded-md px-4 py-2"
+                className={`w-full bg-gray-700 text-white rounded-md px-4 py-2 ${
+                  !passwordsMatch && formData.confirmPassword
+                    ? "border-2 border-red-500"
+                    : ""
+                }`}
                 required
                 minLength={8}
               />
+              {!passwordsMatch && formData.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">
+                  Passwords do not match
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!passwordsMatch}
             >
               Complete Setup
             </button>
