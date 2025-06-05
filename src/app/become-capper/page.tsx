@@ -316,7 +316,7 @@ export default function BecomeCapper() {
                     htmlFor="monthlyBetAmount"
                     className="block text-white text-sm font-medium mb-2"
                   >
-                    What's the amount you place in bets monthly?
+                    How many bets do you place per week?
                   </label>
                   <input
                     type="text"
