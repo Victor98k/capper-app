@@ -198,37 +198,48 @@ export default function ExplorePage() {
                             {capper.user.username.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff]/90 transition-colors duration-300">
+                        <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-2 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff]/90 transition-colors duration-300">
                           {capper.user.username}
                         </h3>
 
                         {/* Mobile Stats Display */}
-                        <div className="flex gap-2 mb-2 md:hidden">
-                          <div className="bg-[#4e43ff]/10 px-2 py-1 rounded-md">
-                            <span className="text-xs text-[#4e43ff]">
-                              {capper.stats?.winrate
-                                ? `${capper.stats.winrate.toFixed(1)}%`
-                                : "0%"}{" "}
-                              WR
-                            </span>
+                        <div className="flex w-full justify-center gap-2 px-2 mb-3 md:hidden">
+                          <div className="w-[45%]">
+                            <div className="bg-[#4e43ff]/10 rounded-lg py-2 px-1 text-center">
+                              <span className="block text-[#4e43ff]/70 text-xs mb-0.5">
+                                Winrate
+                              </span>
+                              <span className="block text-[#4e43ff] font-bold">
+                                {capper.stats?.winrate
+                                  ? `${capper.stats.winrate.toFixed(1)}%`
+                                  : "0%"}
+                              </span>
+                            </div>
                           </div>
-                          <div className="bg-[#4e43ff]/10 px-2 py-1 rounded-md">
-                            <span className="text-xs text-[#4e43ff]">
-                              {`${(capper.roi || 0).toFixed(1)}%`} ROI
-                            </span>
+                          <div className="w-[45%]">
+                            <div className="bg-[#4e43ff]/10 rounded-lg py-2 px-1 text-center">
+                              <span className="block text-[#4e43ff]/70 text-xs mb-0.5">
+                                ROI
+                              </span>
+                              <span className="block text-[#4e43ff] font-bold">
+                                {`${(capper.roi || 0).toFixed(1)}%`}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-1 md:gap-2 justify-center">
+                        <div className="flex flex-wrap gap-1 md:gap-2 justify-center w-full px-1">
                           {capper.tags?.map((tag, index) => (
                             <span
                               key={index}
-                              className="text-xs md:text-sm bg-[#4e43ff]/80 hover:bg-[#4e43ff] px-2 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1 md:gap-2 transition-colors duration-300"
+                              className="text-[10px] md:text-sm bg-[#4e43ff]/80 hover:bg-[#4e43ff] px-1.5 py-0.5 md:px-3 md:py-1.5 rounded-full flex items-center gap-1 md:gap-2 transition-colors duration-300 whitespace-nowrap"
                             >
                               <span className="text-sm md:text-base">
                                 {sportEmojiMap[tag] || "🎯"}
                               </span>
-                              <span>{tag}</span>
+                              <span className="truncate max-w-[80px] md:max-w-none">
+                                {tag}
+                              </span>
                             </span>
                           )) || (
                             <span className="text-xs md:text-sm text-gray-400">
