@@ -18,10 +18,13 @@ import {
   Menu,
   LineChart,
   UserCircle,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export function SideNav() {
   const { user } = useAuth();
@@ -29,6 +32,7 @@ export function SideNav() {
   const [isCapper, setIsCapper] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     setUsername(localStorage.getItem("username") || "");
@@ -51,11 +55,6 @@ export function SideNav() {
         );
 
         const data = await response.json();
-
-        if (typeof data.isCapper !== "boolean") {
-          console.warn("Unexpected API response structure:", data);
-        }
-
         setIsCapper(Boolean(data.isCapper));
       } catch (error) {
         console.error("Error checking capper status:", error);
@@ -102,88 +101,180 @@ export function SideNav() {
 
   // NavLinks component - Shared between mobile and desktop
   const NavLinks = () => {
+    const linkClasses =
+      "text-white hover:text-[#4e43ff] transition-colors flex items-center space-x-3 py-2";
+
     return (
-      <div className="flex flex-col h-full">
-        {/* Navigation Items - Mobile: larger spacing, Desktop: compact */}
-        <nav className="space-y-4 lg:space-y-2 flex-1">
-          <div className="mb-4">{/* Search input removed for now */}</div>
+      <nav className="flex flex-col space-y-6">
+        <Link
+          href="/home"
+          className={linkClasses}
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <Home className="h-5 w-5" />
+          <span>Home</span>
+        </Link>
 
-          {/* Increase the spacing between links */}
-          <div className="space-y-6 lg:space-y-18">
-            <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base"
-              onClick={() => router.push("/home")}
-            >
-              <Home className="h-5 w-5 mr-3" />
-              Home
-            </Button>
+        <Link
+          href="/Explore"
+          className={linkClasses}
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <Compass className="h-5 w-5" />
+          <span>Explore</span>
+        </Link>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base"
-              onClick={() => router.push("/Explore")}
-            >
-              <Compass className="h-5 w-5 mr-3" />
-              Explore
-            </Button>
+        <Link
+          href="/my-profile"
+          className={linkClasses}
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <UserCircle className="h-5 w-5" />
+          <span>My Profile</span>
+        </Link>
 
-            {/* <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base"
-              onClick={() => router.push("/My-cappers")}
-            >
-              <Heart className="h-5 w-5 mr-3" />
-              My Cappers
-            </Button> */}
-            <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base"
-              onClick={() => router.push("/my-profile")}
-            >
-              <UserCircle className="h-5 w-5 mr-3" />
-              My Profile
-            </Button>
+        <Link
+          href="/My-bets"
+          className={linkClasses}
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <TicketIcon className="h-5 w-5" />
+          <span>Bet tracker</span>
+        </Link>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base"
-              onClick={() => router.push("/My-bets")}
-            >
-              <TicketIcon className="h-5 w-5 mr-3" />
-              Bet tracker
-            </Button>
-            {isCapper && (
-              <Button
-                variant="ghost"
-                className="w-full justify-start py-4 px-2 text-base border border-white/20 hover:border-white/40 transition-colors duration-200"
-                onClick={() => router.push("/home-capper")}
-              >
-                <LineChart className="h-5 w-5 mr-3" />
-                Capper Dashboard
-              </Button>
-            )}
-          </div>
-        </nav>
-
-        {/* Add Become Capper button above the profile section */}
-        {!isCapper && (
-          <div className="mb-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start py-4 px-2 text-base border border-[#4e43ff] text-[#4e43ff] hover:bg-[#4e43ff]/10"
-              onClick={() =>
-                (window.location.href =
-                  "https://app.cappersports.co/become-capper")
-              }
-            >
-              <LineChart className="h-5 w-5 mr-3" />
-              Become Capper
-            </Button>
-          </div>
+        {isCapper && (
+          <Link
+            href="/home-capper"
+            className={`${linkClasses} border border-white/20 hover:border-white/40 rounded-lg px-3`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <LineChart className="h-5 w-5" />
+            <span>Capper Dashboard</span>
+          </Link>
         )}
+      </nav>
+    );
+  };
 
-        {/* Profile Section - Mobile: larger avatar and text | Desktop: normal size */}
+  return (
+    <>
+      {/* Mobile Navigation */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="text-white focus:outline-none p-2 hover:bg-white/10 rounded-full transition-colors"
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, x: "-100%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: "-100%" }}
+              transition={{ type: "tween", duration: 0.3 }}
+              className="fixed inset-0 bg-gray-900/95 backdrop-blur-md z-50"
+            >
+              <div className="flex flex-col h-full p-6">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-8">
+                  <Image
+                    src={logo}
+                    alt="Cappers Logo"
+                    width={140}
+                    height={50}
+                    priority
+                    className="h-8 w-auto"
+                  />
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                {/* Navigation Links */}
+                <div className="mt-8">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <NavLinks />
+                  </motion.div>
+                </div>
+
+                {/* User Profile and Logout */}
+                <div className="mt-auto space-y-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="border-t border-gray-700 pt-4"
+                  >
+                    <div className="flex items-center space-x-3 mb-4">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={profileImage || ""}
+                          alt={username || "User"}
+                        />
+                        <AvatarFallback className="bg-[#4e43ff] text-base">
+                          {username?.charAt(0)?.toUpperCase() || "UN"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-base font-medium text-white">
+                          {username}
+                        </p>
+                      </div>
+                    </div>
+
+                    {!isCapper && (
+                      <Link
+                        href="https://app.cappersports.co/become-capper"
+                        className="w-full flex items-center justify-center px-6 py-3 text-lg font-medium rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff]/10 transition-all mb-4"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Become Capper
+                      </Link>
+                    )}
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-center px-6 py-3 text-lg font-medium rounded-full bg-red-600 text-white hover:bg-red-700 transition-all"
+                    >
+                      <LogOut className="h-5 w-5 mr-2" />
+                      Logout
+                    </button>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Desktop Navigation */}
+      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gradient-to-b from-gray-900 to-black p-6 hidden lg:flex flex-col h-screen sticky top-0">
+        {/* Desktop Logo */}
+        <div className="mb-8 flex justify-center">
+          <Image
+            src={logo}
+            alt="Cappers Logo"
+            width={190}
+            height={70}
+            priority
+          />
+        </div>
+
+        {/* Desktop Navigation Content */}
+        <div className="flex-1">
+          <NavLinks />
+        </div>
+
+        {/* Desktop Profile Section */}
         <div className="border-t border-gray-700 pt-4 mt-auto">
           <div className="flex items-center space-x-3 mb-4">
             <Avatar className="h-10 w-10">
@@ -193,79 +284,27 @@ export function SideNav() {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <p className="text-base font-medium">{username}</p>
+              <p className="text-base font-medium text-white">{username}</p>
             </div>
           </div>
 
-          <Button
-            variant="destructive"
+          {!isCapper && (
+            <Link
+              href="https://app.cappersports.co/become-capper"
+              className="w-full flex items-center justify-center px-4 py-2 text-sm rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff]/10 transition-all mb-4"
+            >
+              <LineChart className="h-5 w-5 mr-2" />
+              Become Capper
+            </Link>
+          )}
+
+          <button
             onClick={handleLogout}
-            className="w-full py-3 text-base"
+            className="w-full flex items-center justify-center px-4 py-2 text-sm rounded-full bg-red-600 text-white hover:bg-red-700 transition-all"
           >
             <LogOut className="h-5 w-5 mr-2" />
             Logout
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  useEffect(() => {}, [isCapper]);
-
-  return (
-    <>
-      {/* ==================== MOBILE NAVIGATION ==================== */}
-      <div className="lg:hidden">
-        <Sheet>
-          {/* Mobile Menu Trigger Button - This is causing the offset */}
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Menu className="h-5 w-5 text-gray-100" />
-            </Button>
-          </SheetTrigger>
-
-          {/* Mobile Slide-out Menu */}
-          <SheetContent
-            side="left"
-            className="w-[85vw] max-w-[300px] p-0 bg-gray-900 border-gray-800"
-          >
-            <div className="flex flex-col h-full">
-              {/* Mobile Header with Logo */}
-              <div className="p-4 border-b border-gray-800">
-                <Image
-                  src={logo}
-                  alt="Cappers Logo"
-                  width={140}
-                  height={50}
-                  priority
-                  className="mx-auto"
-                />
-              </div>
-
-              {/* Mobile Navigation Content */}
-              <div className="flex-1 overflow-y-auto p-4">
-                <NavLinks />
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* ==================== DESKTOP NAVIGATION ==================== */}
-      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gray-900 p-4 hidden lg:block h-screen sticky top-0">
-        <div className="p-6 h-full flex flex-col">
-          {/* Desktop Logo */}
-          <div className="mb-8 flex justify-center">
-            <Image
-              src={logo}
-              alt="Cappers Logo"
-              width={190}
-              height={70}
-              priority
-            />
-          </div>
-          {/* Desktop Navigation Content */}
-          <NavLinks />
+          </button>
         </div>
       </aside>
     </>
