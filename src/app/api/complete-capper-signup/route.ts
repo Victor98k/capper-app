@@ -57,6 +57,7 @@ export async function POST(request: Request) {
             tags: [],
             subscriberIds: [],
             socialLinks: {},
+            roi: 0,
           },
         });
       }

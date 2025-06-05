@@ -1,5 +1,74 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
+import { Prisma, BetStatus } from "@prisma/client";
+
+type BetWithStatus = {
+  status: BetStatus;
+  units: number | null;
+  odds: number;
+};
+
+interface Post {
+  bets: BetWithStatus[];
+}
+
+interface CapperWithRelations {
+  id: string;
+  userId: string;
+  bio: string | null;
+  tags: string[];
+  profileImage: string | null;
+  imageUrl: string | null;
+  socialLinks: Prisma.JsonValue;
+  posts: {
+    bets: {
+      status: string;
+      units: number;
+      odds: number;
+    }[];
+  }[];
+  user: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    imageUrl: string | null;
+  };
+}
+
+// Helper function to calculate winrate and ROI
+const calculateStats = (bets: BetWithStatus[]) => {
+  const completedBets = bets.filter(
+    (bet) => bet.status === "WON" || bet.status === "LOST"
+  );
+
+  const wonBets = completedBets.filter((bet) => bet.status === "WON").length;
+  const totalBets = completedBets.length;
+  const winrate = totalBets > 0 ? (wonBets / totalBets) * 100 : 0;
+
+  // Calculate ROI
+  const totalInvestment = completedBets.reduce(
+    (acc, bet) => acc + (bet.units || 1),
+    0
+  );
+  const totalReturns = completedBets.reduce((acc, bet) => {
+    if (bet.status === "WON") {
+      return acc + (bet.units || 1) * bet.odds;
+    }
+    return acc;
+  }, 0);
+
+  const roi =
+    totalInvestment > 0
+      ? ((totalReturns - totalInvestment) / totalInvestment) * 100
+      : 0;
+
+  return {
+    winrate,
+    totalBets,
+    roi,
+  };
+};
 
 export async function GET(request: Request) {
   try {
@@ -20,21 +89,14 @@ export async function GET(request: Request) {
       });
     }
 
-    // Get all cappers with their associated user info
+    // Get all cappers with their associated user info and bets
     const cappers = await prisma.capper.findMany({
       where: {
         user: {
           id: { not: undefined },
         },
       },
-      select: {
-        id: true,
-        userId: true,
-        bio: true,
-        tags: true,
-        profileImage: true,
-        imageUrl: true,
-        socialLinks: true,
+      include: {
         user: {
           select: {
             firstName: true,
@@ -42,6 +104,11 @@ export async function GET(request: Request) {
             username: true,
             email: true,
             imageUrl: true,
+          },
+        },
+        posts: {
+          include: {
+            capperBets: true,
           },
         },
       },
@@ -56,21 +123,39 @@ export async function GET(request: Request) {
     }
 
     // Map the data to match the expected Capper type in the frontend
-    const formattedCappers = cappers.map((capper) => ({
-      id: capper.id,
-      userId: capper.userId,
-      bio: capper.bio,
+    const formattedCappers = cappers.map((capper) => {
+      // Flatten bets array from posts
+      const allBets =
+        capper.posts?.flatMap((post) =>
+          post.capperBets.map((bet) => ({
+            status: bet.status,
+            units: bet.units,
+            odds: bet.odds,
+          }))
+        ) || [];
 
-      user: {
-        firstName: capper.user.firstName,
-        lastName: capper.user.lastName,
-        username: capper.user.username,
-      },
-      profileImage: capper.profileImage,
-      imageUrl: capper.imageUrl || undefined,
-      tags: capper.tags || [],
-      socialLinks: capper.socialLinks || {},
-    }));
+      const stats = calculateStats(allBets);
+
+      return {
+        id: capper.id,
+        userId: capper.userId,
+        bio: capper.bio,
+        user: {
+          firstName: capper.user.firstName,
+          lastName: capper.user.lastName,
+          username: capper.user.username,
+        },
+        profileImage: capper.profileImage,
+        imageUrl: capper.imageUrl || undefined,
+        tags: capper.tags || [],
+        socialLinks: capper.socialLinks || {},
+        stats: {
+          winrate: stats.winrate,
+          totalBets: stats.totalBets,
+        },
+        roi: capper.roi || 0,
+      };
+    });
 
     return NextResponse.json(formattedCappers);
   } catch (error) {

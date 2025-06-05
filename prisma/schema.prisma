@@ -53,7 +53,7 @@ model Capper {
                                //   youtube?: { username: string, url: string }
                                // }
   tags          String[]        // Keep existing tags
-  roi           Float?          // ROI percentage
+  roi           Float?          @default(0) // ROI percentage
   subscribers   User[]          @relation("UserSubscriptions", fields: [subscriberIds], references: [id])
   subscriberIds String[]       @db.ObjectId
   posts         CapperPost[]

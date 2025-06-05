@@ -16,10 +16,15 @@ interface CapperProfile {
   userId: string;
   tags: string[];
   profileImage: string;
+  roi: number;
   user: {
     firstName: string;
     lastName: string;
     username: string;
+  };
+  stats?: {
+    winrate: number;
+    totalBets: number;
   };
 }
 
@@ -46,6 +51,14 @@ export default function ExplorePage() {
       try {
         const response = await fetch("/api/cappers");
         const data = await response.json();
+        console.log("Raw API Response:", data);
+        console.log(
+          "ROI values:",
+          data.map((c: CapperProfile) => ({
+            username: c.user.username,
+            roi: c.roi,
+          }))
+        );
         const shuffledData = shuffleArray(data);
         setAllCappers(shuffledData);
         setCappers(shuffledData);
@@ -69,6 +82,7 @@ export default function ExplorePage() {
           (tag) => tag.toLowerCase() === selectedSport.toLowerCase()
         )
       );
+      console.log("Filtered by sport:", selectedSport, filtered);
     }
 
     // Apply search filter
@@ -81,6 +95,7 @@ export default function ExplorePage() {
             query.includes(tag.toLowerCase())
         )
       );
+      console.log("Filtered by search:", searchQuery, filtered);
     }
 
     setCappers(filtered);
@@ -93,6 +108,17 @@ export default function ExplorePage() {
       setSelectedSport(sport);
       setSearchQuery(""); // Clear search when selecting a sport
     }
+  };
+
+  // Add a debug log for individual capper data
+  const debugCapperData = (capper: CapperProfile) => {
+    console.log("Individual Capper Data:", {
+      username: capper.user.username,
+      stats: capper.stats,
+      roi: capper.roi,
+      tags: capper.tags,
+    });
+    return capper;
   };
 
   return (
@@ -135,42 +161,84 @@ export default function ExplorePage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mt-12">
-                  {cappers.map((capper) => (
-                    <div
-                      key={capper.id}
-                      onClick={() =>
-                        router.push(`/cappers/${capper.user.username}`)
-                      }
-                      className="bg-gray-800/50 rounded-lg p-4 md:p-6 flex flex-col items-center hover:bg-gray-800 transition-all duration-300 cursor-pointer group"
-                    >
-                      <Avatar className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 border-2 border-[#4e43ff]/80 group-hover:border-[#4e43ff] transition-colors duration-300">
-                        <AvatarImage src={capper.profileImage} />
-                        <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff] text-2xl md:text-3xl lg:text-4xl">
-                          {capper.user.username.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff]/90 transition-colors duration-300">
-                        {capper.user.username}
-                      </h3>
-                      <div className="flex flex-wrap gap-1 md:gap-2 justify-center">
-                        {capper.tags?.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="text-xs md:text-sm bg-[#4e43ff]/80 hover:bg-[#4e43ff] px-2 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1 md:gap-2 transition-colors duration-300"
-                          >
-                            <span className="text-sm md:text-base">
-                              {sportEmojiMap[tag] || "🎯"}
+                  {cappers.map((capper) => {
+                    // Debug log for each capper being rendered
+                    debugCapperData(capper);
+                    return (
+                      <div
+                        key={capper.id}
+                        onClick={() =>
+                          router.push(`/cappers/${capper.user.username}`)
+                        }
+                        className="bg-gray-800/50 rounded-lg p-4 md:p-6 flex flex-col items-center hover:bg-gray-800 transition-all duration-300 cursor-pointer group relative"
+                      >
+                        {/* Stats Tooltip - Hidden on mobile */}
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-full max-w-[200px] bg-[#4e43ff] rounded-lg p-2 opacity-0 group-hover:opacity-100 group-hover:-top-16 transition-all duration-300 z-10 pointer-events-none hidden md:block">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-sm font-medium">
+                              Winrate:
                             </span>
-                            <span>{tag}</span>
-                          </span>
-                        )) || (
-                          <span className="text-xs md:text-sm text-gray-400">
-                            No sports listed
-                          </span>
-                        )}
+                            <span className="text-sm font-bold">
+                              {capper.stats?.winrate
+                                ? `${capper.stats.winrate.toFixed(1)}%`
+                                : "0%"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">ROI:</span>
+                            <span className="text-sm font-bold">{`${(capper.roi || 0).toFixed(1)}%`}</span>
+                          </div>
+                          {/* Arrow */}
+                          <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#4e43ff]"></div>
+                        </div>
+
+                        <Avatar className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 border-2 border-[#4e43ff]/80 group-hover:border-[#4e43ff] transition-colors duration-300">
+                          <AvatarImage src={capper.profileImage} />
+                          <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff] text-2xl md:text-3xl lg:text-4xl">
+                            {capper.user.username.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <h3 className="font-semibold text-lg md:text-xl lg:text-2xl mb-1 md:mb-2 mt-3 md:mt-4 truncate w-full text-center group-hover:text-[#4e43ff]/90 transition-colors duration-300">
+                          {capper.user.username}
+                        </h3>
+
+                        {/* Mobile Stats Display */}
+                        <div className="flex gap-2 mb-2 md:hidden">
+                          <div className="bg-[#4e43ff]/10 px-2 py-1 rounded-md">
+                            <span className="text-xs text-[#4e43ff]">
+                              {capper.stats?.winrate
+                                ? `${capper.stats.winrate.toFixed(1)}%`
+                                : "0%"}{" "}
+                              WR
+                            </span>
+                          </div>
+                          <div className="bg-[#4e43ff]/10 px-2 py-1 rounded-md">
+                            <span className="text-xs text-[#4e43ff]">
+                              {`${(capper.roi || 0).toFixed(1)}%`} ROI
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1 md:gap-2 justify-center">
+                          {capper.tags?.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="text-xs md:text-sm bg-[#4e43ff]/80 hover:bg-[#4e43ff] px-2 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1 md:gap-2 transition-colors duration-300"
+                            >
+                              <span className="text-sm md:text-base">
+                                {sportEmojiMap[tag] || "🎯"}
+                              </span>
+                              <span>{tag}</span>
+                            </span>
+                          )) || (
+                            <span className="text-xs md:text-sm text-gray-400">
+                              No sports listed
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               {!loading && cappers.length === 0 && (
