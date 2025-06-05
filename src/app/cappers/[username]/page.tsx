@@ -603,7 +603,7 @@ export default function CapperProfilePage({
                 {capper.user.username}'s Posts
               </h2>
               <p className="text-gray-400 mt-2">
-                Latest picks and predictions from {capper.user.firstName}
+                Latest picks and predictions from {capper.user.username}
               </p>
             </div>
 
