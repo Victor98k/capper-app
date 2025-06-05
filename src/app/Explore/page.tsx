@@ -129,8 +129,8 @@ export default function ExplorePage() {
         <div className="absolute left-4">
           <SideNav />
         </div>
-        <div className="flex-1 flex justify-center">
-          <h2 className="text-xl font-semibold">Explore</h2>
+        <div className="flex-1 flex justify-end">
+          <h2 className="text-xl font-semibold pr-4">Explore</h2>
         </div>
       </div>
 
@@ -142,9 +142,9 @@ export default function ExplorePage() {
 
         {/* Main Content */}
         <main className="flex-1 p-4">
-          <div className="max-w-7xl mx-auto lg:mt-0 mt-8">
+          <div className="max-w-7xl mx-auto lg:mt-0 mt-4">
             <div className="px-2 sm:px-4">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 mt-6 md:mt-12 text-center md:text-left text-[#4e43ff]">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 mt-2 md:mt-6 text-center md:text-left text-[#4e43ff]">
                 Explore Cappers
               </h1>
 

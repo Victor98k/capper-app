@@ -14,6 +14,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { sportEmojiMap } from "@/lib/sportEmojiMap";
 import { useInView } from "react-intersection-observer";
+import { Card, CardContent } from "@/components/ui/card";
+import { SideNav } from "@/components/SideNav";
 
 type Post = {
   _id: string;
@@ -183,14 +185,17 @@ const MyCappers = dynamic(
                   Start Following Cappers
                 </h2>
 
-                <p className="text-gray-400 text-base md:text-lg max-w-lg mx-auto">
-                  Follow expert cappers to see their exclusive picks and
-                  analysis in your feed
-                </p>
+                <Card className="max-w-4xl mx-auto bg-gray-800/30 backdrop-blur-sm border border-gray-700/50">
+                  <CardContent>
+                    <p className="text-white font-medium text-base md:text-lg max-w-lg mx-auto text-center pt-4">
+                      Follow expert cappers to see their exclusive picks and
+                      analysis in your feed
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
-
               {/* Features Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-8">
+              {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-8">
                 {/* <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
                   <TrendingUp className="w-8 h-8 text-[#4e43ff] mb-3" />
                   <h3 className="font-semibold text-white mb-2">
@@ -200,8 +205,7 @@ const MyCappers = dynamic(
                     Get detailed insights from experienced cappers
                   </p>
                 </div> */}
-
-                {/* <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
+              {/* <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
                   <Zap className="w-8 h-8 text-[#4e43ff] mb-3" />
                   <h3 className="font-semibold text-white mb-2">
                     Real-time Picks
@@ -218,8 +222,7 @@ const MyCappers = dynamic(
                     Join a community of successful bettors
                   </p>
                 </div> */}
-              </div>
-
+              {/* </div> */}
               {/* Featured Cappers */}
               {featuredCappers.length > 0 && (
                 <div className="my-12">
@@ -267,7 +270,6 @@ const MyCappers = dynamic(
                   </div>
                 </div>
               )}
-
               {/* CTA Section */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
                 <Button
@@ -287,7 +289,6 @@ const MyCappers = dynamic(
                   View Trending
                 </Button>
               </div>
-
               {/* Bottom Info */}
               <div className="mt-8 pt-6 border-t border-gray-700/50">
                 <p className="text-center text-sm text-gray-400">
@@ -301,21 +302,51 @@ const MyCappers = dynamic(
       }
 
       return (
-        <div className="w-full mx-auto">
-          <div className="space-y-6 md:space-y-8 py-4">
-            {allPosts.map((post) => (
-              <div
-                key={post._id}
-                className="flex justify-center border-b border-gray-800 pb-6 md:pb-8 last:border-b-0 last:pb-0"
-              >
-                <Post {...post} />
-              </div>
-            ))}
-
-            {/* Loading indicator */}
-            <div ref={ref} className="flex justify-center py-4">
-              {isFetchingNextPage && <Loader />}
+        <div className="min-h-screen bg-[#020817] text-gray-100">
+          {/* Mobile Top Nav */}
+          <div className="sticky top-0 z-50 w-full bg-gray-900 border-b border-gray-800 p-2 flex items-center lg:hidden">
+            <div className="absolute left-4">
+              <SideNav />
             </div>
+            <div className="flex-1 flex justify-end">
+              <h2 className="text-xl font-semibold pr-4">My Cappers</h2>
+            </div>
+          </div>
+
+          <div className="flex">
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block">
+              <SideNav />
+            </div>
+
+            {/* Main Content */}
+            <main className="flex-1 pt-1 px-4">
+              <div className="max-w-7xl mx-auto">
+                <div className="px-2 sm:px-4">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 text-center md:text-left text-[#4e43ff]">
+                    My Cappers
+                  </h1>
+
+                  <div className="w-full mx-auto">
+                    <div className="space-y-3 md:space-y-6">
+                      {allPosts.map((post) => (
+                        <div
+                          key={post._id}
+                          className="flex justify-center border-b border-gray-800 pb-6 md:pb-8 last:border-b-0 last:pb-0"
+                        >
+                          <Post {...post} />
+                        </div>
+                      ))}
+
+                      {/* Loading indicator */}
+                      <div ref={ref} className="flex justify-center py-4">
+                        {isFetchingNextPage && <Loader />}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </main>
           </div>
         </div>
       );

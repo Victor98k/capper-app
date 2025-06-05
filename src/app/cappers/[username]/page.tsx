@@ -270,8 +270,8 @@ export default function CapperProfilePage({
         <div className="absolute left-4">
           <SideNav />
         </div>
-        <div className="flex-1 text-center">
-          <h1 className="text-xl font-semibold">Capper Profile</h1>
+        <div className="flex-1 text-right pr-4">
+          <h1 className="text-xl font-semibold">@{capper?.user?.username}</h1>
         </div>
       </div>
 
