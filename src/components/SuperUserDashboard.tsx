@@ -65,6 +65,15 @@ interface StripeAccount {
   payoutsEnabled: boolean;
   chargesEnabled: boolean;
   detailsSubmitted: boolean;
+  accountType: "standard" | "express" | "custom" | null;
+  requirements: {
+    currentlyDue: string[];
+    eventuallyDue: string[];
+    pastDue: string[];
+  };
+  businessType: string | null;
+  businessProfile: any | null;
+  capabilities: Record<string, string>;
 }
 
 export function SuperUserDashboard() {
@@ -595,9 +604,11 @@ export function SuperUserDashboard() {
                         <th className="py-3 px-4 text-left">Name</th>
                         <th className="py-3 px-4 text-left">Username</th>
                         <th className="py-3 px-4 text-left">Email</th>
+                        <th className="py-3 px-4 text-left">Type</th>
                         <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Payouts</th>
                         <th className="py-3 px-4 text-left">Charges</th>
+                        <th className="py-3 px-4 text-left">Requirements</th>
                         <th className="py-3 px-4 text-left">Actions</th>
                       </tr>
                     </thead>
@@ -612,6 +623,21 @@ export function SuperUserDashboard() {
                           </td>
                           <td className="py-3 px-4">{account.username}</td>
                           <td className="py-3 px-4">{account.email}</td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                account.accountType === "standard"
+                                  ? "bg-blue-500/20 text-blue-300"
+                                  : account.accountType === "express"
+                                    ? "bg-purple-500/20 text-purple-300"
+                                    : account.accountType === "custom"
+                                      ? "bg-green-500/20 text-green-300"
+                                      : "bg-gray-500/20 text-gray-300"
+                              }`}
+                            >
+                              {account.accountType || "Unknown"}
+                            </span>
+                          </td>
                           <td className="py-3 px-4">
                             <span
                               className={`px-2 py-1 rounded-full text-xs ${
@@ -646,6 +672,96 @@ export function SuperUserDashboard() {
                             >
                               {account.chargesEnabled ? "Enabled" : "Disabled"}
                             </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            {account.requirements.currentlyDue.length > 0 ||
+                            account.requirements.pastDue.length > 0 ? (
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className={`${
+                                      account.requirements.pastDue.length > 0
+                                        ? "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                        : "bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30"
+                                    }`}
+                                  >
+                                    {account.requirements.pastDue.length > 0
+                                      ? `${account.requirements.pastDue.length} Past Due`
+                                      : `${account.requirements.currentlyDue.length} Due`}
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="bg-gray-800 text-white">
+                                  <div className="space-y-4">
+                                    {account.requirements.pastDue.length >
+                                      0 && (
+                                      <div>
+                                        <h3 className="text-red-300 font-medium mb-2">
+                                          Past Due Requirements:
+                                        </h3>
+                                        <ul className="list-disc pl-4 space-y-1">
+                                          {account.requirements.pastDue.map(
+                                            (req) => (
+                                              <li
+                                                key={req}
+                                                className="text-gray-300"
+                                              >
+                                                {req}
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    {account.requirements.currentlyDue.length >
+                                      0 && (
+                                      <div>
+                                        <h3 className="text-yellow-300 font-medium mb-2">
+                                          Currently Due:
+                                        </h3>
+                                        <ul className="list-disc pl-4 space-y-1">
+                                          {account.requirements.currentlyDue.map(
+                                            (req) => (
+                                              <li
+                                                key={req}
+                                                className="text-gray-300"
+                                              >
+                                                {req}
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    {account.requirements.eventuallyDue.length >
+                                      0 && (
+                                      <div>
+                                        <h3 className="text-blue-300 font-medium mb-2">
+                                          Eventually Due:
+                                        </h3>
+                                        <ul className="list-disc pl-4 space-y-1">
+                                          {account.requirements.eventuallyDue.map(
+                                            (req) => (
+                                              <li
+                                                key={req}
+                                                className="text-gray-300"
+                                              >
+                                                {req}
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            ) : (
+                              <span className="text-green-300 text-xs">
+                                All Complete
+                              </span>
+                            )}
                           </td>
                           <td className="py-3 px-4">
                             <button

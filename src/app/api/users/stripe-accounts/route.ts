@@ -66,6 +66,15 @@ export async function GET(req: Request) {
             payoutsEnabled: stripeAccount.payouts_enabled,
             chargesEnabled: stripeAccount.charges_enabled,
             detailsSubmitted: stripeAccount.details_submitted,
+            accountType: stripeAccount.type,
+            requirements: {
+              currentlyDue: stripeAccount.requirements?.currently_due || [],
+              eventuallyDue: stripeAccount.requirements?.eventually_due || [],
+              pastDue: stripeAccount.requirements?.past_due || [],
+            },
+            businessType: stripeAccount.business_type || null,
+            businessProfile: stripeAccount.business_profile || null,
+            capabilities: stripeAccount.capabilities || {},
           };
         } catch (error) {
           console.error(
@@ -82,6 +91,15 @@ export async function GET(req: Request) {
             payoutsEnabled: false,
             chargesEnabled: false,
             detailsSubmitted: false,
+            accountType: null,
+            requirements: {
+              currentlyDue: [],
+              eventuallyDue: [],
+              pastDue: [],
+            },
+            businessType: null,
+            businessProfile: null,
+            capabilities: {},
           };
         }
       })
