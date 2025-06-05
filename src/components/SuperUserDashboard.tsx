@@ -66,6 +66,8 @@ interface StripeAccount {
   chargesEnabled: boolean;
   detailsSubmitted: boolean;
   accountType: "standard" | "express" | "custom" | null;
+  accountStatus: string;
+  createdAt: number;
   requirements: {
     currentlyDue: string[];
     eventuallyDue: string[];
@@ -606,6 +608,8 @@ export function SuperUserDashboard() {
                         <th className="py-3 px-4 text-left">Email</th>
                         <th className="py-3 px-4 text-left">Type</th>
                         <th className="py-3 px-4 text-left">Status</th>
+                        <th className="py-3 px-4 text-left">Account Status</th>
+                        <th className="py-3 px-4 text-left">Created</th>
                         <th className="py-3 px-4 text-left">Payouts</th>
                         <th className="py-3 px-4 text-left">Charges</th>
                         <th className="py-3 px-4 text-left">Requirements</th>
@@ -650,6 +654,29 @@ export function SuperUserDashboard() {
                                 ? "Complete"
                                 : "Incomplete"}
                             </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                account.accountStatus === "active"
+                                  ? "bg-green-500/20 text-green-300"
+                                  : account.accountStatus === "restricted"
+                                    ? "bg-red-500/20 text-red-300"
+                                    : "bg-yellow-500/20 text-yellow-300"
+                              }`}
+                            >
+                              {account.accountStatus
+                                ? account.accountStatus
+                                    .charAt(0)
+                                    .toUpperCase() +
+                                  account.accountStatus.slice(1)
+                                : "Unknown"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-300 text-sm">
+                            {new Date(
+                              account.createdAt * 1000
+                            ).toLocaleDateString()}
                           </td>
                           <td className="py-3 px-4">
                             <span

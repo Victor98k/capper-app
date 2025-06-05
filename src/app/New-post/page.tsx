@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Settings,
   Image as ImageIcon,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,6 +46,11 @@ import {
 } from "@/components/ui/dialog";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // Add type for product
 interface Product {
@@ -706,8 +712,17 @@ function NewPostPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#020817]">
-      <SideNav />
+    <div className="flex min-h-screen bg-[#020817] overflow-x-hidden">
+      {/* Mobile Menu Button - Only visible on mobile */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <SideNav />
+      </div>
+
+      {/* Desktop SideNav - Hidden on mobile */}
+      <div className="hidden lg:block fixed top-0 left-0 h-screen">
+        <SideNav />
+      </div>
+
       <Toaster
         position="top-right"
         expand={true}
@@ -720,9 +735,11 @@ function NewPostPage() {
           right: "20px",
         }}
       />
-      <div className="flex-1">
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
+
+      {/* Main content with responsive margin */}
+      <div className="flex-1 w-full lg:ml-[300px] px-4 lg:px-8">
+        <main className="w-full py-6">
+          <div className="max-w-7xl mx-auto">
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="text-4xl font-bold">
@@ -733,32 +750,41 @@ function NewPostPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-6 p-4 bg-[#4e43ff]/10 rounded-lg">
-                  <h3 className="text-lg font-semibold text-[#4e43ff] mb-2">
-                    Tips for a Great Post:
-                  </h3>
-                  <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
-                    <li>Be specific with your predictions and analysis</li>
-                    <li>Include relevant statistics to support your picks</li>
-                    <li>
-                      Always upload clear odds screenshots for verification
-                    </li>
-                    <li>
-                      Use appropriate units (0.5-10) to indicate confidence
-                    </li>
-                    <li>
-                      Double-check all information before posting - posts cannot
-                      be edited after submission
-                    </li>
-                  </ul>
+                <div className="mb-6">
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between p-4 bg-[#4e43ff]/10 rounded-lg">
+                      <h3 className="text-lg font-semibold text-[#4e43ff]">
+                        Tips for a Great Post
+                      </h3>
+                      <ChevronDown className="h-5 w-5 text-[#4e43ff] transition-transform duration-200" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <ul className="list-disc list-inside space-y-2 text-sm text-gray-700 p-4 bg-[#4e43ff]/5 mt-2 rounded-lg">
+                        <li>Be specific with your predictions and analysis</li>
+                        <li>
+                          Include relevant statistics to support your picks
+                        </li>
+                        <li>
+                          Always upload clear odds screenshots for verification
+                        </li>
+                        <li>
+                          Use appropriate units (0.5-10) to indicate confidence
+                        </li>
+                        <li>
+                          Double-check all information before posting - posts
+                          cannot be edited after submission
+                        </li>
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
-                <div className="space-y-6">
-                  <div className="space-y-2">
+                <div className="space-y-6 md:space-y-8">
+                  <div className="space-y-4 md:space-y-6">
                     <LabelWithTooltip
                       label="Post Template"
                       tooltip="Choose between including an image or a text-only post"
                     />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div
                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                           postTemplate === "standard"
@@ -802,7 +828,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Add Bundle Selection */}
-                  <div className="space-y-2">
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Select Bundle"
                       tooltip="Choose which subscription bundle this post belongs to"
@@ -828,7 +854,7 @@ function NewPostPage() {
 
                   {/* Show image upload only for standard template */}
                   {postTemplate === "standard" && (
-                    <div>
+                    <div className="space-y-3 md:space-y-4">
                       <LabelWithTooltip
                         label="Image"
                         tooltip="Add a visual representation of your prediction"
@@ -907,7 +933,7 @@ function NewPostPage() {
                   )}
 
                   {/* Title Input */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Title"
                       tooltip="Keep it clear and specific - this is what attracts subscribers"
@@ -940,7 +966,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Content Input */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Content"
                       tooltip="Provide detailed analysis and reasoning for your picks"
@@ -972,7 +998,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Tags Section */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Tags"
                       tooltip="Select the primary sport for this prediction"
@@ -1000,7 +1026,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Bets Section */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Bets"
                       tooltip="Enter specific betting selections (e.g., 'Manchester United to win')"
@@ -1036,7 +1062,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Units Section */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Units"
                       tooltip="Indicate bet confidence (0.5-10 units, default is 1)"
@@ -1080,7 +1106,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Odds Section */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label={`Odds (${odds.length}/${MAX_ODDS})`}
                       tooltip="Enter decimal odds (e.g., 1.87, 2.25)"
@@ -1130,7 +1156,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Odds Screenshot Section */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Odds Screenshot"
                       tooltip="Upload a clear screenshot showing the odds from your bookmaker"
@@ -1188,7 +1214,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Bet Placement Date */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Bet Placement Date"
                       tooltip="When did you place this bet? Cannot be in the future"
@@ -1206,7 +1232,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Bookmaker Section */}
-                  <div>
+                  <div className="space-y-3 md:space-y-4">
                     <LabelWithTooltip
                       label="Bookmaker"
                       tooltip="Select the betting site where you placed this bet"
@@ -1229,7 +1255,7 @@ function NewPostPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end space-x-2 pt-6 md:pt-8">
                     <Button
                       variant="outline"
                       onClick={() => setShowConfirmDialog(false)}
@@ -1289,14 +1315,14 @@ function NewPostPage() {
             </Card>
 
             {/* Preview Card */}
-            <Card className="mt-6">
+            <Card className="mt-6 w-full overflow-hidden">
               <CardHeader>
                 <CardTitle>Preview Your Post</CardTitle>
                 <CardDescription>
                   This is how your post will appear to other users
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-x-hidden">
                 <Post
                   _id="preview"
                   title={title}
