@@ -151,7 +151,7 @@ export default function MyPosts() {
                   </div>
 
                   {/* Bio */}
-                  <p className="text-gray-100 text-sm sm:text-base mb-4">
+                  <p className="text-gray-100 text-sm sm:text-base mb-4 whitespace-pre-wrap">
                     {capperData.bio || "No bio added yet"}
                   </p>
 

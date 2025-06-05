@@ -864,7 +864,7 @@ function CapperProfileContent() {
                       placeholder="Write something about yourself..."
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
-                      className="w-full min-h-[100px] p-2 border-2 border-blue-500 rounded-md bg-blue-50"
+                      className="w-full min-h-[100px] p-2 border-2 border-blue-500 rounded-md bg-blue-50 whitespace-pre-wrap"
                     />
                     <div className="flex space-x-2">
                       <Button onClick={handleBioUpdate}>Save Bio</Button>
@@ -878,7 +878,7 @@ function CapperProfileContent() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-sm text-blue-700 font-semibold">
+                    <p className="text-sm text-blue-700 font-semibold whitespace-pre-wrap">
                       {bio || "No bio set yet"}
                     </p>
                     <Button

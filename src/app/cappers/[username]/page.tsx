@@ -356,7 +356,7 @@ export default function CapperProfilePage({
                 </div>
 
                 {/* Bio */}
-                <p className="text-gray-100 text-sm sm:text-base">
+                <p className="text-gray-100 text-sm sm:text-base whitespace-pre-wrap">
                   {capper.bio}
                 </p>
 
