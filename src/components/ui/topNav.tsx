@@ -50,18 +50,18 @@ export default function Navigation() {
             Home
           </Link>
           <Link
-            href="/about"
+            href="https://cappersports.co/about"
             className="text-white hover:text-[#4e43ff] transition-colors"
           >
             About
           </Link>
           <Link
-            href="/contact"
+            href="https://cappersports.co/contact"
             className="text-white hover:text-[#4e43ff] transition-colors"
           >
             Contact
           </Link>
-          <button className="px-4 py-2 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
+          <button className="px-4 py-2 text-sm rounded-full bg-[#4e43ff] text-white hover:bg-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
             <Link
               href="https://app.cappersports.co/login"
               className="flex items-center justify-center"
@@ -70,8 +70,11 @@ export default function Navigation() {
               <LogIn className="inline-block h-4 w-4" />
             </Link>
           </button>
-          <button className="px-4 py-2 text-sm rounded-full bg-transparent border-2 border-blue-500 text-white hover:bg-blue-500 hover:border-transparent transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
-            <Link href="/sign-up" className="flex items-center justify-center">
+          <button className="px-4 py-2 text-sm rounded-full bg-transparent border-2 border-[#4e43ff] text-white hover:bg-[#4e43ff] hover:border-transparent transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-blue-500/50">
+            <Link
+              href="https://app.cappersports.co/sign-up"
+              className="flex items-center justify-center"
+            >
               <span className="mr-2">Sign Up</span>
               <UserPlus className="inline-block h-4 w-4" />
             </Link>
