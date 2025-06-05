@@ -446,7 +446,23 @@ function InstagramPost({
             )}
 
             <p className="text-sm sm:text-lg text-gray-200 mb-3 whitespace-pre-wrap">
-              {content}
+              {isSubscribed || isOwnPost ? (
+                content
+              ) : (
+                <>
+                  {content.slice(0, 150)}...{" "}
+                  <button
+                    onClick={() =>
+                      router.push(
+                        `/cappers/${capperInfo.username}#subscription-plans`
+                      )
+                    }
+                    className="text-[#4e43ff] hover:underline font-medium"
+                  >
+                    See more
+                  </button>
+                </>
+              )}
             </p>
 
             <p className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">
@@ -715,7 +731,23 @@ function InstagramPost({
               <div className="space-y-2">
                 <h3 className="font-bold text-sm text-gray-100">{title}</h3>
                 <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
-                  {content}
+                  {isSubscribed || isOwnPost ? (
+                    content
+                  ) : (
+                    <>
+                      {content.slice(0, 150)}...{" "}
+                      <button
+                        onClick={() =>
+                          router.push(
+                            `/cappers/${capperInfo.username}#subscription-plans`
+                          )
+                        }
+                        className="text-[#4e43ff] hover:underline font-medium"
+                      >
+                        See more
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 

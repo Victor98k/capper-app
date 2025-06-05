@@ -55,7 +55,7 @@ interface Product {
 
 // Add these constants at the top with the other constants
 const MAX_TITLE_LENGTH = 60;
-const MAX_CONTENT_LENGTH = 400;
+const MAX_CONTENT_LENGTH = 1000;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 const MAX_ODDS = 5;
 const ALLOWED_IMAGE_TYPES = [
