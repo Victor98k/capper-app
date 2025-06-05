@@ -257,7 +257,7 @@ export function SideNav() {
       </div>
 
       {/* Desktop Navigation */}
-      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-gradient-to-b from-gray-900 to-black p-6 hidden lg:flex flex-col h-screen sticky top-0">
+      <aside className="w-[300px] min-w-[300px] border-r border-gray-800 bg-[#020817] p-6 hidden lg:flex flex-col h-screen sticky top-0">
         {/* Desktop Logo */}
         <div className="mb-8 flex justify-center">
           <Image
