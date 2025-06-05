@@ -323,7 +323,7 @@ export default function CapperProfilePage({
                       capperId={capper.id}
                       isSubscribed={isSubscribed}
                       scrollToBundles={true}
-                      className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 mb-4 sm:mb-0"
+                      className="relative overflow-hidden bg-[#4e43ff] mb-4 sm:mb-0 sm:hover:bg-[#4e43ff]/95 sm:group sm:transition-all sm:duration-200 sm:ease-out sm:hover:scale-[1.02] sm:hover:shadow-[0_0_15px_rgba(78,67,255,0.25)] active:scale-[0.98]"
                       onClick={() => {
                         document
                           .getElementById("subscription-plans")
@@ -333,7 +333,8 @@ export default function CapperProfilePage({
                           });
                       }}
                     >
-                      Subscribe
+                      <span className="relative z-10">Subscribe</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-violet-400/30 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 ease-out" />
                     </SubscribeButton>
                   )}
                 </div>
@@ -639,9 +640,10 @@ export default function CapperProfilePage({
                         capperId={capper.id}
                         isSubscribed={isSubscribed}
                         scrollToBundles={true}
-                        className="bg-violet-500 hover:bg-violet-600"
+                        className="relative overflow-hidden bg-violet-500 sm:hover:bg-violet-500/95 sm:group sm:transition-all sm:duration-200 sm:ease-out sm:hover:scale-[1.02] sm:hover:shadow-[0_0_15px_rgba(139,92,246,0.25)] active:scale-[0.98]"
                       >
-                        Subscribe Now
+                        <span className="relative z-10">Subscribe Now</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-violet-400/30 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 ease-out" />
                       </SubscribeButton>
                     </div>
                   </div>
@@ -692,16 +694,16 @@ export default function CapperProfilePage({
                     return (
                       <div
                         key={product.id}
-                        className={`rounded-xl p-6 transition-all duration-300 hover:transform hover:scale-[1.02]
+                        className={`rounded-xl p-6 transition-all duration-200 sm:hover:transform sm:hover:scale-[1.01]
                           ${
                             isSubscribedToProduct
                               ? "bg-[#4e43ff] border-2 border-white/20"
                               : isMiddleCard
-                                ? "bg-gradient-to-br from-violet-600/50 to-violet-900/50 border-2 border-violet-400/50 shadow-[0_0_40px_rgba(139,92,246,0.3)]"
-                                : "bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 hover:border-[#4e43ff]/50"
+                                ? "bg-gradient-to-br from-violet-600/50 to-violet-900/50 border-2 border-violet-400/50 shadow-[0_0_30px_rgba(139,92,246,0.2)]"
+                                : "bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 sm:hover:border-[#4e43ff]/30"
                           }
                           ${isMiddleCard ? "lg:-mt-4 lg:p-8" : ""}
-                          hover:shadow-[0_0_30px_rgba(78,67,255,0.2)]
+                          sm:hover:shadow-[0_0_20px_rgba(78,67,255,0.15)]
                         `}
                       >
                         {/* Product Header */}
@@ -812,17 +814,20 @@ export default function CapperProfilePage({
                           priceId={product.default_price.id}
                           stripeAccountId={capper.user.stripeConnectId}
                           isSubscribed={isSubscribedToProduct}
-                          className={`w-full ${
+                          className={`w-full relative overflow-hidden sm:group sm:transition-all sm:duration-200 sm:ease-out sm:hover:scale-[1.02] active:scale-[0.98] ${
                             isSubscribedToProduct
-                              ? "bg-white/20 hover:bg-white/30 text-white"
+                              ? "bg-white/20 sm:hover:bg-white/25 text-white"
                               : isMiddleCard
-                                ? "bg-violet-500 hover:bg-violet-600 text-white"
-                                : "bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+                                ? "bg-violet-500 sm:hover:bg-violet-500/95 text-white sm:hover:shadow-[0_0_15px_rgba(139,92,246,0.25)]"
+                                : "bg-[#4e43ff] sm:hover:bg-[#4e43ff]/95 text-white sm:hover:shadow-[0_0_15px_rgba(78,67,255,0.25)]"
                           }`}
                         >
-                          {isSubscribedToProduct
-                            ? "Unsubscribe"
-                            : "Subscribe Now"}
+                          <span className="relative z-10">
+                            {isSubscribedToProduct
+                              ? "Unsubscribe"
+                              : "Subscribe Now"}
+                          </span>
+                          <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-violet-400/30 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 ease-out" />
                         </SubscribeButton>
                       </div>
                     );
