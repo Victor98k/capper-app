@@ -17,6 +17,7 @@ interface CapperProfile {
   tags: string[];
   profileImage: string;
   roi: number;
+  bio?: string;
   user: {
     firstName: string;
     lastName: string;
@@ -172,26 +173,6 @@ export default function ExplorePage() {
                         }
                         className="bg-gray-800/50 rounded-lg p-4 md:p-6 flex flex-col items-center hover:bg-gray-800 transition-all duration-300 cursor-pointer group relative"
                       >
-                        {/* Stats Tooltip - Hidden on mobile */}
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-full max-w-[200px] bg-[#4e43ff] rounded-lg p-2 opacity-0 group-hover:opacity-100 group-hover:-top-16 transition-all duration-300 z-10 pointer-events-none hidden md:block">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm font-medium">
-                              Winrate:
-                            </span>
-                            <span className="text-sm font-bold">
-                              {capper.stats?.winrate
-                                ? `${capper.stats.winrate.toFixed(1)}%`
-                                : "0%"}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">ROI:</span>
-                            <span className="text-sm font-bold">{`${(capper.roi || 0).toFixed(1)}%`}</span>
-                          </div>
-                          {/* Arrow */}
-                          <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#4e43ff]"></div>
-                        </div>
-
                         <Avatar className="w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 border-2 border-[#4e43ff]/80 group-hover:border-[#4e43ff] transition-colors duration-300">
                           <AvatarImage src={capper.profileImage} />
                           <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff] text-2xl md:text-3xl lg:text-4xl">
@@ -202,8 +183,8 @@ export default function ExplorePage() {
                           {capper.user.username}
                         </h3>
 
-                        {/* Mobile Stats Display */}
-                        <div className="flex w-full justify-center gap-2 px-2 mb-3 md:hidden">
+                        {/* Stats Display - Now static for all screen sizes */}
+                        <div className="flex w-full justify-center gap-2 px-2 mb-3">
                           <div className="w-[45%]">
                             <div className="bg-[#4e43ff]/10 rounded-lg py-2 px-1 text-center">
                               <span className="block text-[#4e43ff]/70 text-xs mb-0.5">
@@ -226,6 +207,15 @@ export default function ExplorePage() {
                               </span>
                             </div>
                           </div>
+                        </div>
+
+                        {/* Bio Tooltip - Hidden on mobile */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[calc(100%+1rem)] w-full max-w-[200px] bg-[#4e43ff] rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 pointer-events-none hidden md:block">
+                          <p className="text-sm text-white">
+                            {capper.bio || "No bio available"}
+                          </p>
+                          {/* Arrow */}
+                          <div className="absolute bottom-[-8px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-[#4e43ff]"></div>
                         </div>
 
                         <div className="flex flex-wrap gap-1 md:gap-2 justify-center w-full px-1">

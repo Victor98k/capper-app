@@ -143,12 +143,7 @@ const MyCappers = dynamic(
               (capper: Capper) =>
                 capper.tags && capper.tags.length > 0 && capper.profileImage // Only include cappers with profile images
             )
-            .slice(0, 3);
-
-          // If we have less than 3 qualified cappers, don't show the section
-          if (cappersWithSportsAndImage.length < 3) {
-            return [];
-          }
+            .slice(0, 4);
 
           return cappersWithSportsAndImage;
         },
@@ -196,7 +191,7 @@ const MyCappers = dynamic(
 
               {/* Features Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-8">
-                <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
+                {/* <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
                   <TrendingUp className="w-8 h-8 text-[#4e43ff] mb-3" />
                   <h3 className="font-semibold text-white mb-2">
                     Expert Analysis
@@ -204,9 +199,9 @@ const MyCappers = dynamic(
                   <p className="text-sm text-gray-400">
                     Get detailed insights from experienced cappers
                   </p>
-                </div>
+                </div> */}
 
-                <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
+                {/* <div className="bg-gray-800/30 p-4 rounded-xl hover:bg-gray-800/50 transition-colors">
                   <Zap className="w-8 h-8 text-[#4e43ff] mb-3" />
                   <h3 className="font-semibold text-white mb-2">
                     Real-time Picks
@@ -222,7 +217,7 @@ const MyCappers = dynamic(
                   <p className="text-sm text-gray-400">
                     Join a community of successful bettors
                   </p>
-                </div>
+                </div> */}
               </div>
 
               {/* Featured Cappers */}
@@ -231,18 +226,18 @@ const MyCappers = dynamic(
                   <h3 className="text-xl font-semibold text-white text-center mb-6">
                     Featured Cappers
                   </h3>
-                  <div className="flex flex-col sm:flex-row justify-center items-center gap-8">
+                  <div className="grid grid-cols-2 sm:flex sm:flex-row justify-center items-start gap-4 sm:gap-8">
                     {featuredCappers.map((capper) => (
                       <div
                         key={capper.id}
                         onClick={() =>
                           router.push(`/cappers/${capper.user.username}`)
                         }
-                        className="flex flex-col items-center gap-3 cursor-pointer group w-full sm:w-auto max-w-[200px]"
+                        className="flex flex-col items-center gap-3 cursor-pointer group w-full min-h-[160px]"
                       >
                         <div className="relative">
                           <div className="absolute inset-0 bg-[#4e43ff]/20 rounded-full group-hover:animate-ping" />
-                          <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-2 border-[#4e43ff] relative">
+                          <Avatar className="h-14 w-14 sm:h-20 sm:w-20 border-2 border-[#4e43ff] relative">
                             <AvatarImage src={capper.profileImage} />
                             <AvatarFallback className="bg-[#4e43ff]/10 text-[#4e43ff]">
                               {capper.user.firstName?.[0]}
@@ -250,15 +245,15 @@ const MyCappers = dynamic(
                             </AvatarFallback>
                           </Avatar>
                         </div>
-                        <span className="font-medium text-white group-hover:text-[#4e43ff] transition-colors text-sm sm:text-base">
+                        <span className="font-medium text-white group-hover:text-[#4e43ff] transition-colors text-sm sm:text-base text-center">
                           @{capper.user.username}
                         </span>
-                        <div className="flex flex-wrap justify-center gap-2">
+                        <div className="flex flex-wrap justify-center gap-1 sm:gap-2 min-h-[28px]">
                           {capper.tags.slice(0, 2).map((tag, index) => (
                             <Badge
                               key={index}
                               variant="outline"
-                              className="bg-gray-800/50 border-[#4e43ff]/20 text-xs sm:text-sm"
+                              className="bg-gray-800/50 border-[#4e43ff]/20 text-xs sm:text-sm whitespace-nowrap"
                             >
                               <span className="mr-1">
                                 {sportEmojiMap[tag] || "🎯"}
@@ -325,7 +320,7 @@ const MyCappers = dynamic(
         </div>
       );
     }),
-  { ssr: false }
+  { loading: () => <Loader />, ssr: false }
 ); // Disable SSR for this component
 
 export default MyCappers;

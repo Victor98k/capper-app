@@ -28,6 +28,15 @@ const quickFilterSports = [
   "E-Sports",
 ];
 
+// Sports to show on mobile screens (most popular ones)
+const mobileQuickFilterSports = [
+  "Football",
+  "Basketball",
+  "F1",
+  "MMA",
+  "E-Sports",
+];
+
 export function SearchBar({
   searchQuery,
   setSearchQuery,
@@ -39,11 +48,28 @@ export function SearchBar({
     <div className="max-w-2xl mx-auto mb-8">
       {/* Quick Sport Filters */}
       <div className="mb-4 flex flex-wrap gap-2 justify-center">
+        {/* Mobile Sports */}
+        {mobileQuickFilterSports.map((sport) => (
+          <button
+            key={sport}
+            onClick={() => onSportSelect?.(sport)}
+            className={`md:hidden flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${
+              selectedSport === sport
+                ? "bg-[#4e43ff] text-white"
+                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            <span className="text-lg">{sportEmojiMap[sport] || "🎯"}</span>
+            <span className="text-sm font-medium">{sport}</span>
+          </button>
+        ))}
+
+        {/* Desktop Sports */}
         {quickFilterSports.map((sport) => (
           <button
             key={sport}
             onClick={() => onSportSelect?.(sport)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${
+            className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors ${
               selectedSport === sport
                 ? "bg-[#4e43ff] text-white"
                 : "bg-gray-800 text-gray-300 hover:bg-gray-700"
