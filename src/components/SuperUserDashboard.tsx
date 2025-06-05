@@ -56,20 +56,34 @@ interface BetValidation {
   };
 }
 
+interface StripeAccount {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  payoutsEnabled: boolean;
+  chargesEnabled: boolean;
+  detailsSubmitted: boolean;
+}
+
 export function SuperUserDashboard() {
   const { user } = useAuth();
   const [applications, setApplications] = useState<CapperApplication[]>([]);
   const [betsToValidate, setBetsToValidate] = useState<BetValidation[]>([]);
+  const [stripeAccounts, setStripeAccounts] = useState<StripeAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"applications" | "bets">(
-    "applications"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "applications" | "bets" | "stripe"
+  >("applications");
 
   useEffect(() => {
     if (activeTab === "applications") {
       fetchApplications();
-    } else {
+    } else if (activeTab === "bets") {
       fetchBetsToValidate();
+    } else if (activeTab === "stripe") {
+      fetchStripeAccounts();
     }
   }, [activeTab]);
 
@@ -104,6 +118,24 @@ export function SuperUserDashboard() {
     } catch (error) {
       console.error("Error fetching bets:", error);
       toast.error("Error loading bets");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStripeAccounts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/users/stripe-accounts");
+      if (response.ok) {
+        const data = await response.json();
+        setStripeAccounts(data);
+      } else {
+        toast.error("Failed to fetch Stripe accounts");
+      }
+    } catch (error) {
+      console.error("Error fetching Stripe accounts:", error);
+      toast.error("Error loading Stripe accounts");
     } finally {
       setIsLoading(false);
     }
@@ -215,6 +247,43 @@ export function SuperUserDashboard() {
     }
   };
 
+  const handleDeleteStripeAccount = async (userId: string) => {
+    try {
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this Stripe account? This action cannot be undone."
+      );
+
+      if (!confirmed) return;
+
+      const loadingToast = toast.loading("Deleting Stripe account...");
+
+      const response = await fetch("/api/stripe/account/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await response.json();
+      toast.dismiss(loadingToast);
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      toast.success("Stripe account deleted successfully");
+      fetchStripeAccounts(); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting Stripe account:", error);
+      toast.error("Failed to delete Stripe account", {
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    }
+  };
+
   if (!user?.isSuperUser) {
     return null;
   }
@@ -259,6 +328,16 @@ export function SuperUserDashboard() {
             }`}
           >
             Bet Validation
+          </button>
+          <button
+            onClick={() => setActiveTab("stripe")}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              activeTab === "stripe"
+                ? "bg-[#4e43ff] text-white"
+                : "bg-gray-800/50 text-gray-300 hover:bg-gray-800"
+            }`}
+          >
+            Stripe Accounts
           </button>
         </div>
 
@@ -393,7 +472,7 @@ export function SuperUserDashboard() {
                 </div>
               )}
             </div>
-          ) : (
+          ) : activeTab === "bets" ? (
             <div>
               <h2 className="text-xl font-semibold text-white mb-4">
                 Pending Bets
@@ -492,6 +571,96 @@ export function SuperUserDashboard() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-4">
+                Stripe Connected Accounts
+              </h2>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="text-white">Loading Stripe accounts...</div>
+                </div>
+              ) : stripeAccounts.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400">No Stripe accounts found</div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-white">
+                    <thead className="text-gray-300 border-b border-gray-700">
+                      <tr>
+                        <th className="py-3 px-4 text-left">Name</th>
+                        <th className="py-3 px-4 text-left">Username</th>
+                        <th className="py-3 px-4 text-left">Email</th>
+                        <th className="py-3 px-4 text-left">Status</th>
+                        <th className="py-3 px-4 text-left">Payouts</th>
+                        <th className="py-3 px-4 text-left">Charges</th>
+                        <th className="py-3 px-4 text-left">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stripeAccounts.map((account) => (
+                        <tr
+                          key={account.id}
+                          className="border-b border-gray-700/50"
+                        >
+                          <td className="py-3 px-4">
+                            {account.firstName} {account.lastName}
+                          </td>
+                          <td className="py-3 px-4">{account.username}</td>
+                          <td className="py-3 px-4">{account.email}</td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                account.detailsSubmitted
+                                  ? "bg-green-500/20 text-green-300"
+                                  : "bg-yellow-500/20 text-yellow-300"
+                              }`}
+                            >
+                              {account.detailsSubmitted
+                                ? "Complete"
+                                : "Incomplete"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                account.payoutsEnabled
+                                  ? "bg-green-500/20 text-green-300"
+                                  : "bg-red-500/20 text-red-300"
+                              }`}
+                            >
+                              {account.payoutsEnabled ? "Enabled" : "Disabled"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                account.chargesEnabled
+                                  ? "bg-green-500/20 text-green-300"
+                                  : "bg-red-500/20 text-red-300"
+                              }`}
+                            >
+                              {account.chargesEnabled ? "Enabled" : "Disabled"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <button
+                              onClick={() =>
+                                handleDeleteStripeAccount(account.id)
+                              }
+                              className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-colors duration-200"
+                            >
+                              Delete Account
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
