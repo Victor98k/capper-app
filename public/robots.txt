@@ -3,7 +3,7 @@ User-agent: *
 Disallow: /api/
 
 # Host
-Host: http://localhost:3000
+Host: https://app.cappersports.co
 
 # Sitemaps
-Sitemap: http://localhost:3000/sitemap.xml
+Sitemap: https://app.cappersports.co/sitemap.xml

@@ -405,7 +405,7 @@ function InstagramPost({
     >
       {template === "text-only" ? (
         <div className="bg-[#020817] w-full mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 gap-2 sm:gap-4">
+          <div className="flex items-center justify-between p-3 sm:p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 sm:h-16 sm:w-16 border border-gray-700">
                 <AvatarImage
@@ -457,7 +457,7 @@ function InstagramPost({
             )}
           </div>
 
-          <div className="px-3 sm:px-4 py-3 sm:py-4">
+          <div className="px-3 sm:px-3 py-3 sm:py-4">
             <h2 className="text-base sm:text-xl font-bold text-white mb-2 sm:mb-4">
               {title}
             </h2>
@@ -491,16 +491,68 @@ function InstagramPost({
                   />
                 </Dialog>
               ) : (
-                <button
-                  onClick={() =>
-                    router.push(
-                      `/cappers/${capperInfo.username}#subscription-plans`
-                    )
-                  }
-                  className="text-[#4e43ff] hover:underline font-medium"
-                >
-                  See more
-                </button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="text-[#4e43ff] hover:underline font-medium">
+                      See more
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold mb-4">
+                        Subscribe to View Content
+                      </DialogTitle>
+                      <DialogDescription className="text-gray-400">
+                        <div className="flex flex-col gap-4">
+                          <p>
+                            Subscribe to {capperInfo.username}'s content to view
+                            their full posts and more exclusive content.
+                          </p>
+                          <div className="bg-gray-800/30 p-4 rounded-lg">
+                            <h4 className="font-semibold text-gray-200 mb-2">
+                              What you'll get:
+                            </h4>
+                            <ul className="space-y-2">
+                              <li className="flex items-center gap-2 text-sm">
+                                <span className="text-[#4e43ff]">✓</span> Full
+                                post content
+                              </li>
+                              <li className="flex items-center gap-2 text-sm">
+                                <span className="text-[#4e43ff]">✓</span>{" "}
+                                Exclusive analysis
+                              </li>
+                              <li className="flex items-center gap-2 text-sm">
+                                <span className="text-[#4e43ff]">✓</span>{" "}
+                                Premium insights
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-6">
+                      <Button
+                        onClick={() => {
+                          router.push(
+                            `/cappers/${capperInfo.username}#subscription-plans`
+                          );
+                          // Add a small delay to ensure the navigation completes before scrolling
+                          setTimeout(() => {
+                            const element =
+                              document.getElementById("subscription-plans");
+                            element?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
+                          }, 100);
+                        }}
+                        className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 py-6 text-lg font-semibold rounded-xl transition-transform hover:scale-[1.02]"
+                      >
+                        View Subscription Plans
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               )}
             </p>
 
@@ -515,7 +567,7 @@ function InstagramPost({
             </p>
 
             {/* Badges section - Update this part */}
-            <div className="flex flex-wrap gap-3 pb-2">
+            <div className="flex flex-row justify-between gap-2 pb-2">
               {/* Likes */}
               <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
                 <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
@@ -600,8 +652,8 @@ function InstagramPost({
                 </div>
               )}
 
-              {/* Bundle */}
-              {productName && (
+              {/* Comment out Bundle 4 now 8/6 */}
+              {/* {productName && (
                 <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
                   <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                     BUNDLE
@@ -612,7 +664,7 @@ function InstagramPost({
                     </span>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
@@ -785,16 +837,69 @@ function InstagramPost({
                       />
                     </Dialog>
                   ) : (
-                    <button
-                      onClick={() =>
-                        router.push(
-                          `/cappers/${capperInfo.username}#subscription-plans`
-                        )
-                      }
-                      className="text-[#4e43ff] hover:underline font-medium"
-                    >
-                      See more
-                    </button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="text-[#4e43ff] hover:underline font-medium">
+                          See more
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold mb-4">
+                            Subscribe to View Content
+                          </DialogTitle>
+                          <DialogDescription className="text-gray-400">
+                            <div className="flex flex-col gap-4">
+                              <p>
+                                Subscribe to {capperInfo.username}'s content to
+                                view their full posts and more exclusive
+                                content.
+                              </p>
+                              <div className="bg-gray-800/30 p-4 rounded-lg">
+                                <h4 className="font-semibold text-gray-200 mb-2">
+                                  What you'll get:
+                                </h4>
+                                <ul className="space-y-2">
+                                  <li className="flex items-center gap-2 text-sm">
+                                    <span className="text-[#4e43ff]">✓</span>{" "}
+                                    Full post content
+                                  </li>
+                                  <li className="flex items-center gap-2 text-sm">
+                                    <span className="text-[#4e43ff]">✓</span>{" "}
+                                    Exclusive analysis
+                                  </li>
+                                  <li className="flex items-center gap-2 text-sm">
+                                    <span className="text-[#4e43ff]">✓</span>{" "}
+                                    Premium insights
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="mt-6">
+                          <Button
+                            onClick={() => {
+                              router.push(
+                                `/cappers/${capperInfo.username}#subscription-plans`
+                              );
+                              // Add a small delay to ensure the navigation completes before scrolling
+                              setTimeout(() => {
+                                const element =
+                                  document.getElementById("subscription-plans");
+                                element?.scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "start",
+                                });
+                              }, 100);
+                            }}
+                            className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 py-6 text-lg font-semibold rounded-xl transition-transform hover:scale-[1.02]"
+                          >
+                            View Subscription Plans
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   )}
                 </div>
               </div>
