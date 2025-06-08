@@ -83,8 +83,14 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/cappers/${capper.user.username}`,
-      cancel_url: `${baseUrl}/cappers/${capper.user.username}`,
+      success_url: new URL(
+        `/cappers/${encodeURIComponent(capper.user.username)}`,
+        baseUrl
+      ).toString(),
+      cancel_url: new URL(
+        `/cappers/${encodeURIComponent(capper.user.username)}`,
+        baseUrl
+      ).toString(),
       metadata: {
         userId: payload.userId,
         capperId: capperId,

@@ -307,9 +307,9 @@ const MyCappers = dynamic(
 
           <div className="flex">
             {/* Desktop Sidebar */}
-            <div className="hidden lg:block">
+            {/* <div className="hidden lg:block">
               <SideNav />
-            </div>
+            </div> */}
 
             {/* Main Content */}
             <main className="flex-1 pt-1 px-4">
