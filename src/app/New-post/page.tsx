@@ -59,11 +59,10 @@ interface Product {
   description?: string;
 }
 
-// Add these constants at the top with the other constants
 const MAX_TITLE_LENGTH = 60;
 const MAX_CONTENT_LENGTH = 5000;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
-const MAX_ODDS = 5;
+const MAX_ODDS = 1;
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -188,9 +187,9 @@ const LabelWithTooltip = ({
   required?: boolean;
 }) => (
   <div className="flex items-center gap-2 mb-2">
-    <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <label className="block text-sm font-medium text-white">{label}</label>
     {required && <span className="text-red-500">*</span>}
-    <span className="text-xs text-gray-500 italic">({tooltip})</span>
+    <span className="text-xs text-gray-400 italic">({tooltip})</span>
   </div>
 );
 
@@ -220,10 +219,10 @@ function NewPostPage() {
   const [betDate, setBetDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const [betUnits, setBetUnits] = useState<string>("1"); // Default to 1 unit
-  const [newBetUnits, setNewBetUnits] = useState<string>("1"); // Default to 1 unit
+  const [betUnits, setBetUnits] = useState<string>("");
+  const [newBetUnits, setNewBetUnits] = useState<string>("");
   const [postTemplate, setPostTemplate] = useState<"standard" | "text-only">(
-    "standard"
+    "text-only"
   );
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   // const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -350,7 +349,7 @@ function NewPostPage() {
   const handleAddOdd = () => {
     if (odds.length >= MAX_ODDS) {
       toast.error("Maximum odds reached", {
-        description: `You can only add up to ${MAX_ODDS} odds per post`,
+        description: "You can only add one odd per post",
       });
       return;
     }
@@ -367,7 +366,7 @@ function NewPostPage() {
     }
 
     if (!odds.includes(trimmedOdd)) {
-      setOdds([...odds, trimmedOdd]);
+      setOdds([trimmedOdd]); // Replace existing odds instead of adding
       setNewOdd("");
     }
   };
@@ -380,6 +379,12 @@ function NewPostPage() {
     const value = e.target.value;
     if (value === "" || /^\d*\.?\d{0,2}$/.test(value)) {
       setNewOdd(value);
+      // If the value is valid, set it directly as the odd
+      if (isValidOdd(value)) {
+        setOdds([value]);
+      } else if (value === "") {
+        setOdds([]);
+      }
     }
   };
 
@@ -418,10 +423,18 @@ function NewPostPage() {
 
     try {
       // Validate required fields first
-      if (!title || !content || !selectedProduct || !oddsScreenshot) {
+      if (
+        !title ||
+        !content ||
+        !selectedProduct ||
+        !tags.length ||
+        !bets.length ||
+        !odds.length ||
+        !betDate
+      ) {
         toast.error("Please fill in all required fields", {
           description:
-            "Title, content, bundle selection, and odds screenshot are required",
+            "All fields are required except for the odds screenshot and bookmaker",
         });
         return;
       }
@@ -566,14 +579,14 @@ function NewPostPage() {
       setTags([]);
       setBets([]);
       setOdds([]);
-      setBetUnits("1");
+      setBetUnits("");
       setSelectedBookmaker("");
       setImage(null);
       setImagePreview(null);
       setOddsScreenshot(null);
       setOddsScreenshotPreview(null);
       setBetDate(new Date().toISOString().split("T")[0]);
-      setPostTemplate("standard");
+      setPostTemplate("text-only");
     } catch (error) {
       console.error("Error creating post:", error);
       toast.error("Failed to create post");
@@ -646,10 +659,15 @@ function NewPostPage() {
     fetchUserAvatar();
   }, []);
 
-  const handleAddUnits = () => {
-    if (parseFloat(newBetUnits) >= 0.5) {
-      setBetUnits(newBetUnits);
-      setNewBetUnits("1");
+  const handleBetUnitsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (
+      value === "" ||
+      (/^\d*\.?\d{0,1}$/.test(value) &&
+        parseFloat(value) >= 0.5 &&
+        parseFloat(value) <= 10)
+    ) {
+      setBetUnits(value);
     }
   };
 
@@ -690,7 +708,7 @@ function NewPostPage() {
   // Show loading state while checking status
   if (loading || checkingStripeStatus) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-[#020817]">
         <SideNav />
         <div className="flex-1">
           <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
@@ -701,667 +719,519 @@ function NewPostPage() {
     );
   }
 
+  // Redirect non-cappers to home
   if (!user?.isCapper) {
     router.push("/home");
     return null;
   }
 
-  // Check if the user is not connected to Stripe
-  if (!stripeStatus?.onboarded) {
+  // Only show WelcomeUI if we've confirmed the user is not connected to Stripe
+  if (stripeStatus !== null && !stripeStatus.onboarded) {
     return <WelcomeUI router={router} />;
   }
 
-  return (
-    <div className="flex min-h-screen bg-[#020817] overflow-x-hidden">
-      {/* Mobile Menu Button - Only visible on mobile */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <SideNav />
-      </div>
+  // Only render the main UI if we've confirmed the user is connected to Stripe
+  if (stripeStatus?.onboarded) {
+    return (
+      <div className="flex min-h-screen bg-[#020817] overflow-x-hidden">
+        {/* Mobile Menu Button - Only visible on mobile */}
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <SideNav />
+        </div>
 
-      {/* Desktop SideNav - Hidden on mobile */}
-      <div className="hidden lg:block fixed top-0 left-0 h-screen">
-        <SideNav />
-      </div>
+        {/* Desktop SideNav - Hidden on mobile */}
+        <div className="hidden lg:block fixed top-0 left-0 h-screen">
+          <SideNav />
+        </div>
 
-      <Toaster
-        position="top-right"
-        expand={true}
-        richColors
-        closeButton
-        style={{
-          zIndex: 9999,
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-        }}
-      />
+        <Toaster
+          position="top-right"
+          expand={true}
+          richColors
+          closeButton
+          style={{
+            zIndex: 9999,
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+          }}
+        />
 
-      {/* Main content with responsive margin */}
-      <div className="flex-1 w-full lg:ml-[300px] px-4 lg:px-8">
-        <main className="w-full py-6">
-          <div className="max-w-7xl mx-auto">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-4xl font-bold">
-                  Create a New Post
-                </CardTitle>
-                <CardDescription>
-                  Share your insights and predictions with your subscribers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-6">
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex w-full items-center justify-between p-4 bg-[#4e43ff]/10 rounded-lg">
-                      <h3 className="text-lg font-semibold text-[#4e43ff]">
-                        Tips for a Great Post
-                      </h3>
-                      <ChevronDown className="h-5 w-5 text-[#4e43ff] transition-transform duration-200" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <ul className="list-disc list-inside space-y-2 text-sm text-gray-700 p-4 bg-[#4e43ff]/5 mt-2 rounded-lg">
-                        <li>Be specific with your predictions and analysis</li>
-                        <li>
-                          Include relevant statistics to support your picks
-                        </li>
-                        <li>
-                          Always upload clear odds screenshots for verification
-                        </li>
-                        <li>
-                          Use appropriate units (0.5-10) to indicate confidence
-                        </li>
-                        <li>
-                          Double-check all information before posting - posts
-                          cannot be edited after submission
-                        </li>
-                      </ul>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-                <div className="space-y-6 md:space-y-8">
-                  <div className="space-y-4 md:space-y-6">
-                    <LabelWithTooltip
-                      label="Post Template"
-                      tooltip="Choose between including an image or a text-only post"
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      <div
-                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                          postTemplate === "standard"
-                            ? "border-[#4e43ff] bg-[#4e43ff]/10"
-                            : "border-gray-700 hover:border-[#4e43ff]/50"
-                        }`}
-                        onClick={() => setPostTemplate("standard")}
+        {/* Main content with responsive margin */}
+        <div className="flex-1 w-full lg:ml-[300px] px-4 lg:px-8">
+          <main className="w-full py-6">
+            <div className="max-w-7xl mx-auto">
+              <Card className="mb-6 bg-[#020817] border border-[#4e43ff]/20">
+                <CardHeader>
+                  <CardTitle className="text-4xl font-bold text-white">
+                    Create a New Post
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Share your insights and predictions with your subscribers
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-8">
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex w-full items-center justify-between p-4 bg-[#4e43ff]/10 rounded-lg">
+                        <h3 className="text-lg font-semibold text-[#4e43ff]">
+                          Tips for a Great Post
+                        </h3>
+                        <ChevronDown className="h-5 w-5 text-[#4e43ff] transition-transform duration-200" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <ul className="list-disc list-inside space-y-2 text-sm text-gray-300 p-4 bg-[#4e43ff]/5 mt-2 rounded-lg">
+                          <li>
+                            Be specific with your predictions and analysis
+                          </li>
+                          <li>
+                            Include relevant statistics to support your picks
+                          </li>
+                          <li>
+                            Always upload clear odds screenshots for
+                            verification
+                          </li>
+                          <li>
+                            Use appropriate units (0.5-10) to indicate
+                            confidence
+                          </li>
+                          <li>
+                            Double-check all information before posting - posts
+                            cannot be edited after submission
+                          </li>
+                        </ul>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+
+                  <div className="space-y-10">
+                    {/* Bundle Selection */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Select Bundle"
+                        tooltip="Choose which subscription bundle this post belongs to"
+                        required
+                      />
+                      <Select
+                        value={selectedProduct}
+                        onValueChange={handleProductSelect}
+                        required
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Image
-                            src={capperLogo}
-                            alt="Capper Logo"
-                            width={20}
-                            height={20}
-                            className="h-5 w-5"
-                          />
-                          <span className="font-medium">Standard Post</span>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          Include an image with your post
-                        </p>
-                      </div>
+                        <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 text-white">
+                          <SelectValue placeholder="Select a bundle" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                          {products.map((product) => (
+                            <SelectItem
+                              key={product.id}
+                              value={product.id}
+                              className="text-white hover:bg-[#4e43ff]/10"
+                            >
+                              {product.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      <div
-                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                          postTemplate === "text-only"
-                            ? "border-[#4e43ff] bg-[#4e43ff]/10"
-                            : "border-gray-700 hover:border-[#4e43ff]/50"
-                        }`}
-                        onClick={() => setPostTemplate("text-only")}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <MessageSquare className="h-5 w-5" />
-                          <span className="font-medium">Text Only</span>
-                        </div>
-                        <p className="text-sm text-gray-500">
-                          Focus on your analysis without images
-                        </p>
+                    {/* Title Input */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Title"
+                        tooltip="The title of your post"
+                        required
+                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={title}
+                          onChange={(e) => {
+                            if (e.target.value.length <= MAX_TITLE_LENGTH) {
+                              setTitle(e.target.value);
+                            }
+                          }}
+                          className="mt-1 w-full p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
+                          placeholder="Enter post title..."
+                          maxLength={MAX_TITLE_LENGTH}
+                        />
+                        <span
+                          className={`absolute right-2 bottom-2 text-sm ${
+                            title.length === MAX_TITLE_LENGTH
+                              ? "text-red-500"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {title.length}/{MAX_TITLE_LENGTH}
+                        </span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Add Bundle Selection */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Select Bundle"
-                      tooltip="Choose which subscription bundle this post belongs to"
-                      required
-                    />
-                    <Select
-                      value={selectedProduct}
-                      onValueChange={handleProductSelect}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a bundle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Show image upload only for standard template */}
-                  {postTemplate === "standard" && (
-                    <div className="space-y-3 md:space-y-4">
+                    {/* Content Input */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
                       <LabelWithTooltip
-                        label="Image"
-                        tooltip="Add a visual representation of your prediction"
+                        label="Content"
+                        tooltip="Provide detailed analysis and reasoning for your picks"
+                        required
                       />
-                      {!imagePreview ? (
-                        <div
-                          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                            ${
-                              isDragging
-                                ? "border-[#4e43ff] bg-[#4e43ff]/10"
-                                : "border-gray-300 hover:border-[#4e43ff]"
-                            }`}
-                          onDragEnter={handleDragEnter}
-                          onDragOver={handleDragOver}
-                          onDragLeave={handleDragLeave}
-                          onDrop={handleDrop}
-                          onClick={() =>
-                            document.getElementById("imageInput")?.click()
-                          }
+                      <div className="relative">
+                        <textarea
+                          value={content}
+                          onChange={(e) => {
+                            if (e.target.value.length <= MAX_CONTENT_LENGTH) {
+                              setContent(e.target.value);
+                            }
+                          }}
+                          className="mt-1 w-full min-h-[200px] p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
+                          placeholder="Write your post content..."
+                          maxLength={MAX_CONTENT_LENGTH}
+                        />
+                        <span
+                          className={`absolute right-2 bottom-2 text-sm ${
+                            content.length === MAX_CONTENT_LENGTH
+                              ? "text-red-500"
+                              : "text-gray-400"
+                          }`}
                         >
-                          <div className="space-y-2">
-                            <div className="text-gray-600">
-                              <svg
-                                className="mx-auto h-12 w-12"
-                                stroke="currentColor"
-                                fill="none"
-                                viewBox="0 0 48 48"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                                  strokeWidth={2}
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </div>
-                            <div className="flex text-sm text-gray-600">
-                              <span className="relative cursor-pointer rounded-md font-medium text-[#4e43ff] focus-within:outline-none">
-                                Click to upload
-                              </span>
-                              <p className="pl-1">or drag and drop</p>
-                            </div>
-                            <p className="text-xs text-gray-500">
-                              Accepted formats: JPEG, PNG, GIF, WebP (Max size:
-                              10MB)
-                            </p>
-                          </div>
-                          <input
-                            id="imageInput"
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                          />
-                        </div>
-                      ) : (
-                        <div className="mt-2 relative">
-                          <div className="relative">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              className="max-w-xs h-auto rounded-md"
-                            />
+                          {content.length}/{MAX_CONTENT_LENGTH}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tags Section */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Tags"
+                        tooltip="Select the primary sport for this prediction"
+                        required
+                      />
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <p className="w-full text-sm text-gray-400 mb-2">
+                          Select sport type:
+                        </p>
+                        {sportEmojis.map((item) => (
+                          <button
+                            key={item.sport}
+                            type="button"
+                            onClick={() => setTags([item.sport])}
+                            className={`relative p-2 rounded-full text-xl hover:bg-[#4e43ff]/10 ${
+                              tags.includes(item.sport) ? "bg-[#4e43ff]/20" : ""
+                            } group`}
+                          >
+                            {item.emoji}
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-[#1a1a1a] border border-[#4e43ff]/20 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                              {item.sport}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                      {tags.length === 0 && (
+                        <p className="text-sm text-red-500">
+                          Please select a sport
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Bets Section */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Bets"
+                        tooltip="Enter specific betting selections (e.g., 'Manchester United to win')"
+                        required
+                      />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {bets.map((bet) => (
+                          <div
+                            key={bet}
+                            className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
+                          >
+                            <span className="text-[#4e43ff]">{bet}</span>
                             <button
-                              onClick={handleRemoveImage}
-                              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                              type="button"
+                              onClick={() => handleRemoveBet(bet)}
+                              className="text-[#4e43ff]/70 hover:text-red-500"
                             >
                               ×
                             </button>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Title Input */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Title"
-                      tooltip="Keep it clear and specific - this is what attracts subscribers"
-                      required
-                    />
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => {
-                          // Limit input to MAX_TITLE_LENGTH characters
-                          if (e.target.value.length <= MAX_TITLE_LENGTH) {
-                            setTitle(e.target.value);
+                        ))}
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        <input
+                          type="text"
+                          value={newBet}
+                          onChange={(e) => setNewBet(e.target.value)}
+                          onKeyPress={(e) =>
+                            e.key === "Enter" && handleAddBet()
                           }
-                        }}
-                        className="mt-1 w-full p-2 border rounded-md"
-                        placeholder="Enter post title..."
-                        maxLength={MAX_TITLE_LENGTH}
+                          placeholder="Add a bet..."
+                          className="flex-1 p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
+                        />
+                        <Button onClick={handleAddBet}>Add Bet</Button>
+                      </div>
+                    </div>
+
+                    {/* Units Section */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Units"
+                        tooltip="Enter bet units between 0.5 and 10"
+                        required
                       />
-                      <span
-                        className={`absolute right-2 bottom-2 text-sm ${
-                          title.length === MAX_TITLE_LENGTH
-                            ? "text-red-500"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {title.length}/{MAX_TITLE_LENGTH}
-                      </span>
+                      <div className="mt-2">
+                        <input
+                          type="number"
+                          min="0.5"
+                          max="10"
+                          step="0.5"
+                          value={betUnits}
+                          onChange={handleBetUnitsChange}
+                          onKeyPress={(e) => {
+                            if (!/[\d.]/.test(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                          placeholder="Enter units (0.5-10)"
+                          className="w-full p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
+                        />
+                        {(betUnits === "" ||
+                          parseFloat(betUnits) < 0.5 ||
+                          parseFloat(betUnits) > 10) && (
+                          <p className="text-sm text-red-500 mt-1">
+                            Please enter a value between 0.5 and 10 units
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Content Input */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Content"
-                      tooltip="Provide detailed analysis and reasoning for your picks"
-                      required
-                    />
-                    <div className="relative">
-                      <textarea
-                        value={content}
-                        onChange={(e) => {
-                          // Limit input to MAX_CONTENT_LENGTH characters
-                          if (e.target.value.length <= MAX_CONTENT_LENGTH) {
-                            setContent(e.target.value);
-                          }
-                        }}
-                        className="mt-1 w-full min-h-[200px] p-2 border rounded-md"
-                        placeholder="Write your post content..."
-                        maxLength={MAX_CONTENT_LENGTH}
+                    {/* Odds Section */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label={`Odds`}
+                        tooltip="Enter decimal odds (e.g., 1.87, 2.25)"
+                        required
                       />
-                      <span
-                        className={`absolute right-2 bottom-2 text-sm ${
-                          content.length === MAX_CONTENT_LENGTH
-                            ? "text-red-500"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {content.length}/{MAX_CONTENT_LENGTH}
-                      </span>
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          value={newOdd}
+                          onChange={handleOddChange}
+                          onKeyPress={(e) => {
+                            if (!/[\d.]/.test(e.key) && e.key !== "Enter") {
+                              e.preventDefault();
+                            }
+                          }}
+                          placeholder="Add odds (e.g., 1.87, 2.25)"
+                          className="w-full p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
+                        />
+                        {!isValidOdd(newOdd) && newOdd !== "" && (
+                          <p className="text-sm text-red-500 mt-1">
+                            Please enter valid odds (e.g., 1.87, 2.25)
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Tags Section */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Tags"
-                      tooltip="Select the primary sport for this prediction"
-                    />
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <p className="w-full text-sm text-gray-500">
-                        Select sport type:
-                      </p>
-                      {sportEmojis.map((item) => (
-                        <button
-                          key={item.sport}
-                          type="button"
-                          onClick={() => setTags([item.sport])}
-                          className={`relative p-2 rounded-full text-xl hover:bg-gray-100 ${
-                            tags.includes(item.sport) ? "bg-blue-100" : ""
-                          } group`}
-                        >
-                          {item.emoji}
-                          <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                            {item.sport}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Bets Section */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Bets"
-                      tooltip="Enter specific betting selections (e.g., 'Manchester United to win')"
-                      required
-                    />
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {bets.map((bet) => (
-                        <div
-                          key={bet}
-                          className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
-                        >
-                          <span className="text-[#4e43ff]">{bet}</span>
-                          <button
-                            onClick={() => handleRemoveBet(bet)}
-                            className="text-[#4e43ff]/70 hover:text-red-500"
+                    {/* Odds Screenshot Section */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Odds Screenshot"
+                        tooltip="Upload a clear screenshot showing the odds from your bookmaker"
+                      />
+                      <div className="mt-2">
+                        {!oddsScreenshotPreview ? (
+                          <div
+                            className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all hover:border-[#4e43ff]`}
+                            onClick={() =>
+                              document.getElementById("oddsScreenshot")?.click()
+                            }
                           >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <input
-                        type="text"
-                        value={newBet}
-                        onChange={(e) => setNewBet(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleAddBet()}
-                        placeholder="Add a bet..."
-                        className="flex-1 p-2 border rounded-md"
-                      />
-                      <Button onClick={handleAddBet}>Add Bet</Button>
-                    </div>
-                  </div>
-
-                  {/* Units Section */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Units"
-                      tooltip="Indicate bet confidence (0.5-10 units, default is 1)"
-                    />
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {betUnits !== "1" && (
-                        <div className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full">
-                          <span className="text-[#4e43ff]">
-                            {betUnits} units
-                          </span>
-                          <button
-                            onClick={() => setBetUnits("1")}
-                            className="text-[#4e43ff]/70 hover:text-red-500"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <Input
-                        type="number"
-                        min="0.5"
-                        step="0.5"
-                        value={newBetUnits}
-                        onChange={(e) => setNewBetUnits(e.target.value)}
-                        onKeyPress={(e) => {
-                          // Allow only numbers, decimal point, and Enter key
-                          if (!/[\d.]/.test(e.key) && e.key !== "Enter") {
-                            e.preventDefault();
-                          }
-                          if (e.key === "Enter") {
-                            handleAddUnits();
-                          }
-                        }}
-                        placeholder="Enter units (e.g., 1, 2.5)"
-                        className="flex-1 p-2 border rounded-md"
-                      />
-                      <Button onClick={handleAddUnits}>Set Units</Button>
-                    </div>
-                  </div>
-
-                  {/* Odds Section */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label={`Odds (${odds.length}/${MAX_ODDS})`}
-                      tooltip="Enter decimal odds (e.g., 1.87, 2.25)"
-                      required
-                    />
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {odds.map((odd) => (
-                        <div
-                          key={odd}
-                          className="flex items-center gap-1 bg-[#4e43ff]/10 px-3 py-1 rounded-full"
-                        >
-                          <span className="text-[#4e43ff]">{odd}</span>
-                          <button
-                            onClick={() => handleRemoveOdd(odd)}
-                            className="text-[#4e43ff]/70 hover:text-red-500"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-2 flex gap-2">
-                      <input
-                        type="text"
-                        value={newOdd}
-                        onChange={handleOddChange}
-                        onKeyPress={(e) => {
-                          // Allow only numbers, decimal point, and Enter key
-                          if (!/[\d.]/.test(e.key) && e.key !== "Enter") {
-                            e.preventDefault();
-                          }
-                          if (e.key === "Enter") {
-                            handleAddOdd();
-                          }
-                        }}
-                        placeholder="Add odds (e.g., 1.87, 2.25)"
-                        className="flex-1 p-2 border rounded-md"
-                        disabled={odds.length >= MAX_ODDS}
-                      />
-                      <Button
-                        onClick={handleAddOdd}
-                        disabled={odds.length >= MAX_ODDS}
-                      >
-                        Add Odds
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Odds Screenshot Section */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Odds Screenshot"
-                      tooltip="Upload a clear screenshot showing the odds from your bookmaker"
-                      required
-                    />
-                    <div className="mt-2">
-                      {!oddsScreenshotPreview ? (
-                        <div
-                          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all ${
-                            !oddsScreenshot
-                              ? "border-red-300 hover:border-red-400"
-                              : "hover:border-[#4e43ff]"
-                          }`}
-                          onClick={() =>
-                            document.getElementById("oddsScreenshot")?.click()
-                          }
-                        >
-                          <input
-                            id="oddsScreenshot"
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={handleOddsScreenshotChange}
-                            required
-                          />
-                          <div className="flex flex-col items-center gap-2">
-                            <ImageIcon className="h-8 w-8 text-gray-400" />
-                            <div className="text-sm text-gray-500">
-                              Upload a screenshot of your odds
-                            </div>
-                            <div className="text-xs text-red-500">
-                              Required - Please upload an odds screenshot
+                            <input
+                              id="oddsScreenshot"
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={handleOddsScreenshotChange}
+                            />
+                            <div className="flex flex-col items-center gap-2">
+                              <ImageIcon className="h-8 w-8 text-gray-400" />
+                              <div className="text-sm text-gray-500">
+                                Upload a screenshot of your odds (optional)
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="relative inline-block">
-                          <img
-                            src={oddsScreenshotPreview}
-                            alt="Odds screenshot"
-                            className="max-w-xs h-auto rounded-md"
-                          />
-                          <button
-                            onClick={() => {
-                              setOddsScreenshot(null);
-                              setOddsScreenshotPreview(null);
-                            }}
-                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="relative inline-block">
+                            <img
+                              src={oddsScreenshotPreview}
+                              alt="Odds screenshot"
+                              className="max-w-xs h-auto rounded-md"
+                            />
+                            <button
+                              onClick={() => {
+                                setOddsScreenshot(null);
+                                setOddsScreenshotPreview(null);
+                              }}
+                              className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Bet Placement Date */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Bet Placement Date"
-                      tooltip="When did you place this bet? Cannot be in the future"
-                      required
-                    />
-                    <div className="mt-2">
-                      <input
-                        type="date"
-                        value={betDate}
-                        onChange={(e) => setBetDate(e.target.value)}
-                        className="w-full p-2 border rounded-md"
-                        max={new Date().toISOString().split("T")[0]}
+                    {/* Bet Placement Date */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Bet Placement Date"
+                        tooltip="When did you place this bet? Cannot be in the future"
+                        required
                       />
+                      <div className="mt-2">
+                        <input
+                          type="date"
+                          value={betDate}
+                          onChange={(e) => setBetDate(e.target.value)}
+                          className="w-full p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white"
+                          max={new Date().toISOString().split("T")[0]}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bookmaker Section */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Bookmaker"
+                        tooltip="Select the betting site where you placed this bet (optional)"
+                      />
+                      <Select
+                        value={selectedBookmaker}
+                        onValueChange={setSelectedBookmaker}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select bookmaker (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BOOKMAKERS.map((bookmaker) => (
+                            <SelectItem key={bookmaker} value={bookmaker}>
+                              {bookmaker}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="flex justify-end space-x-2 pt-8">
+                      {/* <Button
+                        variant="outline"
+                        onClick={() => setShowConfirmDialog(false)}
+                      >
+                        Cancel
+                      </Button> */}
+                      <Button
+                        onClick={handleCreatePostClick}
+                        className="px-8 py-6 text-lg bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+                      >
+                        Create Post
+                      </Button>
+                      <Dialog
+                        open={showConfirmDialog}
+                        onOpenChange={setShowConfirmDialog}
+                      >
+                        <DialogContent className="border-[#4e43ff]/20 bg-[#020817]">
+                          <DialogHeader>
+                            <DialogTitle className="text-2xl font-bold text-[#4e43ff]">
+                              Confirm Post Submission
+                            </DialogTitle>
+                            <DialogDescription className="text-white/80">
+                              Please review these important details before
+                              submitting:
+                              <ul className="list-disc pl-6 mt-2 space-y-2">
+                                <li>Posts cannot be deleted once published</li>
+                                <li>
+                                  If changes are needed, you must contact
+                                  customer support
+                                </li>
+                                <li>
+                                  All posts are subject to our content
+                                  guidelines
+                                </li>
+                              </ul>
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => setShowConfirmDialog(false)}
+                              className="border-[#4e43ff] text-white hover:bg-[#4e43ff]/10"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleSubmit}
+                              className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+                            >
+                              Confirm & Submit
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
 
-                  {/* Bookmaker Section */}
-                  <div className="space-y-3 md:space-y-4">
-                    <LabelWithTooltip
-                      label="Bookmaker"
-                      tooltip="Select the betting site where you placed this bet"
-                    />
-                    <Select
-                      value={selectedBookmaker}
-                      onValueChange={setSelectedBookmaker}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select bookmaker (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BOOKMAKERS.map((bookmaker) => (
-                          <SelectItem key={bookmaker} value={bookmaker}>
-                            {bookmaker}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Submit Button */}
-                  <div className="flex justify-end space-x-2 pt-6 md:pt-8">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowConfirmDialog(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleCreatePostClick}
-                      className="px-8 py-6 text-lg bg-[#4e43ff] hover:bg-[#4e43ff]/90"
-                    >
-                      Create Post
-                    </Button>
-                    <Dialog
-                      open={showConfirmDialog}
-                      onOpenChange={setShowConfirmDialog}
-                    >
-                      <DialogContent className="border-[#4e43ff]/20 bg-[#020817]">
-                        <DialogHeader>
-                          <DialogTitle className="text-2xl font-bold text-[#4e43ff]">
-                            Confirm Post Submission
-                          </DialogTitle>
-                          <DialogDescription className="text-white/80">
-                            Please review these important details before
-                            submitting:
-                            <ul className="list-disc pl-6 mt-2 space-y-2">
-                              <li>Posts cannot be deleted once published</li>
-                              <li>
-                                If changes are needed, you must contact customer
-                                support
-                              </li>
-                              <li>
-                                All posts are subject to our content guidelines
-                              </li>
-                            </ul>
-                          </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => setShowConfirmDialog(false)}
-                            className="border-[#4e43ff] text-white hover:bg-[#4e43ff]/10"
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleSubmit}
-                            className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
-                          >
-                            Confirm & Submit
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Preview Card */}
-            <Card className="mt-6 w-full overflow-hidden">
-              <CardHeader>
-                <CardTitle>Preview Your Post</CardTitle>
-                <CardDescription>
-                  This is how your post will appear to other users
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="overflow-x-hidden">
-                <Post
-                  _id="preview"
-                  title={title}
-                  content={content}
-                  imageUrl={imagePreview || ""}
-                  odds={odds}
-                  bets={bets}
-                  tags={tags}
-                  capperId="preview"
-                  productId={selectedProduct}
-                  productName={selectedProductName}
-                  createdAt={new Date().toISOString()}
-                  updatedAt={new Date().toISOString()}
-                  template={postTemplate}
-                  capperInfo={{
-                    firstName: user?.firstName || "",
-                    lastName: user?.lastName || "",
-                    username: localStorage.getItem("username") || "",
-                    isVerified: false,
-                    profileImage: profileImage,
-                  }}
-                  fallbackImage={
-                    !imagePreview && tags.length > 0
-                      ? {
-                          emoji:
-                            sportEmojis.find((item) => item.sport === tags[0])
-                              ?.emoji || "⚽",
-                          profileImage: profileImage,
-                        }
-                      : undefined
-                  }
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </main>
+              {/* Preview Card */}
+              <Card className="mt-6 w-full overflow-hidden bg-[#020817] border border-[#4e43ff]/20">
+                <CardHeader>
+                  <CardTitle className="text-white">
+                    Preview Your Post
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    This is how your post will appear to other users
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="overflow-x-hidden">
+                  <Post
+                    _id="preview"
+                    title={title}
+                    content={content}
+                    imageUrl={imagePreview || ""}
+                    odds={odds}
+                    bets={bets}
+                    tags={tags}
+                    capperId="preview"
+                    productId={selectedProduct}
+                    productName={selectedProductName}
+                    createdAt={new Date().toISOString()}
+                    updatedAt={new Date().toISOString()}
+                    template={postTemplate}
+                    capperInfo={{
+                      firstName: user?.firstName || "",
+                      lastName: user?.lastName || "",
+                      username: localStorage.getItem("username") || "",
+                      isVerified: false,
+                      profileImage: profileImage,
+                    }}
+                    fallbackImage={
+                      !imagePreview && tags.length > 0
+                        ? {
+                            emoji:
+                              sportEmojis.find((item) => item.sport === tags[0])
+                                ?.emoji || "⚽",
+                            profileImage: profileImage,
+                          }
+                        : undefined
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default NewPostPage;
