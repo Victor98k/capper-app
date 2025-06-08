@@ -248,6 +248,36 @@ const BetDialog = ({
   </DialogContent>
 );
 
+// Add this new ContentDialog component after the BetDialog component
+const ContentDialog = ({
+  title,
+  content,
+  capperInfo,
+}: {
+  title: string;
+  content: string;
+  capperInfo: { username: string };
+}) => (
+  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[95vw] sm:w-[90vw] max-w-md mx-auto max-h-[80vh] sm:max-h-[85vh] overflow-y-auto rounded-xl sm:rounded-2xl p-4 sm:p-6">
+    <DialogHeader className="space-y-3 sm:space-y-4">
+      <div className="border-l-4 border-[#4e43ff] pl-3 sm:pl-4">
+        <DialogTitle className="text-lg sm:text-xl font-bold leading-tight">
+          {title}
+        </DialogTitle>
+        <p className="text-[10px] sm:text-xs text-[#4e43ff] font-semibold mt-1">
+          {capperInfo.username}'s Post
+        </p>
+      </div>
+    </DialogHeader>
+
+    <div className="mt-4 sm:mt-6 bg-gray-800/30 p-3 sm:p-4 rounded-lg">
+      <DialogDescription className="text-gray-300 text-[13px] sm:text-sm leading-relaxed whitespace-pre-wrap">
+        {content}
+      </DialogDescription>
+    </div>
+  </DialogContent>
+);
+
 function InstagramPost({
   _id,
   title,
@@ -446,22 +476,31 @@ function InstagramPost({
             )}
 
             <p className="text-sm sm:text-lg text-gray-200 mb-3 whitespace-pre-wrap">
+              {content.slice(0, 150)}...{" "}
               {isSubscribed || isOwnPost ? (
-                content
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="text-[#4e43ff] hover:underline font-medium">
+                      See more
+                    </button>
+                  </DialogTrigger>
+                  <ContentDialog
+                    title={title}
+                    content={content}
+                    capperInfo={capperInfo}
+                  />
+                </Dialog>
               ) : (
-                <>
-                  {content.slice(0, 150)}...{" "}
-                  <button
-                    onClick={() =>
-                      router.push(
-                        `/cappers/${capperInfo.username}#subscription-plans`
-                      )
-                    }
-                    className="text-[#4e43ff] hover:underline font-medium"
-                  >
-                    See more
-                  </button>
-                </>
+                <button
+                  onClick={() =>
+                    router.push(
+                      `/cappers/${capperInfo.username}#subscription-plans`
+                    )
+                  }
+                  className="text-[#4e43ff] hover:underline font-medium"
+                >
+                  See more
+                </button>
               )}
             </p>
 
@@ -731,22 +770,31 @@ function InstagramPost({
               <div className="space-y-2">
                 <h3 className="font-bold text-sm text-gray-100">{title}</h3>
                 <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
+                  {content.slice(0, 150)}...{" "}
                   {isSubscribed || isOwnPost ? (
-                    content
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="text-[#4e43ff] hover:underline font-medium">
+                          See more
+                        </button>
+                      </DialogTrigger>
+                      <ContentDialog
+                        title={title}
+                        content={content}
+                        capperInfo={capperInfo}
+                      />
+                    </Dialog>
                   ) : (
-                    <>
-                      {content.slice(0, 150)}...{" "}
-                      <button
-                        onClick={() =>
-                          router.push(
-                            `/cappers/${capperInfo.username}#subscription-plans`
-                          )
-                        }
-                        className="text-[#4e43ff] hover:underline font-medium"
-                      >
-                        See more
-                      </button>
-                    </>
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/cappers/${capperInfo.username}#subscription-plans`
+                        )
+                      }
+                      className="text-[#4e43ff] hover:underline font-medium"
+                    >
+                      See more
+                    </button>
                   )}
                 </div>
               </div>
