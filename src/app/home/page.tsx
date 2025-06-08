@@ -21,7 +21,7 @@ export default function Home() {
     return <SuperUserDashboard />;
   }
 
-  // Your existing home page content for regular users
+  // Regular users
   return (
     <>
       <CustomerHome />

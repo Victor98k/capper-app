@@ -430,11 +430,12 @@ function NewPostPage() {
         !tags.length ||
         !bets.length ||
         !odds.length ||
-        !betDate
+        !betDate ||
+        !oddsScreenshot
       ) {
         toast.error("Please fill in all required fields", {
           description:
-            "All fields are required except for the odds screenshot and bookmaker",
+            "All fields are required including the odds screenshot for verification",
         });
         return;
       }
@@ -1035,6 +1036,7 @@ function NewPostPage() {
                       <LabelWithTooltip
                         label="Odds Screenshot"
                         tooltip="Upload a clear screenshot showing the odds from your bookmaker"
+                        required
                       />
                       <div className="mt-2">
                         {!oddsScreenshotPreview ? (
@@ -1054,7 +1056,7 @@ function NewPostPage() {
                             <div className="flex flex-col items-center gap-2">
                               <ImageIcon className="h-8 w-8 text-gray-400" />
                               <div className="text-sm text-gray-500">
-                                Upload a screenshot of your odds (optional)
+                                Upload a screenshot of your odds (required)
                               </div>
                             </div>
                           </div>
@@ -1077,6 +1079,12 @@ function NewPostPage() {
                           </div>
                         )}
                       </div>
+                      {!oddsScreenshot && (
+                        <p className="text-sm text-red-500">
+                          Please upload a screenshot of your odds for
+                          verification
+                        </p>
+                      )}
                     </div>
 
                     {/* Bet Placement Date */}
