@@ -1115,12 +1115,16 @@ function NewPostPage() {
                         value={selectedBookmaker}
                         onValueChange={setSelectedBookmaker}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 text-white">
                           <SelectValue placeholder="Select bookmaker (optional)" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
                           {BOOKMAKERS.map((bookmaker) => (
-                            <SelectItem key={bookmaker} value={bookmaker}>
+                            <SelectItem
+                              key={bookmaker}
+                              value={bookmaker}
+                              className="text-white hover:bg-[#4e43ff]/10"
+                            >
                               {bookmaker}
                             </SelectItem>
                           ))}
