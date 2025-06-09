@@ -103,22 +103,17 @@ const BetDialog = ({
 
           {/* Prominent Bookmaker Display */}
           {bookmaker && (
-            <div className="flex items-center justify-between bg-[#4e43ff]/10 p-4 rounded-lg border border-[#4e43ff]/20">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
-                  <span className="text-2xl">🎲</span>
-                </div>
-                <div>
-                  <p className="text-xs text-[#4e43ff] font-semibold">
-                    BOOKMAKER
-                  </p>
-                  <p className="text-base font-semibold text-gray-100">
-                    {bookmaker}
-                  </p>
-                </div>
+            <div className="flex justify-flex-start bg-[#4e43ff]/10 p-4 rounded-lg border border-[#4e43ff]/20">
+              <div className="h-10 w-10 mr-4 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
+                <span className="text-2xl">🎯</span>
               </div>
-              <div className="bg-[#4e43ff] px-3 py-1 rounded-full">
-                <span className="text-xs font-medium text-white">Verified</span>
+              <div>
+                <p className="text-base font-semibold text-[#4e43ff] mb-1">
+                  BET
+                </p>
+                <p className="text-base font-semibold text-gray-100">
+                  {bets[0]}
+                </p>
               </div>
             </div>
           )}
@@ -162,6 +157,13 @@ const BetDialog = ({
               ))}
             </div>
           </div>
+        </div>
+
+        {/* //fix!  */}
+        <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
+          <DialogDescription className="text-gray-300 text-sm leading-relaxed">
+            {bookmaker}
+          </DialogDescription>
         </div>
 
         {/* Content section */}
@@ -436,7 +438,7 @@ function InstagramPost({
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-[140px] sm:w-auto text-sm sm:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 py-2 sm:px-8 sm:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                    className="w-[120px] h-[36px] sm:w-[140px] sm:h-[40px] md:w-auto text-xs sm:text-sm md:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
                   >
                     See Bet 🎯
                   </Button>
@@ -567,13 +569,13 @@ function InstagramPost({
             </p>
 
             {/* Badges section - Update this part */}
-            <div className="flex flex-row justify-between gap-2 pb-2">
+            <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2">
               {/* Likes */}
-              <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
+              <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
                 <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                   LIKES
                 </p>
-                <div className="w-full h-[32px] sm:h-[36px] md:h-[48px] px-2 sm:px-4 rounded-lg flex items-center justify-center">
+                <div className="w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg flex items-center justify-center">
                   <div className="flex items-center justify-center gap-1 sm:gap-3">
                     <Button
                       variant="ghost"
@@ -596,11 +598,11 @@ function InstagramPost({
 
               {/* Sport */}
               {tags.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
                   <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                     SPORT
                   </p>
-                  <div className="bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-2 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
+                  <div className="bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
                     <div className="flex items-center justify-center gap-1 sm:gap-3">
                       {tags.map((tag) => (
                         <span
@@ -618,12 +620,12 @@ function InstagramPost({
 
               {/* Odds */}
               {odds.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
+                <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
                   <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                     ODDS
                   </p>
                   <div
-                    className={`bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-2 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center ${
+                    className={`bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center ${
                       !isSubscribed && !isOwnPost
                         ? "cursor-pointer blur-[8px] hover:blur-[6px] transition-all"
                         : ""
@@ -639,10 +641,10 @@ function InstagramPost({
                     <div className="flex items-center justify-center">
                       {odds.map((odd, index) => (
                         <div key={index} className="flex items-center">
-                          <span className="text-sm sm:text-xl font-bold text-white">
+                          <span className="text-xs sm:text-xl font-bold text-white">
                             {odd}
                           </span>
-                          <span className="text-sm sm:text-xl font-bold text-white/80 mr-1">
+                          <span className="text-xs sm:text-xl font-bold text-white/80 mr-0.5 sm:mr-1">
                             x
                           </span>
                         </div>
@@ -771,7 +773,7 @@ function InstagramPost({
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-[140px] sm:w-auto text-sm sm:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 py-2 sm:px-8 sm:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                          className="w-[120px] h-[36px] sm:w-[140px] sm:h-[40px] md:w-auto text-xs sm:text-sm md:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
                         >
                           See Bet 🎯
                         </Button>
@@ -1010,7 +1012,7 @@ function InstagramPost({
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-[140px] sm:w-auto text-sm sm:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-4 py-2 sm:px-8 sm:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                      className="w-[120px] h-[36px] sm:w-[140px] sm:h-[40px] md:w-auto text-xs sm:text-sm md:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
                     >
                       See Bet 🎯
                     </Button>
