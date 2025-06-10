@@ -61,7 +61,40 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     interval: "month",
     features: [] as string[],
     newFeature: "",
+    currency: "eur",
   });
+
+  // Add query for Stripe account data
+  const { data: stripeAccountData } = useQuery({
+    queryKey: ["stripeAccountData"],
+    queryFn: async () => {
+      const response = await fetch("/api/stripe/account-data");
+      if (!response.ok) {
+        throw new Error("Failed to fetch Stripe account data");
+      }
+      return response.json();
+    },
+  });
+
+  // Add supported currencies
+  const supportedCurrencies = [
+    { value: "eur", label: "EUR (€)" },
+    { value: "usd", label: "USD ($)" },
+    { value: "gbp", label: "GBP (£)" },
+    { value: "sek", label: "SEK (kr)" },
+    { value: "nok", label: "NOK (kr)" },
+    { value: "dkk", label: "DKK (kr)" },
+  ];
+
+  useEffect(() => {
+    // Set initial currency from Stripe account if available
+    if (stripeAccountData?.defaultCurrency) {
+      setFormData((prev) => ({
+        ...prev,
+        currency: stripeAccountData.defaultCurrency.toLowerCase(),
+      }));
+    }
+  }, [stripeAccountData?.defaultCurrency]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +112,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
           price: parseFloat(formData.price),
           interval: formData.interval,
           features: formData.features,
+          currency: formData.currency,
         }),
       });
 
@@ -99,6 +133,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         interval: "month",
         features: [],
         newFeature: "",
+        currency: stripeAccountData?.defaultCurrency?.toLowerCase() || "eur",
       });
     } catch (error) {
       toast.error(
@@ -126,90 +161,197 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     }));
   };
 
+  const getCurrencySymbol = (currencyCode: string) => {
+    try {
+      return (
+        new Intl.NumberFormat("en", {
+          style: "currency",
+          currency: currencyCode,
+        })
+          .formatToParts()
+          .find((part) => part.type === "currency")?.value ||
+        currencyCode.toUpperCase()
+      );
+    } catch (error) {
+      return currencyCode.toUpperCase();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#4e43ff] hover:bg-[#4e43ff]/90">
+        <Button className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 transition-all duration-200 shadow-lg hover:shadow-[#4e43ff]/25">
           <PlusCircle className="h-4 w-4 mr-2" />
           Create New Product
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] bg-[#020817] text-white">
+      <DialogContent className="sm:max-w-[600px] bg-[#020817] text-white border border-[#4e43ff]/20">
         <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Create New Product</DialogTitle>
-            <DialogDescription>
-              Create a new subscription product for your followers
+          <DialogHeader className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#4e43ff] to-[#8983ff] bg-clip-text text-transparent">
+              Create New Product
+            </DialogTitle>
+            <DialogDescription className="text-white/80">
+              Create a new subscription product that your followers can
+              subscribe to. Make it compelling!
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="e.g., Premium Tips Package"
-                className="bg-[#1a1a1a] border-[#4e43ff]/20"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                placeholder="Describe what subscribers will get"
-                className="bg-[#1a1a1a] border-[#4e43ff]/20"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+
+          <div className="space-y-6 py-6">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Price (SEK)</Label>
+                <Label
+                  htmlFor="name"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Product Name
+                </Label>
                 <Input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
+                  id="name"
+                  value={formData.name}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, price: e.target.value }))
+                    setFormData((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  placeholder="99.99"
-                  className="bg-[#1a1a1a] border-[#4e43ff]/20"
+                  placeholder="e.g., Premium Tips Package"
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all"
                   required
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="interval">Billing Interval</Label>
+                <Label
+                  htmlFor="description"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Describe what subscribers will get with this product..."
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] min-h-[100px] transition-all"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="price"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Price
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                      }))
+                    }
+                    placeholder="99.99"
+                    className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] pl-12 transition-all"
+                    required
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                    {getCurrencySymbol(formData.currency)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="currency"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Currency
+                </Label>
                 <Select
-                  value={formData.interval}
+                  value={formData.currency}
                   onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, interval: value }))
+                    setFormData((prev) => ({ ...prev, currency: value }))
                   }
                 >
-                  <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                  <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
-                    <SelectItem value="month">Monthly</SelectItem>
-                    <SelectItem value="year">Yearly</SelectItem>
-                    <SelectItem value="one_time">One-time</SelectItem>
+                    {supportedCurrencies.map((currency) => (
+                      <SelectItem
+                        key={currency.value}
+                        value={currency.value}
+                        className="text-white hover:bg-[#4e43ff]/10"
+                      >
+                        {currency.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+
             <div className="space-y-2">
-              <Label>Features</Label>
+              <Label
+                htmlFor="interval"
+                className="text-sm font-medium text-white/90"
+              >
+                Billing Interval
+              </Label>
+              <Select
+                value={formData.interval}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, interval: value }))
+                }
+              >
+                <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                  <SelectItem
+                    value="month"
+                    className="text-white hover:bg-[#4e43ff]/10"
+                  >
+                    Monthly
+                  </SelectItem>
+                  <SelectItem
+                    value="year"
+                    className="text-white hover:bg-[#4e43ff]/10"
+                  >
+                    Yearly
+                  </SelectItem>
+                  <SelectItem
+                    value="one_time"
+                    className="text-white hover:bg-[#4e43ff]/10"
+                  >
+                    One-time
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-white/90">
+                  Features
+                </Label>
+                <span className="text-xs text-white/60">
+                  Add features that come with this product
+                </span>
+              </div>
+
               <div className="flex gap-2">
                 <Input
                   value={formData.newFeature}
@@ -219,29 +361,35 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                       newFeature: e.target.value,
                     }))
                   }
-                  placeholder="Add a feature"
-                  className="bg-[#1a1a1a] border-[#4e43ff]/20"
+                  placeholder="e.g., Daily premium tips"
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all"
                   onKeyPress={(e) =>
                     e.key === "Enter" && (e.preventDefault(), addFeature())
                   }
                 />
-                <Button type="button" onClick={addFeature} variant="outline">
+                <Button
+                  type="button"
+                  onClick={addFeature}
+                  variant="outline"
+                  className="border-[#4e43ff]/40 hover:bg-[#4e43ff]/10 text-white transition-all"
+                >
                   Add
                 </Button>
               </div>
-              <div className="mt-2 space-y-2">
+
+              <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar">
                 {formData.features.map((feature, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-2 bg-[#1a1a1a] p-2 rounded-md"
+                    className="flex items-center gap-2 bg-[#1a1a1a] p-3 rounded-lg group hover:bg-[#1a1a1a]/80 transition-all"
                   >
-                    <span className="flex-1">{feature}</span>
+                    <span className="flex-1 text-white/90">{feature}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFeature(index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
                     >
                       ×
                     </Button>
@@ -250,11 +398,20 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
               </div>
             </div>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="pt-6 border-t border-[#4e43ff]/10">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="border-[#4e43ff]/40 hover:bg-[#4e43ff]/10 text-white transition-all"
+            >
+              Cancel
+            </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+              className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white shadow-lg hover:shadow-[#4e43ff]/25 transition-all"
             >
               {isLoading ? (
                 <>
