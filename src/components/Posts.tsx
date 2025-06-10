@@ -107,13 +107,32 @@ const BetDialog = ({
               <div className="h-10 w-10 mr-4 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
                 <span className="text-2xl">🎯</span>
               </div>
-              <div>
-                <p className="text-base font-semibold text-[#4e43ff] mb-1">
-                  BET
-                </p>
-                <p className="text-base font-semibold text-gray-100">
-                  {bets[0]}
-                </p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-base font-semibold text-[#4e43ff]">
+                    {bets.length > 1 ? "PARLAY BET" : "BET"}
+                  </p>
+                  {bets.length > 1 && (
+                    <span className="text-sm bg-[#4e43ff]/20 text-[#4e43ff] px-2 py-0.5 rounded-full">
+                      {bets.length} legs
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {bets.map((bet, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-2 bg-[#4e43ff]/5 p-2 rounded-lg"
+                    >
+                      <span className="text-sm font-mono text-[#4e43ff]">
+                        #{index + 1}
+                      </span>
+                      <p className="text-base font-semibold text-gray-100">
+                        {bet}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -161,6 +180,12 @@ const BetDialog = ({
 
         {/* //fix!  */}
         <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
+              <span className="text-sm">🎲</span>
+            </div>
+            <p className="text-sm font-semibold text-[#4e43ff]">BOOKMAKER</p>
+          </div>
           <DialogDescription className="text-gray-300 text-sm leading-relaxed">
             {bookmaker}
           </DialogDescription>
@@ -168,35 +193,13 @@ const BetDialog = ({
 
         {/* Content section */}
         <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
-          <DialogDescription className="text-gray-300 text-sm leading-relaxed">
+          <DialogDescription className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
             {content}
           </DialogDescription>
         </div>
 
         {/* Add padding to bottom to ensure content is fully scrollable */}
-        <div className="pb-4">
-          {/* Rest of the betting details section remains the same */}
-          <div className="mt-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-full bg-[#4e43ff]/10 flex items-center justify-center">
-                <span className="text-lg">🎯</span>
-              </div>
-              <h3 className="font-semibold text-[#4e43ff]">Betting Details</h3>
-            </div>
-
-            <ul className="space-y-3">
-              {bets.map((bet, index) => (
-                <li
-                  key={index}
-                  className="bg-gray-800/30 p-4 rounded-lg text-sm text-gray-200 hover:bg-gray-800/50 transition-colors flex items-start gap-3"
-                >
-                  <span className="text-[#4e43ff] font-mono">#{index + 1}</span>
-                  {bet}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <div className="pb-4"></div>
       </>
     ) : (
       <>
