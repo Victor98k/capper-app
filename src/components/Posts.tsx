@@ -193,6 +193,12 @@ const BetDialog = ({
 
         {/* Content section */}
         <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
+              <span className="text-sm">📊</span>
+            </div>
+            <p className="text-sm font-semibold text-[#4e43ff]">ANALYSIS</p>
+          </div>
           <DialogDescription className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
             {content}
           </DialogDescription>
