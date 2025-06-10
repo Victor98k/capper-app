@@ -699,13 +699,19 @@ export default function CapperProfilePage({
                             isSubscribedToProduct
                               ? "bg-[#4e43ff] border-2 border-white/20"
                               : isMiddleCard
-                                ? "bg-gradient-to-br from-violet-600/50 to-violet-900/50 border-2 border-violet-400/50 shadow-[0_0_30px_rgba(139,92,246,0.2)]"
+                                ? "bg-gradient-to-br from-violet-600/50 to-violet-900/50 border-2 border-violet-400/50 shadow-[0_0_30px_rgba(139,92,246,0.2)] relative"
                                 : "bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 sm:hover:border-[#4e43ff]/30"
                           }
                           ${isMiddleCard ? "lg:-mt-4 lg:p-8" : ""}
                           sm:hover:shadow-[0_0_20px_rgba(78,67,255,0.15)]
                         `}
                       >
+                        {isMiddleCard && (
+                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-violet-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+                            Most Popular
+                          </div>
+                        )}
+
                         {/* Product Header */}
                         <div className="flex justify-between items-start mb-6">
                           <h3
@@ -718,11 +724,6 @@ export default function CapperProfilePage({
                             }`}
                           >
                             {product.name}
-                            {isMiddleCard && (
-                              <div className="text-sm font-normal text-violet-300/80 mt-1">
-                                Most Popular
-                              </div>
-                            )}
                           </h3>
                           {isSubscribedToProduct && (
                             <span className="flex items-center gap-1 text-sm bg-white/20 text-white px-3 py-1 rounded-full">
