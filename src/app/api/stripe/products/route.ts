@@ -110,7 +110,7 @@ export async function POST(req: Request) {
       features = [],
     } = await req.json();
 
-    if (!name || !price || price < 1) {
+    if (!name || price === undefined || price < 0) {
       return NextResponse.json(
         { error: "Invalid product data" },
         { status: 400 }
@@ -134,7 +134,7 @@ export async function POST(req: Request) {
     const priceObject = await stripe.prices.create(
       {
         product: product.id,
-        unit_amount: Math.round(price * 100), // Convert to cents
+        unit_amount: Math.round(price * 100),
         currency: "sek",
         recurring: interval === "one_time" ? undefined : { interval },
       },

@@ -178,7 +178,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                 <Input
                   id="price"
                   type="number"
-                  min="1"
+                  min="0"
                   step="0.01"
                   value={formData.price}
                   onChange={(e) =>
@@ -554,11 +554,24 @@ export function CapperDashboard() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#020817]">
-      <SideNav />
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#020817] relative">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-[#4e43ff]/40 rounded-full filter blur-3xl opacity-60" />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-blue-500/40 rounded-full filter blur-3xl opacity-30" />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-violet-500/40 rounded-full filter blur-3xl opacity-30" />
 
-      <div className="flex-1">
-        <header className="bg-[#020817] shadow px-4 md:pl-16 lg:pl-0">
+        <div
+          className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:72px_72px]"
+          style={{
+            maskImage:
+              "linear-gradient(to bottom, transparent, black, transparent)",
+          }}
+        />
+      </div>
+
+      <SideNav />
+      <div className="flex-1 relative z-10">
+        <header className="bg-[#020817]/50 backdrop-blur-sm shadow px-4 md:pl-16 lg:pl-0">
           <div className="max-w-7xl mx-auto pt-6 md:pt-10 px-4 sm:px-6 lg:px-8">
             <h1 className="text-2xl md:text-4xl font-bold text-white break-words pl-12 md:pl-0">
               Dashboard Overview
@@ -570,7 +583,7 @@ export function CapperDashboard() {
           <div className="py-4 md:py-6">
             {user?.isCapper && !stripeStatus?.onboarded && (
               <div className="mb-4 md:mb-6">
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-4 md:p-8 text-white">
+                <div className="bg-gradient-to-r from-[#4e43ff] to-[#1a1245] rounded-lg p-4 md:p-8 text-white">
                   <h2 className="text-2xl md:text-3xl font-bold mb-4">
                     Welcome to Your Capper Journey! 🎉
                   </h2>
@@ -640,7 +653,7 @@ export function CapperDashboard() {
 
             {user?.isCapper && stripeStatus?.onboarded && (
               <div className="mb-4 md:mb-6">
-                <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-xl p-4 md:p-8 text-white mb-4 md:mb-6">
+                <div className="bg-gradient-to-r from-[#4e43ff] to-[#1a1245] rounded-xl p-4 md:p-8 text-white mb-4 md:mb-6">
                   <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6 md:mb-8 border-b border-white/10 pb-6">
                     <div className="bg-white/10 p-3 rounded-lg">
                       <CheckCircle className="h-6 w-6 md:h-8 md:w-8" />
