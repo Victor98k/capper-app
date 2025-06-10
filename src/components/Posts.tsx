@@ -139,7 +139,7 @@ const BetDialog = ({
         </DialogHeader>
 
         {/* Stats Grid: Odds and Sports */}
-        <div className="grid grid-cols-2 gap-4 mt-6">
+        <div className="grid grid-cols-2 gap-4 mt-4">
           {/* Odds Section */}
           {odds.length > 0 && (
             <div className="bg-gray-800/30 p-4 rounded-lg">
@@ -178,21 +178,19 @@ const BetDialog = ({
           </div>
         </div>
 
-        {/* //fix!  */}
-        <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
+        {/* Bookmaker section */}
+        <div className="mt-3 bg-gray-800/30 p-3 rounded-lg">
+          <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
               <span className="text-sm">🎲</span>
             </div>
-            <p className="text-sm font-semibold text-[#4e43ff]">BOOKMAKER</p>
+            <p className="text-sm font-semibold text-[#4e43ff]">BOOKMAKER:</p>
+            <p className="text-sm text-gray-300">{bookmaker}</p>
           </div>
-          <DialogDescription className="text-gray-300 text-sm leading-relaxed">
-            {bookmaker}
-          </DialogDescription>
         </div>
 
         {/* Content section */}
-        <div className="mt-6 bg-gray-800/30 p-4 rounded-lg">
+        <div className="mt-3 bg-gray-800/30 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
               <span className="text-sm">📊</span>
