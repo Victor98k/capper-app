@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     // Create a Stripe Connect account
     const account = await stripe.accounts.create({
-      type: "standard",
+      type: "express",
       country: "SE",
       email: user.email,
       capabilities: {
