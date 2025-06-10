@@ -53,20 +53,11 @@ export async function GET(req: Request) {
     }
 
     try {
-      // For Standard accounts, redirect to the main Stripe dashboard
-      const account = await stripe.accounts.retrieve(user.stripeConnectId);
-
-      if (account.type === "standard") {
-        return NextResponse.json({
-          url: "https://dashboard.stripe.com/products",
-        });
-      } else {
-        // For Express accounts (fallback)
-        const loginLink = await stripe.accounts.createLoginLink(
-          user.stripeConnectId
-        );
-        return NextResponse.json({ url: loginLink.url });
-      }
+      // For Express accounts, always create a login link
+      const loginLink = await stripe.accounts.createLoginLink(
+        user.stripeConnectId
+      );
+      return NextResponse.json({ url: loginLink.url });
     } catch (stripeError) {
       console.error("Stripe error:", stripeError);
       return NextResponse.json(

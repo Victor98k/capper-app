@@ -18,6 +18,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,11 +32,245 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import StripeProductDisplay from "./StripeProductDisplay";
 import Loader from "@/components/Loader";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+// Add CreateProductDialog component
+const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    interval: "month",
+    features: [] as string[],
+    newFeature: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/stripe/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          interval: formData.interval,
+          features: formData.features,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create product");
+      }
+
+      toast.success("Product created successfully!");
+      setIsOpen(false);
+      onSuccess();
+
+      // Reset form
+      setFormData({
+        name: "",
+        description: "",
+        price: "",
+        interval: "month",
+        features: [],
+        newFeature: "",
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create product"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addFeature = () => {
+    if (formData.newFeature.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        features: [...prev.features, prev.newFeature.trim()],
+        newFeature: "",
+      }));
+    }
+  };
+
+  const removeFeature = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index),
+    }));
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button className="bg-[#4e43ff] hover:bg-[#4e43ff]/90">
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Create New Product
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px] bg-[#020817] text-white">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Create New Product</DialogTitle>
+            <DialogDescription>
+              Create a new subscription product for your followers
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Product Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="e.g., Premium Tips Package"
+                className="bg-[#1a1a1a] border-[#4e43ff]/20"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Describe what subscribers will get"
+                className="bg-[#1a1a1a] border-[#4e43ff]/20"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Price (SEK)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, price: e.target.value }))
+                  }
+                  placeholder="99.99"
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="interval">Billing Interval</Label>
+                <Select
+                  value={formData.interval}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, interval: value }))
+                  }
+                >
+                  <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                    <SelectItem value="month">Monthly</SelectItem>
+                    <SelectItem value="year">Yearly</SelectItem>
+                    <SelectItem value="one_time">One-time</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Features</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={formData.newFeature}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      newFeature: e.target.value,
+                    }))
+                  }
+                  placeholder="Add a feature"
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20"
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addFeature())
+                  }
+                />
+                <Button type="button" onClick={addFeature} variant="outline">
+                  Add
+                </Button>
+              </div>
+              <div className="mt-2 space-y-2">
+                {formData.features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-[#1a1a1a] p-2 rounded-md"
+                  >
+                    <span className="flex-1">{feature}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Product"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export function CapperDashboard() {
   const { user, loading } = useAuth();
@@ -55,6 +290,8 @@ export function CapperDashboard() {
   // Add searchParams to check for success parameter
   const searchParams = useSearchParams();
   const success = searchParams.get("success");
+
+  const queryClient = useQueryClient();
 
   // Convert checkStripeStatus to a fetch function
   const fetchStripeStatus = async () => {
@@ -590,6 +827,18 @@ export function CapperDashboard() {
                 </div>
 
                 <div className="mt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-white">
+                      Your Products
+                    </h2>
+                    <CreateProductDialog
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({
+                          queryKey: ["products"],
+                        });
+                      }}
+                    />
+                  </div>
                   <StripeProductDisplay />
                 </div>
               </div>

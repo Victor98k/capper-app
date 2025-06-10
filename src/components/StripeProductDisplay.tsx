@@ -12,62 +12,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, Plus, Loader2, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 interface Product {
   id: string;
   name: string;
-  description: string | null;
-  default_price: {
-    id: string;
-    recurring: {
-      interval?: "day" | "week" | "month" | "year" | null;
-      interval_count?: number;
-    } | null;
-    unit_amount: number;
-    currency: string;
-    type: "one_time" | "recurring";
-  };
-  features: Array<{ name: string }>;
+  description: string;
+  unit_amount: number;
+  currency: string;
+  features: string[];
 }
 
 const MAX_PRODUCTS = 3;
 
 export default function StripeProductDisplay() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("/api/stripe/products", {
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Products fetch error:", errorData);
-          throw new Error(errorData.error || "Failed to fetch products");
-        }
-
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-          console.error("Expected array but got:", data);
-          setProducts([]);
-          return;
-        }
-
-        setProducts(data);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        setProducts([]);
-      } finally {
-        setLoading(false);
+  const {
+    data: products,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const response = await fetch("/api/stripe/products");
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
       }
-    };
-
-    fetchProducts();
-  }, []);
+      return response.json();
+    },
+  });
 
   const openStripeDashboard = async (path: string = "") => {
     try {
@@ -91,62 +63,30 @@ export default function StripeProductDisplay() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <Card className="bg-gray-800 border-gray-700">
-        <CardContent className="flex items-center justify-center h-48">
-          <div className="text-gray-400">Loading subscription details...</div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[#4e43ff]" />
+      </div>
     );
   }
 
-  const shouldShowEmptyState = !products || products.length === 0;
-
-  if (shouldShowEmptyState) {
+  if (error) {
     return (
-      <Card className="bg-gray-800 border-gray-700 border-dashed">
-        <CardContent className="flex flex-col items-center justify-center h-[400px] space-y-6">
-          <div className="p-3 bg-violet-500/10 rounded-full">
-            <Plus className="h-8 w-8 text-violet-500" />
-          </div>
-          <div className="text-center max-w-sm">
-            <h3 className="text-xl font-semibold text-white mb-2">
-              No Subscription Products Yet
-            </h3>
-            <p className="text-gray-400 mb-6">
-              Create your first subscription product in Stripe to start
-              accepting subscribers. Add product tiers with different features
-              and pricing.
-            </p>
-            <div className="space-y-3">
-              {products.length < MAX_PRODUCTS ? (
-                <Button
-                  className="w-full bg-violet-500 hover:bg-violet-600"
-                  onClick={() => openStripeDashboard("/products/create")}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First Product
-                </Button>
-              ) : (
-                <p className="text-sm text-amber-400">
-                  Maximum number of products reached (3)
-                </p>
-              )}
-              <Button
-                variant="outline"
-                className="w-full border-violet-500/20 text-violet-400 hover:bg-violet-500/10"
-                onClick={() =>
-                  window.open(
-                    "https://stripe.com/docs/products-prices/how-products-work",
-                    "_blank"
-                  )
-                }
-              >
-                Learn About Stripe Products
-              </Button>
-            </div>
-          </div>
+      <div className="text-center p-8 text-red-500">
+        Failed to load products. Please try again later.
+      </div>
+    );
+  }
+
+  if (!products?.length) {
+    return (
+      <Card className="bg-[#1a1a1a] border-[#4e43ff]/20">
+        <CardContent className="flex flex-col items-center justify-center p-8">
+          <p className="text-gray-400 text-center">
+            No products found. Create your first product to start accepting
+            subscriptions.
+          </p>
         </CardContent>
       </Card>
     );
@@ -171,11 +111,12 @@ export default function StripeProductDisplay() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product, index) => {
-          const isMiddleCard = products.length === 3 && index === 1;
+        {products.map((product: Product) => {
+          const isMiddleCard =
+            products.length === 3 && products.indexOf(product) === 1;
 
           return (
-            <div
+            <Card
               key={product.id}
               className={`rounded-xl p-6 backdrop-blur-sm transition-all duration-300 hover:transform hover:scale-[1.02]
                 ${
@@ -207,13 +148,13 @@ export default function StripeProductDisplay() {
               <div className="mb-8">
                 <div className="flex items-baseline">
                   <span className="text-4xl font-bold text-white">
-                    {product.default_price.unit_amount === 0
+                    {product.unit_amount === 0
                       ? "Free"
-                      : `$${(product.default_price.unit_amount / 100).toFixed(2)}`}
+                      : `$${(product.unit_amount / 100).toFixed(2)}`}
                   </span>
-                  {product.default_price.unit_amount > 0 && (
+                  {product.unit_amount > 0 && (
                     <span className="ml-2 text-gray-400">
-                      /{product.default_price?.recurring?.interval || "month"}
+                      {product.currency.toUpperCase()}
                     </span>
                   )}
                 </div>
@@ -222,8 +163,7 @@ export default function StripeProductDisplay() {
 
               {/* Features List */}
               <ul className="space-y-4 mb-8">
-                {Array.isArray(product.features) &&
-                product.features.length > 0 ? (
+                {product.features?.length > 0 ? (
                   product.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start gap-3">
                       <Zap
@@ -231,7 +171,7 @@ export default function StripeProductDisplay() {
                           isMiddleCard ? "text-violet-300" : "text-[#4e43ff]"
                         }`}
                       />
-                      <span className="text-gray-300">{feature.name}</span>
+                      <span className="text-gray-300">{feature}</span>
                     </li>
                   ))
                 ) : (
@@ -252,7 +192,7 @@ export default function StripeProductDisplay() {
               >
                 Manage Product
               </Button>
-            </div>
+            </Card>
           );
         })}
       </div>
