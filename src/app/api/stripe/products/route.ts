@@ -108,11 +108,26 @@ export async function POST(req: Request) {
       price,
       interval = "month",
       features = [],
+      currency = "eur", // Default to EUR if not provided
     } = await req.json();
 
     if (!name || price === undefined || price < 0) {
       return NextResponse.json(
         { error: "Invalid product data" },
+        { status: 400 }
+      );
+    }
+
+    // Validate currency
+    try {
+      // This will throw an error if the currency code is invalid
+      new Intl.NumberFormat("en", {
+        style: "currency",
+        currency: currency.toLowerCase(),
+      });
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid currency code" },
         { status: 400 }
       );
     }
@@ -130,12 +145,12 @@ export async function POST(req: Request) {
       { stripeAccount: user.stripeConnectId }
     );
 
-    // Create the price
+    // Create the price with the specified currency
     const priceObject = await stripe.prices.create(
       {
         product: product.id,
         unit_amount: Math.round(price * 100),
-        currency: "sek",
+        currency: currency.toLowerCase(),
         recurring: interval === "one_time" ? undefined : { interval },
       },
       { stripeAccount: user.stripeConnectId }
