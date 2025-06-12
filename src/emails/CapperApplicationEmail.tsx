@@ -1,13 +1,17 @@
 import {
   Body,
+  Button,
   Container,
   Head,
-  Heading,
+  Hr,
   Html,
-  Link,
+  Img,
   Preview,
+  Section,
   Text,
 } from "@react-email/components";
+import * as React from "react";
+import { LOGO_BASE64 } from "./assets/base64Images";
 
 interface CapperApplicationEmailProps {
   userFirstName: string;
@@ -30,16 +34,20 @@ export const CapperApplicationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>
-        {isApproved
-          ? "Your Capper application has been approved!"
-          : "Update on your Capper application"}
-      </Preview>
       <Body style={main}>
+        <Preview>
+          {isApproved
+            ? "Your Capper application has been approved!"
+            : "Update on your Capper application"}
+        </Preview>
         <Container style={container}>
-          <Heading style={h1}>
-            {isApproved ? "Application Approved!" : "Application Update"}
-          </Heading>
+          <Img
+            src={LOGO_BASE64}
+            width="100"
+            height="100"
+            alt="Cappers"
+            style={logo}
+          />
           <Text style={text}>Hi {userFirstName},</Text>
           {status === "PENDING" ? (
             <Text style={text}>
@@ -57,9 +65,11 @@ export const CapperApplicationEmail = ({
               <Text style={text}>
                 Click the button below to complete your Capper profile setup:
               </Text>
-              <Link href={fullSetupUrl} style={button}>
-                Complete Your Profile
-              </Link>
+              <Section style={btnContainer}>
+                <Button style={button} href={fullSetupUrl}>
+                  Complete Your Profile
+                </Button>
+              </Section>
             </>
           ) : (
             <Text style={text}>
@@ -76,32 +86,32 @@ export const CapperApplicationEmail = ({
 };
 
 const main = {
-  backgroundColor: "#f6f9fc",
+  backgroundColor: "#1a1a1a",
   fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+  color: "#ffffff",
 };
 
 const container = {
-  backgroundColor: "#ffffff",
   margin: "0 auto",
   padding: "20px 0 48px",
-  marginBottom: "64px",
+  background: "#1a1a1a",
 };
 
-const h1 = {
-  color: "#333",
-  fontSize: "24px",
-  fontWeight: "bold",
-  margin: "40px 0",
-  padding: "0",
-  textAlign: "center" as const,
+const logo = {
+  margin: "0 auto",
 };
 
 const text = {
-  color: "#333",
   fontSize: "16px",
+  lineHeight: "26px",
+  color: "#e5e5e5",
   margin: "0 0 20px",
   padding: "0 48px",
+};
+
+const btnContainer = {
+  textAlign: "center" as const,
 };
 
 const button = {

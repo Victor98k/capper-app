@@ -82,26 +82,28 @@ export async function GET(request: NextRequest) {
         }
       );
 
-      products = stripeProducts.data.map((product: Stripe.Product) => {
-        const price = product.default_price as Stripe.Price;
-        const marketing_features = Array.isArray(product.marketing_features)
-          ? product.marketing_features.map((f: any) => f.name)
-          : [`Access to all ${product.name} picks`];
+      products = stripeProducts.data.map(
+        (product: Stripe.Product & { features?: Array<{ name: string }> }) => {
+          const price = product.default_price as Stripe.Price;
+          const marketing_features = product.metadata.features
+            ? JSON.parse(product.metadata.features)
+            : [];
 
-        return {
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          default_price: {
-            id: price?.id,
-            recurring: price?.recurring,
-            unit_amount: price?.unit_amount || 0,
-            currency: price?.currency || "usd",
-            type: price?.type || "one_time",
-          },
-          marketing_features,
-        };
-      });
+          return {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            default_price: {
+              id: price?.id,
+              recurring: price?.recurring,
+              unit_amount: price?.unit_amount || 0,
+              currency: price?.currency || "usd",
+              type: price?.type || "one_time",
+            },
+            marketing_features,
+          };
+        }
+      );
     }
 
     return NextResponse.json({ ...capper, products });

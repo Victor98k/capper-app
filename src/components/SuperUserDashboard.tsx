@@ -791,14 +791,64 @@ export function SuperUserDashboard() {
                             )}
                           </td>
                           <td className="py-3 px-4">
-                            <button
-                              onClick={() =>
-                                handleDeleteStripeAccount(account.id)
-                              }
-                              className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-colors duration-200"
-                            >
-                              Delete Account
-                            </button>
+                            <div className="flex space-x-2">
+                              {account.accountType === "standard" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                                  onClick={async () => {
+                                    try {
+                                      const response = await fetch(
+                                        "/api/stripe/account/convert",
+                                        {
+                                          method: "POST",
+                                          headers: {
+                                            "Content-Type": "application/json",
+                                          },
+                                          body: JSON.stringify({
+                                            userId: account.id,
+                                          }),
+                                        }
+                                      );
+
+                                      const data = await response.json();
+
+                                      if (response.ok) {
+                                        toast.success(
+                                          "Account converted to Express"
+                                        );
+                                        // Refresh the accounts list
+                                        fetchStripeAccounts();
+                                      } else {
+                                        toast.error(
+                                          data.error ||
+                                            "Failed to convert account"
+                                        );
+                                      }
+                                    } catch (error) {
+                                      console.error(
+                                        "Error converting account:",
+                                        error
+                                      );
+                                      toast.error("Failed to convert account");
+                                    }
+                                  }}
+                                >
+                                  Convert to Express
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="bg-red-500 hover:bg-red-600 text-white"
+                                onClick={() =>
+                                  handleDeleteStripeAccount(account.id)
+                                }
+                              >
+                                Delete
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       ))}

@@ -11,6 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { LOGO_BASE64 } from "./assets/base64Images";
 
 interface CappersWelcomeEmailProps {
   userFirstname: string;
@@ -18,7 +19,7 @@ interface CappersWelcomeEmailProps {
 
 const baseUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
-  : "";
+  : "http://localhost:3000";
 
 export const CappersWelcomeEmail = ({
   userFirstname,
@@ -29,9 +30,9 @@ export const CappersWelcomeEmail = ({
       <Preview>Welcome to Cappers</Preview>
       <Container style={container}>
         <Img
-          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1746969438/Cappers_Logo_PNG_z5ikpb.png"
-          width="170"
-          height="50"
+          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1749677874/Favicon_utgw7a.png"
+          width="100"
+          height="100"
           alt="Cappers"
           style={logo}
         />
@@ -59,7 +60,7 @@ export const CappersWelcomeEmail = ({
 );
 
 CappersWelcomeEmail.PreviewProps = {
-  userFirstname: "Alan",
+  userFirstname: "x",
 } as CappersWelcomeEmailProps;
 
 export default CappersWelcomeEmail;

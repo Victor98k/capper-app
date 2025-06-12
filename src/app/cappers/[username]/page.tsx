@@ -157,8 +157,13 @@ export default function CapperProfilePage({
         }
 
         // Add detailed console logs
-        // console.log("Capper Products Data:", data.products);
-        data.products.forEach((product: any, index: number) => {});
+        console.log("Capper Products Data:", data.products);
+        data.products.forEach((product: any, index: number) => {
+          console.log(
+            `Product ${index + 1} Features:`,
+            product.marketing_features
+          );
+        });
 
         setCapper(data);
       } catch (error: unknown) {
@@ -694,7 +699,7 @@ export default function CapperProfilePage({
                     return (
                       <div
                         key={product.id}
-                        className={`rounded-xl p-6 transition-all duration-200 sm:hover:transform sm:hover:scale-[1.01]
+                        className={`rounded-xl p-6 transition-all duration-200 sm:hover:transform sm:hover:scale-[1.01] flex flex-col h-full
                           ${
                             isSubscribedToProduct
                               ? "bg-[#4e43ff] border-2 border-white/20"
@@ -706,130 +711,136 @@ export default function CapperProfilePage({
                           sm:hover:shadow-[0_0_20px_rgba(78,67,255,0.15)]
                         `}
                       >
-                        {isMiddleCard && (
-                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-violet-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
-                            Most Popular
-                          </div>
-                        )}
-
-                        {/* Product Header */}
-                        <div className="flex justify-between items-start mb-6">
-                          <h3
-                            className={`text-2xl font-bold ${
-                              isSubscribedToProduct
-                                ? "text-white"
-                                : isMiddleCard
-                                  ? "text-violet-300"
-                                  : "text-[#4e43ff]"
-                            }`}
-                          >
-                            {product.name}
-                          </h3>
-                          {isSubscribedToProduct && (
-                            <span className="flex items-center gap-1 text-sm bg-white/20 text-white px-3 py-1 rounded-full">
-                              <Check className="h-4 w-4" />
-                              Active
-                            </span>
+                        <div className="flex-1">
+                          {isMiddleCard && (
+                            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-violet-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+                              Most Popular
+                            </div>
                           )}
-                        </div>
 
-                        {/* Price Display */}
-                        <div className="mb-8">
-                          <div className="flex items-baseline">
-                            <span
-                              className={`text-4xl font-bold ${
+                          {/* Product Header */}
+                          <div className="flex justify-between items-start mb-6">
+                            <h3
+                              className={`text-2xl font-bold ${
                                 isSubscribedToProduct
                                   ? "text-white"
-                                  : "text-white"
+                                  : isMiddleCard
+                                    ? "text-violet-300"
+                                    : "text-[#4e43ff]"
                               }`}
                             >
-                              {product.default_price.unit_amount === 0
-                                ? "Free"
-                                : new Intl.NumberFormat("en-US", {
-                                    style: "currency",
-                                    currency:
-                                      product.default_price.currency || "USD",
-                                  }).format(
-                                    product.default_price.unit_amount / 100
-                                  )}
-                            </span>
-                            {product.default_price.unit_amount > 0 && (
-                              <span
-                                className={`ml-2 ${
-                                  isSubscribedToProduct
-                                    ? "text-white/80"
-                                    : "text-gray-400"
-                                }`}
-                              >
-                                {product.default_price?.recurring?.interval
-                                  ? `/${product.default_price.recurring.interval}`
-                                  : product.default_price.type === "one_time"
-                                    ? " one-time"
-                                    : ""}
+                              {product.name}
+                            </h3>
+                            {isSubscribedToProduct && (
+                              <span className="flex items-center gap-1 text-sm bg-white/20 text-white px-3 py-1 rounded-full">
+                                <Check className="h-4 w-4" />
+                                Active
                               </span>
                             )}
                           </div>
-                          <p
-                            className={`mt-2 ${
-                              isSubscribedToProduct
-                                ? "text-white/80"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {product.description}
-                          </p>
+
+                          {/* Price Display */}
+                          <div className="mb-8">
+                            <div className="flex items-baseline">
+                              <span
+                                className={`text-4xl font-bold ${
+                                  isSubscribedToProduct
+                                    ? "text-white"
+                                    : "text-white"
+                                }`}
+                              >
+                                {product.default_price.unit_amount === 0
+                                  ? "Free"
+                                  : new Intl.NumberFormat("en-US", {
+                                      style: "currency",
+                                      currency:
+                                        product.default_price.currency || "USD",
+                                    }).format(
+                                      product.default_price.unit_amount / 100
+                                    )}
+                              </span>
+                              {product.default_price.unit_amount > 0 && (
+                                <span
+                                  className={`ml-2 ${
+                                    isSubscribedToProduct
+                                      ? "text-white/80"
+                                      : "text-gray-400"
+                                  }`}
+                                >
+                                  {product.default_price?.recurring?.interval
+                                    ? `/${product.default_price.recurring.interval}`
+                                    : product.default_price.type === "one_time"
+                                      ? " one-time"
+                                      : ""}
+                                </span>
+                              )}
+                            </div>
+                            <p
+                              className={`mt-2 ${
+                                isSubscribedToProduct
+                                  ? "text-white/80"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {product.description}
+                            </p>
+                          </div>
+
+                          {/* Features List */}
+                          <ul className="space-y-4 mb-8">
+                            {Array.isArray(product.marketing_features) &&
+                              product.marketing_features.map(
+                                (feature, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start gap-3"
+                                  >
+                                    <Zap
+                                      className={`h-5 w-5 flex-shrink-0 ${
+                                        isSubscribedToProduct
+                                          ? "text-white"
+                                          : "text-[#4e43ff]"
+                                      }`}
+                                    />
+                                    <span
+                                      className={
+                                        isSubscribedToProduct
+                                          ? "text-white/90"
+                                          : "text-gray-300"
+                                      }
+                                    >
+                                      {feature}
+                                    </span>
+                                  </li>
+                                )
+                              )}
+                          </ul>
                         </div>
 
-                        {/* Features List */}
-                        <ul className="space-y-4 mb-8">
-                          {Array.isArray(product.marketing_features) &&
-                            product.marketing_features.map((feature, index) => (
-                              <li
-                                key={index}
-                                className="flex items-start gap-3"
-                              >
-                                <Zap
-                                  className={`h-5 w-5 flex-shrink-0 ${
-                                    isSubscribedToProduct
-                                      ? "text-white"
-                                      : "text-[#4e43ff]"
-                                  }`}
-                                />
-                                <span
-                                  className={
-                                    isSubscribedToProduct
-                                      ? "text-white/90"
-                                      : "text-gray-300"
-                                  }
-                                >
-                                  {feature}
-                                </span>
-                              </li>
-                            ))}
-                        </ul>
-
                         {/* Subscribe Button */}
-                        <SubscribeButton
-                          capperId={capper.id}
-                          productId={product.id}
-                          priceId={product.default_price.id}
-                          stripeAccountId={capper.user.stripeConnectId}
-                          isSubscribed={isSubscribedToProduct}
-                          className={`w-full relative overflow-hidden sm:group sm:transition-all sm:duration-200 sm:ease-out sm:hover:scale-[1.02] active:scale-[0.98] ${
-                            isSubscribedToProduct
-                              ? "bg-white/20 sm:hover:bg-white/25 text-white"
-                              : isMiddleCard
-                                ? "bg-violet-500 sm:hover:bg-violet-500/95 text-white sm:hover:shadow-[0_0_15px_rgba(139,92,246,0.25)]"
-                                : "bg-[#4e43ff] sm:hover:bg-[#4e43ff]/95 text-white sm:hover:shadow-[0_0_15px_rgba(78,67,255,0.25)]"
-                          }`}
-                        >
-                          <span className="relative z-10">
-                            {isSubscribedToProduct
-                              ? "Unsubscribe"
-                              : "Subscribe Now"}
-                          </span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-violet-400/30 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 ease-out" />
-                        </SubscribeButton>
+                        <div className="mt-auto">
+                          <SubscribeButton
+                            capperId={capper.id}
+                            productId={product.id}
+                            priceId={product.default_price.id}
+                            stripeAccountId={capper.user.stripeConnectId}
+                            isSubscribed={isSubscribedToProduct}
+                            className={`w-full relative overflow-hidden sm:group sm:transition-all sm:duration-200 sm:ease-out sm:hover:scale-[1.02] active:scale-[0.98] ${
+                              isSubscribedToProduct
+                                ? "bg-white/20 sm:hover:bg-white/25 text-white"
+                                : isMiddleCard
+                                  ? "bg-violet-500 sm:hover:bg-violet-500/95 text-white sm:hover:shadow-[0_0_15px_rgba(139,92,246,0.25)]"
+                                  : "bg-[#4e43ff] sm:hover:bg-[#4e43ff]/95 text-white sm:hover:shadow-[0_0_15px_rgba(78,67,255,0.25)]"
+                            }`}
+                          >
+                            <span className="relative z-10">
+                              {isSubscribedToProduct
+                                ? "Unsubscribe"
+                                : "Subscribe Now"}
+                            </span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-violet-400/30 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 ease-out" />
+                          </SubscribeButton>
+                        </div>
                       </div>
                     );
                   })
