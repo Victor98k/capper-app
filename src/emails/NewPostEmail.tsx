@@ -39,9 +39,9 @@ export const NewPostEmail = ({
       </Preview>
       <Container style={container}>
         <Img
-          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1746969438/Cappers_Logo_PNG_z5ikpb.png"
-          width="170"
-          height="50"
+          src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1749677874/Favicon_utgw7a.png"
+          width="100"
+          height="100"
           alt="Cappers"
           style={logo}
         />
@@ -103,10 +103,14 @@ const container = {
   margin: "0 auto",
   padding: "20px 0 48px",
   background: "#1a1a1a",
+  maxWidth: "600px",
+  textAlign: "center" as const,
 };
 
 const logo = {
   margin: "0 auto",
+  maxWidth: "100px",
+  display: "inline-block",
 };
 
 const paragraph = {
