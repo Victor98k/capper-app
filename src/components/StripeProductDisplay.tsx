@@ -10,9 +10,21 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Loader2, Zap } from "lucide-react";
+import { Check, Plus, Loader2, Zap, Edit2 } from "lucide-react";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Product {
   id: string;
@@ -24,6 +36,262 @@ interface Product {
 }
 
 const MAX_PRODUCTS = 3;
+
+// Add EditProductDialog component
+const EditProductDialog = ({
+  product,
+  onSuccess,
+}: {
+  product: Product;
+  onSuccess: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: product.name,
+    description: product.description || "",
+    price: (product.unit_amount / 100).toString(),
+    features: product.features || [],
+    newFeature: "",
+    currency: product.currency,
+  });
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`/api/stripe/products/${product.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          features: formData.features,
+          currency: formData.currency,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update product");
+      }
+
+      toast.success("Product updated successfully!");
+      setIsOpen(false);
+      onSuccess();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update product"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addFeature = () => {
+    if (formData.newFeature.trim()) {
+      setFormData((prev) => ({
+        ...prev,
+        features: [...prev.features, prev.newFeature.trim()],
+        newFeature: "",
+      }));
+    }
+  };
+
+  const removeFeature = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index),
+    }));
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-white/80 hover:text-white hover:bg-white/10 flex items-center gap-2"
+        >
+          <Edit2 className="h-4 w-4" />
+          <span>Edit</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px] bg-[#020817] text-white border border-[#4e43ff]/20">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#4e43ff] to-[#8983ff] bg-clip-text text-transparent">
+              Edit Product
+            </DialogTitle>
+            <DialogDescription className="text-white/80">
+              Update your product details and features.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="name"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Product Name
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="e.g., Premium Tips Package"
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="description"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Describe what subscribers will get with this product..."
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] min-h-[100px] transition-all"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="price"
+                className="text-sm font-medium text-white/90"
+              >
+                Price
+              </Label>
+              <div className="relative">
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      price: e.target.value,
+                    }))
+                  }
+                  placeholder="99.99"
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] pl-12 transition-all"
+                  required
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                  {formData.currency.toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-white/90">
+                  Features
+                </Label>
+                <span className="text-xs text-white/60">
+                  Add features that come with this product
+                </span>
+              </div>
+
+              <div className="flex gap-2">
+                <Input
+                  value={formData.newFeature}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      newFeature: e.target.value,
+                    }))
+                  }
+                  placeholder="e.g., Daily premium tips"
+                  className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all"
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                    e.key === "Enter" && (e.preventDefault(), addFeature())
+                  }
+                />
+                <Button
+                  type="button"
+                  onClick={addFeature}
+                  variant="outline"
+                  className="border-[#4e43ff]/40 hover:bg-[#4e43ff]/10 text-white transition-all"
+                >
+                  Add
+                </Button>
+              </div>
+
+              <div className="space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar">
+                {formData.features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-[#1a1a1a] p-3 rounded-lg group hover:bg-[#1a1a1a]/80 transition-all"
+                  >
+                    <span className="flex-1 text-white/90">{feature}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFeature(index)}
+                      className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-all"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="pt-6 border-t border-[#4e43ff]/10">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="border-[#4e43ff]/40 hover:bg-[#4e43ff]/10 text-white transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white shadow-lg hover:shadow-[#4e43ff]/25 transition-all"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Product"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default function StripeProductDisplay() {
   const {
@@ -40,6 +308,8 @@ export default function StripeProductDisplay() {
       return response.json();
     },
   });
+
+  const queryClient = useQueryClient();
 
   const openStripeDashboard = async (path: string = "") => {
     try {
@@ -127,6 +397,12 @@ export default function StripeProductDisplay() {
                       </div>
                     )}
                   </h3>
+                  <EditProductDialog
+                    product={product}
+                    onSuccess={() => {
+                      queryClient.invalidateQueries({ queryKey: ["products"] });
+                    }}
+                  />
                 </div>
 
                 {/* Price Display */}
