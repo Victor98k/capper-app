@@ -6,7 +6,7 @@ import Stripe from "stripe";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     // Get token from cookies
@@ -71,13 +71,16 @@ export async function PUT(
     }
 
     // Get the existing product
-    const existingProduct = await stripe.products.retrieve(params.productId, {
-      stripeAccount: user.stripeConnectId,
-    });
+    const existingProduct = await stripe.products.retrieve(
+      (await params).productId,
+      {
+        stripeAccount: user.stripeConnectId,
+      }
+    );
 
     // Update the product
     const updatedProduct = await stripe.products.update(
-      params.productId,
+      (await params).productId,
       {
         name,
         description,
@@ -93,7 +96,7 @@ export async function PUT(
     if (price !== existingProduct.default_price?.unit_amount / 100) {
       const newPrice = await stripe.prices.create(
         {
-          product: params.productId,
+          product: (await params).productId,
           unit_amount: Math.round(price * 100),
           currency: currency.toLowerCase(),
           recurring: (existingProduct.default_price as Stripe.Price)?.recurring,
@@ -103,7 +106,7 @@ export async function PUT(
 
       // Set the new price as default
       await stripe.products.update(
-        params.productId,
+        (await params).productId,
         { default_price: newPrice.id },
         { stripeAccount: user.stripeConnectId }
       );
