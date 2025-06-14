@@ -11,7 +11,6 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
-import { LOGO_BASE64 } from "./assets/base64Images";
 
 interface CapperApplicationEmailProps {
   userFirstName: string;
@@ -42,7 +41,7 @@ export const CapperApplicationEmail = ({
         </Preview>
         <Container style={container}>
           <Img
-            src={LOGO_BASE64}
+            src="https://res.cloudinary.com/dnsemsbxr/image/upload/v1749677874/Favicon_utgw7a.png"
             width="100"
             height="100"
             alt="Cappers"

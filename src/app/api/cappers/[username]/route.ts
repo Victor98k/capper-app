@@ -70,6 +70,11 @@ export async function GET(request: NextRequest) {
 
     let products: any[] = [];
     if (capper.user.stripeConnectId) {
+      console.log("Fetching products for capper:", {
+        capperId: capper.id,
+        stripeAccountId: capper.user.stripeConnectId,
+      });
+
       const stripeProducts = await stripe.products.list(
         {
           expand: ["data.default_price"],
@@ -82,12 +87,27 @@ export async function GET(request: NextRequest) {
         }
       );
 
+      console.log("Retrieved products from Stripe:", {
+        count: stripeProducts.data.length,
+        products: stripeProducts.data.map((p: Stripe.Product) => ({
+          id: p.id,
+          name: p.name,
+          defaultPriceId: (p.default_price as Stripe.Price)?.id,
+        })),
+      });
+
       products = stripeProducts.data.map(
         (product: Stripe.Product & { features?: Array<{ name: string }> }) => {
           const price = product.default_price as Stripe.Price;
           const marketing_features = product.metadata.features
             ? JSON.parse(product.metadata.features)
             : [];
+
+          console.log("Processing product:", {
+            productId: product.id,
+            priceId: price?.id,
+            priceType: price?.type,
+          });
 
           return {
             id: product.id,

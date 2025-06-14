@@ -58,7 +58,8 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     name: "",
     description: "",
     price: "",
-    interval: "month",
+    packageType: "one_time",
+    interval: "week",
     features: [] as string[],
     newFeature: "",
     currency: "eur",
@@ -130,7 +131,8 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         name: "",
         description: "",
         price: "",
-        interval: "month",
+        packageType: "one_time",
+        interval: "week",
         features: [],
         newFeature: "",
         currency: stripeAccountData?.defaultCurrency?.toLowerCase() || "eur",
@@ -303,43 +305,86 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="interval"
-                className="text-sm font-medium text-white/90"
-              >
-                Billing Interval
-              </Label>
-              <Select
-                value={formData.interval}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, interval: value }))
-                }
-              >
-                <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
-                  <SelectItem
-                    value="month"
-                    className="text-white hover:bg-[#4e43ff]/10"
-                  >
-                    Monthly
-                  </SelectItem>
-                  <SelectItem
-                    value="year"
-                    className="text-white hover:bg-[#4e43ff]/10"
-                  >
-                    Yearly
-                  </SelectItem>
-                  <SelectItem
-                    value="one_time"
-                    className="text-white hover:bg-[#4e43ff]/10"
-                  >
-                    One-time
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="packageType"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Package Type
+                </Label>
+                <Select
+                  value={formData.packageType}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, packageType: value }))
+                  }
+                >
+                  <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                    <SelectItem
+                      value="one_time"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      One-time Package
+                    </SelectItem>
+                    <SelectItem
+                      value="recurring"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      Recurring Subscription
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="interval"
+                  className="text-sm font-medium text-white/90"
+                >
+                  {formData.packageType === "one_time"
+                    ? "Duration"
+                    : "Billing Interval"}
+                </Label>
+                <Select
+                  value={formData.interval}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, interval: value }))
+                  }
+                >
+                  <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                    <SelectItem
+                      value="week"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      {formData.packageType === "one_time"
+                        ? "1 Week"
+                        : "Weekly"}
+                    </SelectItem>
+                    <SelectItem
+                      value="month"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      {formData.packageType === "one_time"
+                        ? "1 Month"
+                        : "Monthly"}
+                    </SelectItem>
+                    <SelectItem
+                      value="year"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      {formData.packageType === "one_time"
+                        ? "1 Year"
+                        : "Yearly"}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-4">
