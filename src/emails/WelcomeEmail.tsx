@@ -11,7 +11,6 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
-import { LOGO_BASE64 } from "./assets/base64Images";
 
 interface CappersWelcomeEmailProps {
   userFirstname: string;

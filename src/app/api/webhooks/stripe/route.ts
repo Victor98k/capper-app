@@ -16,7 +16,10 @@ console.log("Webhook environment check:", {
 });
 */
 
-// Update the webhook secret selection
+// Add runtime configuration
+export const runtime = "nodejs";
+
+// Update webhook secret selection
 const webhookSecret =
   process.env.STRIPE_WEBHOOK_SECRET ||
   (process.env.NODE_ENV === "development"
@@ -30,6 +33,7 @@ console.log("Webhook environment check:", {
   hasProductionSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
   hasLocalSecret: !!process.env.STRIPE_WEBHOOK_SECRET_LOCAL,
   actualSecret: webhookSecret?.substring(0, 10) + "...", // Only log first 10 chars
+  isDevelopment: process.env.NODE_ENV === "development",
 });
 
 const logWebhookError = (error: any, context: string) => {
@@ -87,11 +91,21 @@ const setCachedData = (key: string, data: any) => {
 //   webhookSecretPrefix: webhookSecret?.substring(0, 6),
 // });
 
+export async function GET(req: Request) {
+  return NextResponse.json({ status: "Webhook endpoint is reachable" });
+}
+
 export async function POST(req: Request) {
+  console.log("Webhook received - Starting webhook handler");
   try {
     const text = await req.text();
     const headersList = await headers();
     const sig = headersList.get("stripe-signature");
+
+    // Log all headers for debugging
+    console.log("All webhook headers:", {
+      headers: Object.fromEntries(headersList.entries()),
+    });
 
     console.log("Webhook request debug:", {
       hasSignature: !!sig,
@@ -99,12 +113,15 @@ export async function POST(req: Request) {
       hasWebhookSecret: !!webhookSecret,
       webhookSecretPrefix: webhookSecret?.substring(0, 10) + "...",
       environment: process.env.NODE_ENV,
+      rawBody: text.substring(0, 200) + "...", // Log first 200 chars of the request body
+      fullBody: text, // Log the full body for debugging
     });
 
     if (!sig || !webhookSecret) {
-      log("error", "Webhook validation failed", {
+      console.error("Webhook validation failed:", {
         hasSignature: !!sig,
         hasSecret: !!webhookSecret,
+        headers: Object.fromEntries(headersList.entries()),
       });
       return NextResponse.json(
         { error: !sig ? "No signature found" : "No webhook secret found" },
@@ -115,14 +132,19 @@ export async function POST(req: Request) {
     let event;
     try {
       event = stripe.webhooks.constructEvent(text, sig, webhookSecret);
-      log("info", "Stripe event constructed", {
+      console.log("Stripe event constructed:", {
         type: event.type,
         id: event.id,
         metadata: event.data.object.metadata,
+        object: event.data.object,
+        rawEvent: JSON.stringify(event, null, 2), // Log the entire event
       });
     } catch (err) {
-      log("error", "Webhook signature verification failed", {
+      console.error("Webhook signature verification failed:", {
         error: err instanceof Error ? err.message : "Unknown error",
+        stack: err instanceof Error ? err.stack : undefined,
+        headers: Object.fromEntries(headersList.entries()),
+        rawBody: text, // Log the raw body when verification fails
       });
       return NextResponse.json(
         { error: "Webhook signature verification failed" },
@@ -133,15 +155,86 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object;
-        // console.log("Checkout Session Data:", {
-        //   id: session.id,
-        //   mode: session.mode,
-        //   paymentStatus: session.payment_status,
-        //   metadata: session.metadata,
-        //   customer: session.customer,
-        //   paymentIntent: session.payment_intent,
-        //   subscription: session.subscription,
-        // });
+        console.log("Checkout Session Data:", {
+          id: session.id,
+          mode: session.mode,
+          paymentStatus: session.payment_status,
+          metadata: session.metadata,
+          customer: session.customer,
+          paymentIntent: session.payment_intent,
+          subscription: session.subscription,
+          lineItems: session.line_items,
+        });
+
+        // Log the complete session object for debugging
+        console.log(
+          "Complete session object:",
+          JSON.stringify(session, null, 2)
+        );
+
+        // Log the product ID we're about to use
+        console.log(
+          "Using product ID from session metadata:",
+          session.metadata.productId
+        );
+
+        // Verify the product exists in Stripe
+        try {
+          console.log("Attempting to retrieve product with:", {
+            productId: session.metadata.productId,
+            stripeAccountId: session.metadata.stripeAccountId,
+            metadata: session.metadata,
+            rawEvent: JSON.stringify(event.data.object, null, 2),
+          });
+
+          // First verify the Stripe account
+          const account = await stripe.accounts.retrieve(
+            session.metadata.stripeAccountId
+          );
+          console.log("Verified Stripe account:", {
+            accountId: account.id,
+            chargesEnabled: account.charges_enabled,
+            payoutsEnabled: account.payouts_enabled,
+          });
+
+          const product = await stripe.products.retrieve(
+            session.metadata.productId,
+            {
+              stripeAccount: session.metadata.stripeAccountId,
+            }
+          );
+          console.log("Verified product exists:", {
+            productId: product.id,
+            name: product.name,
+            active: product.active,
+            metadata: product.metadata,
+          });
+
+          // Check if the product is archived
+          if (!product.active) {
+            console.error("Product is archived:", {
+              productId: product.id,
+              name: product.name,
+            });
+            return NextResponse.json(
+              { error: "Product is archived" },
+              { status: 400 }
+            );
+          }
+        } catch (error) {
+          console.error("Error verifying product:", {
+            error: error instanceof Error ? error.message : "Unknown error",
+            productId: session.metadata.productId,
+            stripeAccountId: session.metadata.stripeAccountId,
+            metadata: session.metadata,
+            rawEvent: JSON.stringify(event.data.object, null, 2),
+          });
+          return NextResponse.json(
+            { error: "Failed to verify product" },
+            { status: 400 }
+          );
+        }
+
         return await handleSubscriptionCreation(session);
 
       case "charge.succeeded":
@@ -185,35 +278,68 @@ export async function POST(req: Request) {
         return NextResponse.json({ received: true });
     }
   } catch (error) {
-    log("error", "Webhook processing failed", {
+    console.error("Webhook processing error:", {
       error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
     });
     return NextResponse.json(
-      { error: "Failed to process request" },
-      { status: 400 }
+      { error: "Failed to process webhook" },
+      { status: 500 }
     );
   }
 }
 
 async function handleSubscriptionCreation(session: any) {
   try {
-    // console.log("Creating subscription for:", {
-    //   userId: session.metadata?.userId,
-    //   capperId: session.metadata?.capperId,
-    //   mode: session.mode,
-    //   paymentIntent: session.payment_intent,
-    //   subscription: session.subscription,
-    // });
+    console.log("Handling subscription creation with session:", {
+      id: session.id,
+      metadata: session.metadata,
+      mode: session.mode,
+      paymentStatus: session.payment_status,
+      status: session.status,
+      lineItems: session.line_items,
+    });
 
     if (!session.metadata?.userId || !session.metadata?.capperId) {
-      log("error", "Missing required metadata", {
-        metadata: session.metadata,
-      });
+      console.error("Missing required metadata:", session.metadata);
       return NextResponse.json(
         { error: "Missing required metadata" },
         { status: 400 }
       );
     }
+
+    // Get capper's Stripe Connect ID
+    const capper = await prisma.capper.findUnique({
+      where: { id: session.metadata.capperId },
+      include: {
+        user: {
+          select: {
+            stripeConnectId: true,
+          },
+        },
+      },
+    });
+
+    console.log("Retrieved capper:", {
+      capperId: capper?.id,
+      stripeConnectId: capper?.user?.stripeConnectId,
+    });
+
+    if (!capper?.user?.stripeConnectId) {
+      console.error("Capper's Stripe Connect ID not found:", {
+        capperId: session.metadata.capperId,
+      });
+      return NextResponse.json(
+        { error: "Capper's Stripe account not found" },
+        { status: 400 }
+      );
+    }
+
+    // Log the product ID we're about to use
+    console.log(
+      "Using product ID from session metadata:",
+      session.metadata.productId
+    );
 
     // For one-time payments, use payment intent ID
     // For subscriptions, use subscription ID
@@ -222,64 +348,147 @@ async function handleSubscriptionCreation(session: any) {
         ? session.subscription
         : session.payment_intent;
 
-    // Check for existing subscription
-    const existingSubscription = await prisma.subscription.findFirst({
-      where: {
-        OR: [
-          { stripeSubscriptionId: identifier },
-          { stripePaymentIntentId: identifier },
-        ],
-        userId: session.metadata.userId,
-        capperId: session.metadata.capperId,
-      },
+    console.log("Using identifier for subscription:", {
+      identifier,
+      mode: session.mode,
     });
 
-    if (existingSubscription) {
-      log("info", "Subscription already exists", { identifier });
-      return NextResponse.json({ received: true });
+    // Check for existing subscription
+    try {
+      const existingSubscription = await prisma.subscription.findFirst({
+        where: {
+          OR: [
+            { stripeSubscriptionId: identifier },
+            { stripePaymentIntentId: identifier },
+          ],
+          userId: session.metadata.userId,
+          capperId: session.metadata.capperId,
+        },
+      });
+
+      if (existingSubscription) {
+        console.log("Subscription already exists:", { identifier });
+        return NextResponse.json({ received: true });
+      }
+    } catch (error) {
+      console.error("Error checking for existing subscription:", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        userId: session.metadata.userId,
+        capperId: session.metadata.capperId,
+      });
+      throw error;
     }
 
-    // Create new subscription
-    const subscription = await prisma.subscription.create({
-      data: {
+    // Create new subscription using the product ID from session metadata
+    try {
+      console.log("Creating new subscription with data:", {
         userId: session.metadata.userId,
         capperId: session.metadata.capperId,
         productId: session.metadata.productId,
         priceId: session.metadata.priceId,
-        status: "active",
-        stripeSubscriptionId:
-          session.mode === "subscription" ? session.subscription : null,
-        stripePaymentIntentId:
-          session.mode === "payment" ? session.payment_intent : null,
-        stripeCustomerId: session.customer,
-        subscribedAt: new Date(),
-        expiresAt:
-          session.mode === "payment"
-            ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            : null,
-      },
-    });
+        mode: session.mode,
+        paymentIntent: session.payment_intent,
+        customer: session.customer,
+      });
 
-    // Update capper's subscribers
-    await prisma.capper.update({
-      where: { id: session.metadata.capperId },
-      data: {
-        subscriberIds: {
-          push: session.metadata.userId,
+      // First verify that both user and capper exist
+      const [user, capper] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: session.metadata.userId },
+        }),
+        prisma.capper.findUnique({
+          where: { id: session.metadata.capperId },
+        }),
+      ]);
+
+      if (!user) {
+        console.error("User not found:", { userId: session.metadata.userId });
+        return NextResponse.json({ error: "User not found" }, { status: 400 });
+      }
+
+      if (!capper) {
+        console.error("Capper not found:", {
+          capperId: session.metadata.capperId,
+        });
+        return NextResponse.json(
+          { error: "Capper not found" },
+          { status: 400 }
+        );
+      }
+
+      // Calculate expiration date
+      const now = Date.now();
+      let expiresAt: Date | null = null;
+
+      if (session.mode === "payment") {
+        switch (session.metadata?.interval) {
+          case "week":
+            expiresAt = new Date(now + 7 * 24 * 60 * 60 * 1000); // 1 week
+            break;
+          case "month":
+            expiresAt = new Date(now + 30 * 24 * 60 * 60 * 1000); // 1 month
+            break;
+          case "year":
+            expiresAt = new Date(now + 365 * 24 * 60 * 60 * 1000); // 1 year
+            break;
+          default:
+            expiresAt = new Date(now + 30 * 24 * 60 * 60 * 1000); // Default to 30 days
+        }
+      } else if (session.metadata?.packageType !== "recurring") {
+        switch (session.metadata?.interval) {
+          case "week":
+            expiresAt = new Date(now + 7 * 24 * 60 * 60 * 1000); // 1 week
+            break;
+          case "month":
+            expiresAt = new Date(now + 30 * 24 * 60 * 60 * 1000); // 1 month
+            break;
+          case "year":
+            expiresAt = new Date(now + 365 * 24 * 60 * 60 * 1000); // 1 year
+            break;
+          default:
+            expiresAt = new Date(now + 30 * 24 * 60 * 60 * 1000); // Default to 30 days
+        }
+      }
+
+      const subscription = await prisma.subscription.create({
+        data: {
+          userId: session.metadata.userId,
+          capperId: session.metadata.capperId,
+          productId: session.metadata.productId,
+          priceId: session.metadata.priceId,
+          status: "active",
+          stripeSubscriptionId:
+            session.mode === "subscription" ? session.subscription : null,
+          stripePaymentIntentId:
+            session.mode === "payment" ? session.payment_intent : null,
+          stripeCustomerId: session.customer,
+          subscribedAt: new Date(),
+          expiresAt,
         },
-      },
-    });
+      });
 
-    console.log("Subscription created:", {
-      //   id: subscription.id,
-      //   userId: subscription.userId,
-      //   capperId: subscription.capperId,
-      //   status: subscription.status,
-      //   paymentIntentId: subscription.stripePaymentIntentId,
-      //   subscriptionId: subscription.stripeSubscriptionId,
-    });
+      console.log("Subscription created successfully:", {
+        id: subscription.id,
+        productId: subscription.productId,
+        userId: subscription.userId,
+        capperId: subscription.capperId,
+        expiresAt: subscription.expiresAt,
+      });
 
-    return NextResponse.json({ received: true });
+      return NextResponse.json({ received: true });
+    } catch (error) {
+      console.error("Error creating subscription:", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+        data: {
+          userId: session.metadata.userId,
+          capperId: session.metadata.capperId,
+          productId: session.metadata.productId,
+          priceId: session.metadata.priceId,
+        },
+      });
+      throw error;
+    }
   } catch (error) {
     console.error("Subscription creation error:", {
       error: error instanceof Error ? error.message : error,

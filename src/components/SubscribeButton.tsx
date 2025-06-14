@@ -91,6 +91,14 @@ export function SubscribeButton({
       setIsLoading(true);
       setIsDebouncing(true);
 
+      // Log the subscription request details
+      console.log("Starting subscription with:", {
+        priceId,
+        capperId,
+        productId,
+        stripeAccountId,
+      });
+
       const response = await fetch("/api/stripe", {
         method: "POST",
         headers: {
@@ -106,10 +114,12 @@ export function SubscribeButton({
 
       if (!response.ok) {
         const error = await response.json();
+        console.error("Subscription API error:", error);
         throw new Error(error.message || "Failed to create checkout session");
       }
 
       const { sessionId, accountId } = await response.json();
+      console.log("Received session details:", { sessionId, accountId });
 
       // Initialize Stripe with the connected account ID
       const stripe = await loadStripe(
@@ -121,11 +131,13 @@ export function SubscribeButton({
 
       if (!stripe) throw new Error("Stripe failed to load");
 
+      console.log("Redirecting to checkout with session:", sessionId);
       const result = await stripe.redirectToCheckout({
         sessionId,
       });
 
       if (result.error) {
+        console.error("Stripe redirect error:", result.error);
         throw new Error(result.error.message);
       }
 
@@ -140,7 +152,15 @@ export function SubscribeButton({
       setIsLoading(false);
       setTimeout(() => setIsDebouncing(false), 2000);
     }
-  }, [capperId, productId, priceId, isLoading, isDebouncing, router]);
+  }, [
+    capperId,
+    productId,
+    priceId,
+    stripeAccountId,
+    isLoading,
+    isDebouncing,
+    router,
+  ]);
 
   const handleClick = async (e: React.MouseEvent) => {
     if (onClick) {

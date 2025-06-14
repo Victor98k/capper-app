@@ -182,8 +182,13 @@ export default function CapperProfilePage({
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       try {
+        // Only check subscription status if we have both capper ID and product ID
+        if (!capper?.id || !capper?.products?.[0]?.id) {
+          return;
+        }
+
         const response = await fetch(
-          `/api/subscriptions/check?capperId=${capper?.id}`,
+          `/api/subscriptions/check?capperId=${capper.id}&productId=${capper.products[0].id}`,
           {
             credentials: "include",
           }
@@ -202,10 +207,8 @@ export default function CapperProfilePage({
       }
     };
 
-    if (capper?.id) {
-      checkSubscriptionStatus();
-    }
-  }, [capper?.id]);
+    checkSubscriptionStatus();
+  }, [capper?.id, capper?.products]);
 
   useEffect(() => {
     const fetchPerformanceData = async () => {
@@ -749,7 +752,7 @@ export default function CapperProfilePage({
                                     : "text-white"
                                 }`}
                               >
-                                {product.default_price.unit_amount === 0
+                                {product.default_price.unit_amount <= 1
                                   ? "Free"
                                   : new Intl.NumberFormat("en-US", {
                                       style: "currency",

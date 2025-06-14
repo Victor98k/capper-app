@@ -133,11 +133,11 @@ export default function StripeProductDisplay() {
                 <div className="mb-8">
                   <div className="flex items-baseline">
                     <span className="text-4xl font-bold text-white">
-                      {product.unit_amount === 0
+                      {product.unit_amount <= 1
                         ? "Free"
                         : `$${(product.unit_amount / 100).toFixed(2)}`}
                     </span>
-                    {product.unit_amount > 0 && (
+                    {product.unit_amount > 1 && (
                       <span className="ml-2 text-white/80">
                         {product.currency.toUpperCase()}
                       </span>

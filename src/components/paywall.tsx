@@ -174,11 +174,15 @@ export default function PaywallComponent({
                 <CardContent className="flex-grow">
                   <div className="text-center">
                     <span className="text-5xl font-extrabold text-white">
-                      ${(product.unit_amount / 100).toFixed(2)}
+                      {product.unit_amount <= 1
+                        ? "Free"
+                        : `$${(product.unit_amount / 100).toFixed(2)}`}
                     </span>
-                    <span className="text-xl font-medium text-gray-300">
-                      /month
-                    </span>
+                    {product.unit_amount > 1 && (
+                      <span className="text-xl font-medium text-gray-300">
+                        /month
+                      </span>
+                    )}
                   </div>
                   <ul className="mt-8 space-y-4">
                     {product.features.map((feature) => (

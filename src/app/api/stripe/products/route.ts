@@ -106,7 +106,8 @@ export async function POST(req: Request) {
       name,
       description,
       price,
-      interval = "month",
+      packageType = "one_time",
+      interval = "week",
       features = [],
       currency = "eur", // Default to EUR if not provided
     } = await req.json();
@@ -140,21 +141,61 @@ export async function POST(req: Request) {
         metadata: {
           userId: payload.userId,
           features: JSON.stringify(features),
+          interval: interval,
+          packageType: packageType,
         },
       },
       { stripeAccount: user.stripeConnectId }
     );
 
-    // Create the price with the specified currency
-    const priceObject = await stripe.prices.create(
-      {
-        product: product.id,
-        unit_amount: Math.round(price * 100),
-        currency: currency.toLowerCase(),
-        recurring: interval === "one_time" ? undefined : { interval },
-      },
+    // Update the product to include its ID in metadata
+    await stripe.products.update(
+      product.id,
+      { metadata: { ...product.metadata, productId: product.id } },
       { stripeAccount: user.stripeConnectId }
     );
+
+    // For zero-price products, create a price of 1 and a 100% off coupon
+    let priceObject;
+    if (price === 0) {
+      // Create a price of 1 unit
+      priceObject = await stripe.prices.create(
+        {
+          product: product.id,
+          unit_amount: 1, // 1 cent/øre
+          currency: currency.toLowerCase(),
+          recurring: packageType === "recurring" ? { interval } : undefined,
+        },
+        { stripeAccount: user.stripeConnectId }
+      );
+
+      // Create a 100% off coupon
+      const coupon = await stripe.coupons.create(
+        {
+          percent_off: 100,
+          duration: packageType === "recurring" ? "forever" : "once",
+        },
+        { stripeAccount: user.stripeConnectId }
+      );
+
+      // Store the coupon ID in the product metadata
+      await stripe.products.update(
+        product.id,
+        { metadata: { ...product.metadata, couponId: coupon.id } },
+        { stripeAccount: user.stripeConnectId }
+      );
+    } else {
+      // Create the price with the specified amount
+      priceObject = await stripe.prices.create(
+        {
+          product: product.id,
+          unit_amount: Math.round(price * 100),
+          currency: currency.toLowerCase(),
+          recurring: packageType === "recurring" ? { interval } : undefined,
+        },
+        { stripeAccount: user.stripeConnectId }
+      );
+    }
 
     // Set this price as the default for the product
     await stripe.products.update(
@@ -170,6 +211,7 @@ export async function POST(req: Request) {
         description: product.description,
         default_price: priceObject,
         features: features,
+        couponId: price === 0 ? product.metadata.couponId : undefined,
       },
     });
   } catch (error) {
