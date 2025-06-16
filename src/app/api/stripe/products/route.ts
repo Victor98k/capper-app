@@ -133,6 +133,10 @@ export async function POST(req: Request) {
       );
     }
 
+    // Determine if this is a recurring subscription based on interval
+    const isRecurring = interval !== "one_time";
+    const finalPackageType = isRecurring ? "recurring" : packageType;
+
     // Create the product
     const product = await stripe.products.create(
       {
@@ -142,7 +146,7 @@ export async function POST(req: Request) {
           userId: payload.userId,
           features: JSON.stringify(features),
           interval: interval,
-          packageType: packageType,
+          packageType: finalPackageType,
         },
       },
       { stripeAccount: user.stripeConnectId }
@@ -164,7 +168,7 @@ export async function POST(req: Request) {
           product: product.id,
           unit_amount: 1, // 1 cent/øre
           currency: currency.toLowerCase(),
-          recurring: packageType === "recurring" ? { interval } : undefined,
+          recurring: isRecurring ? { interval } : undefined,
         },
         { stripeAccount: user.stripeConnectId }
       );
@@ -173,7 +177,7 @@ export async function POST(req: Request) {
       const coupon = await stripe.coupons.create(
         {
           percent_off: 100,
-          duration: packageType === "recurring" ? "forever" : "once",
+          duration: isRecurring ? "forever" : "once",
         },
         { stripeAccount: user.stripeConnectId }
       );
@@ -191,7 +195,7 @@ export async function POST(req: Request) {
           product: product.id,
           unit_amount: Math.round(price * 100),
           currency: currency.toLowerCase(),
-          recurring: packageType === "recurring" ? { interval } : undefined,
+          recurring: isRecurring ? { interval } : undefined,
         },
         { stripeAccount: user.stripeConnectId }
       );

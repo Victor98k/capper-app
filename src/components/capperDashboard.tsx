@@ -111,6 +111,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price),
+          packageType: formData.packageType,
           interval: formData.interval,
           features: formData.features,
           currency: formData.currency,
@@ -345,7 +346,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                   className="text-sm font-medium text-white/90"
                 >
                   {formData.packageType === "one_time"
-                    ? "Duration"
+                    ? "Access Duration"
                     : "Billing Interval"}
                 </Label>
                 <Select
@@ -358,32 +359,56 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
-                    <SelectItem
-                      value="week"
-                      className="text-white hover:bg-[#4e43ff]/10"
-                    >
-                      {formData.packageType === "one_time"
-                        ? "1 Week"
-                        : "Weekly"}
-                    </SelectItem>
-                    <SelectItem
-                      value="month"
-                      className="text-white hover:bg-[#4e43ff]/10"
-                    >
-                      {formData.packageType === "one_time"
-                        ? "1 Month"
-                        : "Monthly"}
-                    </SelectItem>
-                    <SelectItem
-                      value="year"
-                      className="text-white hover:bg-[#4e43ff]/10"
-                    >
-                      {formData.packageType === "one_time"
-                        ? "1 Year"
-                        : "Yearly"}
-                    </SelectItem>
+                    {formData.packageType === "one_time" ? (
+                      <>
+                        <SelectItem
+                          value="week"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          1 Week Access
+                        </SelectItem>
+                        <SelectItem
+                          value="month"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          1 Month Access
+                        </SelectItem>
+                        <SelectItem
+                          value="year"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          1 Year Access
+                        </SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem
+                          value="week"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          Weekly Billing
+                        </SelectItem>
+                        <SelectItem
+                          value="month"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          Monthly Billing
+                        </SelectItem>
+                        <SelectItem
+                          value="year"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          Yearly Billing
+                        </SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
+                <p className="text-sm text-gray-400 mt-1">
+                  {formData.packageType === "one_time"
+                    ? "Customers will have access for the selected duration"
+                    : "Customers will be billed at the selected interval"}
+                </p>
               </div>
             </div>
 
