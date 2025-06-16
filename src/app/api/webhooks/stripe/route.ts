@@ -152,6 +152,13 @@ export async function POST(req: Request) {
       );
     }
 
+    // Add event type logging
+    console.log("Processing webhook event:", {
+      type: event.type,
+      id: event.id,
+      created: new Date(event.created * 1000).toISOString(),
+    });
+
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object;
@@ -164,6 +171,9 @@ export async function POST(req: Request) {
           paymentIntent: session.payment_intent,
           subscription: session.subscription,
           lineItems: session.line_items,
+          status: session.status,
+          livemode: event.livemode,
+          rawSession: JSON.stringify(session, null, 2), // Add full session data
         });
 
         // Log the complete session object for debugging
@@ -172,70 +182,130 @@ export async function POST(req: Request) {
           JSON.stringify(session, null, 2)
         );
 
-        // Log the product ID we're about to use
-        console.log(
-          "Using product ID from session metadata:",
-          session.metadata.productId
-        );
-
-        // Verify the product exists in Stripe
-        try {
-          console.log("Attempting to retrieve product with:", {
-            productId: session.metadata.productId,
-            stripeAccountId: session.metadata.stripeAccountId,
-            metadata: session.metadata,
-            rawEvent: JSON.stringify(event.data.object, null, 2),
-          });
-
-          // First verify the Stripe account
-          const account = await stripe.accounts.retrieve(
-            session.metadata.stripeAccountId
-          );
-          console.log("Verified Stripe account:", {
-            accountId: account.id,
-            chargesEnabled: account.charges_enabled,
-            payoutsEnabled: account.payouts_enabled,
-          });
-
-          const product = await stripe.products.retrieve(
-            session.metadata.productId,
+        // Check if we have the required metadata
+        if (!session.metadata?.userId || !session.metadata?.capperId) {
+          console.log(
+            "No metadata found in session, retrieving from Stripe...",
             {
-              stripeAccount: session.metadata.stripeAccountId,
+              metadata: session.metadata,
+              lineItems: session.line_items,
             }
           );
-          console.log("Verified product exists:", {
-            productId: product.id,
-            name: product.name,
-            active: product.active,
-            metadata: product.metadata,
-          });
+          try {
+            // Get the session ID from the event
+            const sessionId = session.id;
+            console.log("Retrieving session from Stripe:", { sessionId });
 
-          // Check if the product is archived
-          if (!product.active) {
-            console.error("Product is archived:", {
-              productId: product.id,
-              name: product.name,
-            });
-            return NextResponse.json(
-              { error: "Product is archived" },
-              { status: 400 }
+            // Retrieve the session with expanded fields
+            const retrievedSession = await stripe.checkout.sessions.retrieve(
+              sessionId,
+              {
+                expand: ["line_items", "subscription", "payment_intent"],
+              }
             );
+
+            console.log("Retrieved session from Stripe:", {
+              id: retrievedSession.id,
+              metadata: retrievedSession.metadata,
+              mode: retrievedSession.mode,
+              paymentStatus: retrievedSession.payment_status,
+              status: retrievedSession.status,
+              livemode: retrievedSession.livemode,
+            });
+
+            // If we have metadata in the retrieved session, use it
+            if (
+              retrievedSession.metadata?.userId &&
+              retrievedSession.metadata?.capperId
+            ) {
+              console.log("Using metadata from retrieved session");
+              return await handleSubscriptionCreation(retrievedSession);
+            }
+
+            // If we still don't have metadata, try to get it from the line items
+            if (retrievedSession.line_items?.data?.[0]?.price?.product) {
+              const productId =
+                retrievedSession.line_items.data[0].price.product;
+              console.log("Retrieving product details:", { productId });
+
+              const product = await stripe.products.retrieve(
+                typeof productId === "string" ? productId : productId.id
+              );
+
+              console.log("Retrieved product:", {
+                id: product.id,
+                metadata: product.metadata,
+              });
+
+              if (product.metadata?.userId && product.metadata?.capperId) {
+                console.log("Using metadata from product");
+                const sessionWithMetadata = {
+                  ...retrievedSession,
+                  metadata: {
+                    ...retrievedSession.metadata,
+                    userId: product.metadata.userId,
+                    capperId: product.metadata.capperId,
+                  },
+                };
+                return await handleSubscriptionCreation(sessionWithMetadata);
+              }
+            }
+          } catch (error) {
+            console.error("Error retrieving session or product from Stripe:", {
+              error: error instanceof Error ? error.message : "Unknown error",
+              sessionId: session.id,
+            });
           }
-        } catch (error) {
-          console.error("Error verifying product:", {
-            error: error instanceof Error ? error.message : "Unknown error",
-            productId: session.metadata.productId,
-            stripeAccountId: session.metadata.stripeAccountId,
-            metadata: session.metadata,
-            rawEvent: JSON.stringify(event.data.object, null, 2),
-          });
-          return NextResponse.json(
-            { error: "Failed to verify product" },
-            { status: 400 }
+        } else {
+          // We have metadata, proceed with subscription creation
+          console.log(
+            "Found metadata in session, proceeding with subscription creation:",
+            {
+              userId: session.metadata.userId,
+              capperId: session.metadata.capperId,
+              productId: session.metadata.productId,
+              priceId: session.metadata.priceId,
+              stripeAccountId: session.metadata.stripeAccountId,
+            }
           );
+
+          // If payment_intent is null but payment_status is paid, try to retrieve the payment intent
+          if (!session.payment_intent && session.payment_status === "paid") {
+            console.log(
+              "Payment intent is null but payment status is paid, retrieving payment intent..."
+            );
+            try {
+              const retrievedSession = await stripe.checkout.sessions.retrieve(
+                session.id,
+                {
+                  expand: ["payment_intent"],
+                }
+              );
+
+              if (retrievedSession.payment_intent) {
+                console.log(
+                  "Found payment intent in retrieved session:",
+                  retrievedSession.payment_intent
+                );
+                session.payment_intent = retrievedSession.payment_intent;
+              }
+            } catch (error) {
+              console.error("Error retrieving payment intent:", {
+                error: error instanceof Error ? error.message : "Unknown error",
+                sessionId: session.id,
+              });
+            }
+          }
+
+          return await handleSubscriptionCreation(session);
         }
 
-        return await handleSubscriptionCreation(session);
+        // If we still don't have metadata, return an error
+        console.error("Missing required metadata:", session.metadata);
+        return NextResponse.json(
+          { error: "Missing required metadata" },
+          { status: 400 }
+        );
 
       case "charge.succeeded":
         const charge = event.data.object;
@@ -298,10 +368,17 @@ async function handleSubscriptionCreation(session: any) {
       paymentStatus: session.payment_status,
       status: session.status,
       lineItems: session.line_items,
+      paymentIntent: session.payment_intent,
+      subscription: session.subscription,
+      rawSession: JSON.stringify(session, null, 2),
     });
 
     if (!session.metadata?.userId || !session.metadata?.capperId) {
-      console.error("Missing required metadata:", session.metadata);
+      console.error("Missing required metadata:", {
+        metadata: session.metadata,
+        lineItems: session.line_items,
+        mode: session.mode,
+      });
       return NextResponse.json(
         { error: "Missing required metadata" },
         { status: 400 }
@@ -314,6 +391,7 @@ async function handleSubscriptionCreation(session: any) {
       include: {
         user: {
           select: {
+            id: true,
             stripeConnectId: true,
           },
         },
@@ -323,11 +401,14 @@ async function handleSubscriptionCreation(session: any) {
     console.log("Retrieved capper:", {
       capperId: capper?.id,
       stripeConnectId: capper?.user?.stripeConnectId,
+      metadataStripeAccountId: session.metadata.stripeAccountId,
+      metadata: session.metadata,
     });
 
     if (!capper?.user?.stripeConnectId) {
       console.error("Capper's Stripe Connect ID not found:", {
         capperId: session.metadata.capperId,
+        metadata: session.metadata,
       });
       return NextResponse.json(
         { error: "Capper's Stripe account not found" },
@@ -335,22 +416,82 @@ async function handleSubscriptionCreation(session: any) {
       );
     }
 
-    // Log the product ID we're about to use
-    console.log(
-      "Using product ID from session metadata:",
-      session.metadata.productId
-    );
+    // Update the capper's stripeConnectId if it doesn't match
+    if (capper.user.stripeConnectId !== session.metadata.stripeAccountId) {
+      console.log("Updating capper's stripeConnectId:", {
+        oldId: capper.user.stripeConnectId,
+        newId: session.metadata.stripeAccountId,
+      });
 
-    // For one-time payments, use payment intent ID
-    // For subscriptions, use subscription ID
-    const identifier =
-      session.mode === "subscription"
-        ? session.subscription
-        : session.payment_intent;
+      await prisma.user.update({
+        where: { id: capper.user.id },
+        data: {
+          stripeConnectId: session.metadata.stripeAccountId,
+        },
+      });
+    }
 
-    console.log("Using identifier for subscription:", {
-      identifier,
+    // For recurring subscriptions, we need to get the subscription ID
+    let subscriptionId = null;
+    if (session.mode === "subscription") {
+      console.log("Processing recurring subscription:", {
+        sessionSubscription: session.subscription,
+        mode: session.mode,
+      });
+
+      if (session.subscription) {
+        subscriptionId = session.subscription;
+        console.log("Found subscription ID in session:", subscriptionId);
+      } else {
+        console.log("No subscription ID in session, retrieving from Stripe...");
+        // If subscription ID is not in the session, retrieve it
+        const retrievedSession = await stripe.checkout.sessions.retrieve(
+          session.id,
+          {
+            expand: ["subscription"],
+          },
+          { stripeAccount: capper.user.stripeConnectId }
+        );
+        subscriptionId = retrievedSession.subscription?.id;
+        console.log("Retrieved subscription ID:", subscriptionId);
+      }
+    }
+
+    // For one-time payments, use payment intent ID or session ID
+    let paymentIntentId = null;
+    if (session.mode === "payment") {
+      // If payment_intent is null but payment_status is paid, try to retrieve the payment intent
+      if (!session.payment_intent && session.payment_status === "paid") {
+        try {
+          const retrievedSession = await stripe.checkout.sessions.retrieve(
+            session.id,
+            {
+              expand: ["payment_intent"],
+            },
+            { stripeAccount: capper.user.stripeConnectId }
+          );
+
+          if (retrievedSession.payment_intent) {
+            paymentIntentId = retrievedSession.payment_intent;
+          } else {
+            // If still no payment intent, use the session ID as a fallback
+            paymentIntentId = session.id;
+          }
+        } catch (error) {
+          console.error("Error retrieving payment intent:", error);
+          // Use session ID as fallback
+          paymentIntentId = session.id;
+        }
+      } else {
+        paymentIntentId = session.payment_intent || session.id;
+      }
+    }
+
+    console.log("Using identifiers for subscription:", {
+      subscriptionId,
+      paymentIntentId,
       mode: session.mode,
+      metadata: session.metadata,
     });
 
     // Check for existing subscription
@@ -358,8 +499,8 @@ async function handleSubscriptionCreation(session: any) {
       const existingSubscription = await prisma.subscription.findFirst({
         where: {
           OR: [
-            { stripeSubscriptionId: identifier },
-            { stripePaymentIntentId: identifier },
+            { stripeSubscriptionId: subscriptionId },
+            { stripePaymentIntentId: paymentIntentId },
           ],
           userId: session.metadata.userId,
           capperId: session.metadata.capperId,
@@ -367,7 +508,10 @@ async function handleSubscriptionCreation(session: any) {
       });
 
       if (existingSubscription) {
-        console.log("Subscription already exists:", { identifier });
+        console.log("Subscription already exists:", {
+          subscriptionId,
+          paymentIntentId,
+        });
         return NextResponse.json({ received: true });
       }
     } catch (error) {
@@ -379,7 +523,7 @@ async function handleSubscriptionCreation(session: any) {
       throw error;
     }
 
-    // Create new subscription using the product ID from session metadata
+    // Create new subscription
     try {
       console.log("Creating new subscription with data:", {
         userId: session.metadata.userId,
@@ -387,7 +531,8 @@ async function handleSubscriptionCreation(session: any) {
         productId: session.metadata.productId,
         priceId: session.metadata.priceId,
         mode: session.mode,
-        paymentIntent: session.payment_intent,
+        subscriptionId,
+        paymentIntentId,
         customer: session.customer,
       });
 
@@ -416,25 +561,14 @@ async function handleSubscriptionCreation(session: any) {
         );
       }
 
-      // Calculate expiration date
+      // Calculate expiration date only for one-time payments
       const now = Date.now();
       let expiresAt: Date | null = null;
 
-      if (session.mode === "payment") {
-        switch (session.metadata?.interval) {
-          case "week":
-            expiresAt = new Date(now + 7 * 24 * 60 * 60 * 1000); // 1 week
-            break;
-          case "month":
-            expiresAt = new Date(now + 30 * 24 * 60 * 60 * 1000); // 1 month
-            break;
-          case "year":
-            expiresAt = new Date(now + 365 * 24 * 60 * 60 * 1000); // 1 year
-            break;
-          default:
-            expiresAt = new Date(now + 30 * 24 * 60 * 60 * 1000); // Default to 30 days
-        }
-      } else if (session.metadata?.packageType !== "recurring") {
+      if (
+        session.mode === "payment" ||
+        session.metadata?.packageType === "one_time"
+      ) {
         switch (session.metadata?.interval) {
           case "week":
             expiresAt = new Date(now + 7 * 24 * 60 * 60 * 1000); // 1 week
@@ -457,10 +591,8 @@ async function handleSubscriptionCreation(session: any) {
           productId: session.metadata.productId,
           priceId: session.metadata.priceId,
           status: "active",
-          stripeSubscriptionId:
-            session.mode === "subscription" ? session.subscription : null,
-          stripePaymentIntentId:
-            session.mode === "payment" ? session.payment_intent : null,
+          stripeSubscriptionId: subscriptionId,
+          stripePaymentIntentId: paymentIntentId,
           stripeCustomerId: session.customer,
           subscribedAt: new Date(),
           expiresAt,
@@ -473,6 +605,8 @@ async function handleSubscriptionCreation(session: any) {
         userId: subscription.userId,
         capperId: subscription.capperId,
         expiresAt: subscription.expiresAt,
+        stripeSubscriptionId: subscription.stripeSubscriptionId,
+        stripePaymentIntentId: subscription.stripePaymentIntentId,
       });
 
       return NextResponse.json({ received: true });

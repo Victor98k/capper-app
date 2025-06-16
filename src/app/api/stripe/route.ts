@@ -166,13 +166,58 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
+    // Get user details including email
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { email: true },
+    });
+
+    if (!user?.email) {
+      return NextResponse.json(
+        { error: "User email not found" },
+        { status: 400 }
+      );
+    }
+
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL || "https://app.cappersports.co";
+
+    // Get or create customer for the user
+    let customer;
+    try {
+      // First try to find existing customer
+      const customers = await stripe.customers.list(
+        {
+          email: user.email,
+          limit: 1,
+        },
+        { stripeAccount: capper.user.stripeConnectId }
+      );
+
+      if (customers.data.length > 0) {
+        customer = customers.data[0];
+      } else {
+        // Create new customer if none exists
+        customer = await stripe.customers.create(
+          {
+            email: user.email,
+            metadata: {
+              userId: payload.userId,
+            },
+          },
+          { stripeAccount: capper.user.stripeConnectId }
+        );
+      }
+    } catch (error) {
+      console.error("Error handling customer:", error);
+      // Continue without customer - Stripe will create one automatically
+    }
 
     // Create checkout session with different mode based on price type
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       mode:
-        price.type === "recurring"
+        price.type === "recurring" ||
+        product.metadata?.packageType === "recurring"
           ? ("subscription" as const)
           : ("payment" as const),
       payment_method_types: ["card"],
@@ -182,12 +227,13 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
+      customer: customer?.id, // Add customer ID if we have one
       success_url: new URL(
-        `/cappers/${encodeURIComponent(capper.user.username)}`,
+        `/cappers/${encodeURIComponent(capper.user.username)}?subscription=success`,
         baseUrl
       ).toString(),
       cancel_url: new URL(
-        `/cappers/${encodeURIComponent(capper.user.username)}`,
+        `/cappers/${encodeURIComponent(capper.user.username)}?subscription=cancelled`,
         baseUrl
       ).toString(),
       metadata: {
@@ -196,8 +242,13 @@ export async function POST(req: Request) {
         productId: productId,
         priceId: price.id,
         priceType: price.type,
-        interval: price.recurring?.interval || "one_time",
-        packageType: price.type === "recurring" ? "recurring" : "one_time",
+        interval:
+          price.recurring?.interval || product.metadata?.interval || "one_time",
+        packageType:
+          price.type === "recurring" ||
+          product.metadata?.packageType === "recurring"
+            ? "recurring"
+            : "one_time",
         stripeAccountId: capper.user.stripeConnectId,
       },
     };
@@ -207,6 +258,8 @@ export async function POST(req: Request) {
       mode: sessionConfig.mode,
       metadata: sessionConfig.metadata,
       lineItems: sessionConfig.line_items,
+      priceType: price.type,
+      productMetadata: product.metadata,
     });
 
     // If this is a zero-price product (price.unit_amount === 1), apply the coupon
