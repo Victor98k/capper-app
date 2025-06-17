@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest) {
     );
     const totalUnitsWon = userBets
       .filter((bet) => bet.status === "WON")
-      .reduce((sum, bet) => sum + (bet.units || 0), 0);
+      .reduce((sum, bet) => sum + (bet.units ?? 0) * (bet.odds - 1), 0);
 
     // Calculate roi
     const roi = totalUnitsBet > 0 ? (totalUnitsWon / totalUnitsBet) * 100 : 0;
