@@ -86,23 +86,33 @@ export async function GET(request: Request) {
       { stripeAccount: user.stripeConnectId }
     );
 
-    // console.log(
-    //   "Recent Payouts:",
-    //   payouts.data.map((payout) => ({
-    //     amount: payout.amount / 100,
-    //     status: payout.status,
-    //     arrivalDate: new Date(payout.arrival_date * 1000).toISOString(),
-    //   }))
-    // );
+    // Fetch active customers who purchased one-time packages
+    let allCustomers: Stripe.Customer[] = [];
+    let hasMoreCustomers = true;
+    let startingAfterCustomer: string | undefined = undefined;
 
-    // console.log("Subscription Data:", {
-    //   activeSubscriptions: allSubscriptions.length,
-    //   monthlyRecurringRevenue: allSubscriptions.reduce(
-    //     (sum, sub) => sum + (sub.items.data[0]?.price?.unit_amount || 0) / 100,
-    //     0
-    //   ),
-    // });
+    while (hasMoreCustomers) {
+      const customerResponse: Stripe.Response<Stripe.ApiList<Stripe.Customer>> =
+        await stripe.customers.list(
+          {
+            limit: 100,
+            starting_after: startingAfterCustomer,
+          },
+          {
+            stripeAccount: user.stripeConnectId,
+          }
+        );
 
+      allCustomers = [...allCustomers, ...customerResponse.data];
+      hasMoreCustomers = customerResponse.has_more;
+
+      if (hasMoreCustomers && customerResponse.data.length > 0) {
+        startingAfterCustomer =
+          customerResponse.data[customerResponse.data.length - 1].id;
+      }
+    }
+
+    // Return the data including active customers
     return NextResponse.json({
       totalBalance: totalBalance / 100,
       payoutEnabled: account.payouts_enabled,
@@ -121,6 +131,11 @@ export async function GET(request: Request) {
           0
         ),
       },
+      activeCustomers: allCustomers.map((customer) => ({
+        id: customer.id,
+        email: customer.email,
+        name: customer.name,
+      })),
     });
   } catch (error) {
     console.error("Error fetching Stripe account data:", error);

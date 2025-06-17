@@ -1066,6 +1066,32 @@ export function CapperDashboard() {
                         )}
                       </CardContent>
                     </Card>
+
+                    {/* Active Customers Section */}
+                    <Card className="bg-white/10 backdrop-blur-lg border-none">
+                      <CardHeader>
+                        <CardTitle className="text-lg">
+                          Active Customers
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {isLoadingStripeData ? (
+                          <div className="flex items-center space-x-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-gray-300">Loading...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-2xl font-bold">
+                              {stripeAccountData?.activeCustomers?.length || 0}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              Active customers
+                            </p>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
                   </div>
 
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-black/20 rounded-xl p-4 md:p-6 space-y-4 md:space-y-0">
