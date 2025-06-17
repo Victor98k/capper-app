@@ -223,7 +223,7 @@ export async function POST(req: Request) {
         bookmaker,
         template: template || "standard",
         productId,
-        units: parseInt(units) || 0,
+        units: parseFloat(units) || 0,
         capper: {
           connect: {
             id: capperProfile.id,
