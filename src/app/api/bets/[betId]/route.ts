@@ -57,12 +57,6 @@ export async function PUT(req: NextRequest) {
     // Calculate roi
     const roi = totalUnitsBet > 0 ? (totalUnitsWon / totalUnitsBet) * 100 : 0;
 
-    // Update user and capper with new winrate and roi
-    await prisma.user.update({
-      where: { id: updatedBet.userId },
-      data: { winrate, roi },
-    });
-
     // Fetch all bets for the capper
     const capperBets = await prisma.bet.findMany({
       where: { userId: updatedBet.userId },

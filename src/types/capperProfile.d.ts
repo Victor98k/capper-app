@@ -34,4 +34,5 @@ export type CapperProfile = {
     marketing_features: string[];
   }[];
   roi: number;
+  winrate: number;
 };
