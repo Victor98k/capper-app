@@ -59,6 +59,8 @@ export async function GET(request: NextRequest) {
             lastName: true,
             username: true,
             stripeConnectId: true,
+            roi: true,
+            winrate: true,
           },
         },
       },

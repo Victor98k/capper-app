@@ -156,7 +156,8 @@ export default function CapperProfilePage({
           throw new Error(data.error);
         }
 
-        setCapper(data);
+        // Update capper state with roi and winrate
+        setCapper({ ...data, roi: data.user.roi, winrate: data.user.winrate });
       } catch (error: unknown) {
         console.error(
           "Error fetching capper profile:",
@@ -478,12 +479,12 @@ export default function CapperProfilePage({
               <StatCard
                 icon={<Trophy />}
                 title="Win Rate"
-                value={calculateWinRate(performanceData)}
+                value={`${capper.winrate || 0}%`}
               />
               <StatCard
                 icon={<TrendingUp />}
                 title="ROI"
-                value={`${(capper.roi || 0).toFixed(2)}%`}
+                value={`${capper.roi || 0}%`}
               />
               <StatCard
                 icon={<Calculator />}
