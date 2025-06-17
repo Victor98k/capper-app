@@ -156,14 +156,12 @@ export default function CapperProfilePage({
           throw new Error(data.error);
         }
 
-        // Add detailed console logs
-        console.log("Capper Products Data:", data.products);
-        data.products.forEach((product: any, index: number) => {
-          console.log(
-            `Product ${index + 1} Features:`,
-            product.marketing_features
-          );
-        });
+        // data.products.forEach((product: any, index: number) => {
+        //   console.log(
+        //     `Product ${index + 1} Features:`,
+        //     product.marketing_features
+        //   );
+        // });
 
         setCapper(data);
       } catch (error: unknown) {
@@ -196,7 +194,7 @@ export default function CapperProfilePage({
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Fetched subscriptions for profile:", data);
+          // console.log("Fetched subscriptions for profile:", data);
           setIsSubscribed(data.subscribedProducts.length > 0);
           setSubscribedProducts(data.subscribedProducts || []);
           setSubscriptionDetails(data.subscriptionDetails);
@@ -230,14 +228,15 @@ export default function CapperProfilePage({
     }
   }, [capper, resolvedParams.username]);
 
-  useEffect(() => {
-    if (capper) {
-      console.log(
-        "Capper subscriberIds (subscriptions):",
-        capper.subscriberIds
-      );
-    }
-  }, [capper]);
+  // ERROR LOGS
+  // useEffect(() => {
+  //   if (capper) {
+  //     console.log(
+  //       "Capper subscriberIds (subscriptions):",
+  //       capper.subscriberIds
+  //     );
+  //   }
+  // }, [capper]);
 
   // Add this useEffect to handle the initial scroll if there's a hash in the URL
   useEffect(() => {
