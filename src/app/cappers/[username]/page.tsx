@@ -156,13 +156,6 @@ export default function CapperProfilePage({
           throw new Error(data.error);
         }
 
-        // data.products.forEach((product: any, index: number) => {
-        //   console.log(
-        //     `Product ${index + 1} Features:`,
-        //     product.marketing_features
-        //   );
-        // });
-
         setCapper(data);
       } catch (error: unknown) {
         console.error(
@@ -490,7 +483,7 @@ export default function CapperProfilePage({
               <StatCard
                 icon={<TrendingUp />}
                 title="ROI"
-                value={`${capper.roi || 0}%`}
+                value={`${(capper.roi || 0).toFixed(2)}%`}
               />
               <StatCard
                 icon={<Calculator />}

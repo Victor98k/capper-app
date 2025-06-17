@@ -240,12 +240,11 @@ const BetDialog = ({
         <DialogFooter className="mt-6">
           <Button
             onClick={() => {
-              router.push(`/cappers/${capperInfo.username}#subscription-plans`);
-              // Add a small delay to ensure the navigation completes before scrolling
-              setTimeout(() => {
-                const element = document.getElementById("subscription-plans");
-                element?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }, 100);
+              const element = document.getElementById("subscription-plans");
+              element?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
             }}
             className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 py-6 text-lg font-semibold rounded-xl transition-transform hover:scale-[1.02]"
           >
@@ -477,68 +476,19 @@ function InstagramPost({
                   />
                 </Dialog>
               ) : (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="text-[#4e43ff] hover:underline font-medium">
-                      See more
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-bold mb-4">
-                        Subscribe to View Content
-                      </DialogTitle>
-                      <DialogDescription className="text-gray-400">
-                        <div className="flex flex-col gap-4">
-                          <p>
-                            Subscribe to {capperInfo.username}'s content to view
-                            their full posts and more exclusive content.
-                          </p>
-                          <div className="bg-gray-800/30 p-4 rounded-lg">
-                            <h4 className="font-semibold text-gray-200 mb-2">
-                              What you'll get:
-                            </h4>
-                            <ul className="space-y-2">
-                              <li className="flex items-center gap-2 text-sm">
-                                <span className="text-[#4e43ff]">✓</span> Full
-                                post content
-                              </li>
-                              <li className="flex items-center gap-2 text-sm">
-                                <span className="text-[#4e43ff]">✓</span>{" "}
-                                Exclusive analysis
-                              </li>
-                              <li className="flex items-center gap-2 text-sm">
-                                <span className="text-[#4e43ff]">✓</span>{" "}
-                                Premium insights
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="mt-6">
-                      <Button
-                        onClick={() => {
-                          router.push(
-                            `/cappers/${capperInfo.username}#subscription-plans`
-                          );
-                          // Add a small delay to ensure the navigation completes before scrolling
-                          setTimeout(() => {
-                            const element =
-                              document.getElementById("subscription-plans");
-                            element?.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start",
-                            });
-                          }, 100);
-                        }}
-                        className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 py-6 text-lg font-semibold rounded-xl transition-transform hover:scale-[1.02]"
-                      >
-                        View Subscription Plans
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                <button
+                  className="text-[#4e43ff] hover:underline font-medium"
+                  onClick={() => {
+                    const element =
+                      document.getElementById("subscription-plans");
+                    element?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
+                  }}
+                >
+                  See more
+                </button>
               )}
             </p>
 
@@ -616,9 +566,12 @@ function InstagramPost({
                     }`}
                     onClick={() => {
                       if (!isSubscribed && !isOwnPost) {
-                        router.push(
-                          `/cappers/${capperInfo.username}#subscription-plans`
-                        );
+                        const element =
+                          document.getElementById("subscription-plans");
+                        element?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
                       }
                     }}
                   >
@@ -830,69 +783,19 @@ function InstagramPost({
                       />
                     </Dialog>
                   ) : (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <button className="text-[#4e43ff] hover:underline font-medium">
-                          See more
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
-                        <DialogHeader>
-                          <DialogTitle className="text-xl font-bold mb-4">
-                            Subscribe to View Content
-                          </DialogTitle>
-                          <DialogDescription className="text-gray-400">
-                            <div className="flex flex-col gap-4">
-                              <p>
-                                Subscribe to {capperInfo.username}'s content to
-                                view their full posts and more exclusive
-                                content.
-                              </p>
-                              <div className="bg-gray-800/30 p-4 rounded-lg">
-                                <h4 className="font-semibold text-gray-200 mb-2">
-                                  What you'll get:
-                                </h4>
-                                <ul className="space-y-2">
-                                  <li className="flex items-center gap-2 text-sm">
-                                    <span className="text-[#4e43ff]">✓</span>{" "}
-                                    Full post content
-                                  </li>
-                                  <li className="flex items-center gap-2 text-sm">
-                                    <span className="text-[#4e43ff]">✓</span>{" "}
-                                    Exclusive analysis
-                                  </li>
-                                  <li className="flex items-center gap-2 text-sm">
-                                    <span className="text-[#4e43ff]">✓</span>{" "}
-                                    Premium insights
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-                          </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter className="mt-6">
-                          <Button
-                            onClick={() => {
-                              router.push(
-                                `/cappers/${capperInfo.username}#subscription-plans`
-                              );
-                              // Add a small delay to ensure the navigation completes before scrolling
-                              setTimeout(() => {
-                                const element =
-                                  document.getElementById("subscription-plans");
-                                element?.scrollIntoView({
-                                  behavior: "smooth",
-                                  block: "start",
-                                });
-                              }, 100);
-                            }}
-                            className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 py-6 text-lg font-semibold rounded-xl transition-transform hover:scale-[1.02]"
-                          >
-                            View Subscription Plans
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                    <button
+                      className="text-[#4e43ff] hover:underline font-medium"
+                      onClick={() => {
+                        const element =
+                          document.getElementById("subscription-plans");
+                        element?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      }}
+                    >
+                      See more
+                    </button>
                   )}
                 </div>
               </div>
@@ -911,9 +814,12 @@ function InstagramPost({
                       }`}
                       onClick={() => {
                         if (!isSubscribed && !isOwnPost) {
-                          router.push(
-                            `/cappers/${capperInfo.username}#subscription-plans`
-                          );
+                          const element =
+                            document.getElementById("subscription-plans");
+                          element?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          });
                         }
                       }}
                     >
@@ -972,9 +878,12 @@ function InstagramPost({
                   }`}
                   onClick={() => {
                     if (!isSubscribed && !isOwnPost) {
-                      router.push(
-                        `/cappers/${capperInfo.username}#subscription-plans`
-                      );
+                      const element =
+                        document.getElementById("subscription-plans");
+                      element?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
                     }
                   }}
                 >

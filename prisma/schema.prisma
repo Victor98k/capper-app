@@ -33,6 +33,10 @@ model User {
   bets          Bet[]     @relation("UserBets")
   socialLinks   Json?           
   Subscription Subscription[]
+  totalUnitsBet Float @default(0)
+  totalUnitsWon Float @default(0)
+  roi           Float @default(0)
+  winrate       Float?          @default(0) // Win rate percentage
 }
 
 
@@ -61,6 +65,7 @@ model Capper {
   updatedAt     DateTime      @updatedAt
   subscriptions Subscription[]
   profileImage  String?
+  winrate       Float?          @default(0) // Win rate percentage
 }
   
 // TODO: Add SEO friendly fields. 

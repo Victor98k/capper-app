@@ -45,6 +45,8 @@ interface BetValidation {
     username: string;
     firstName: string;
     lastName: string;
+    winrate: number;
+    roi: number;
   };
   postInfo: {
     title: string;
@@ -121,7 +123,7 @@ export function SuperUserDashboard() {
       setIsLoading(true);
       const response = await fetch("/api/bets/pending");
       if (response.ok) {
-        const data = await response.json();
+        const data: BetValidation[] = await response.json();
         setBetsToValidate(data);
       } else {
         toast.error("Failed to fetch bets");
@@ -508,6 +510,12 @@ export function SuperUserDashboard() {
                             </h3>
                             <p className="text-gray-400">
                               By {bet.postInfo.capper}
+                            </p>
+                            <p className="text-gray-400">
+                              Winrate: {(bet.userInfo.winrate ?? 0).toFixed(2)}%
+                            </p>
+                            <p className="text-gray-400">
+                              ROI: {(bet.userInfo.roi ?? 0).toFixed(2)}%
                             </p>
                           </div>
                           <div className="flex gap-6 text-base">
