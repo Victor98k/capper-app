@@ -64,6 +64,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     newFeature: "",
     currency: "eur",
   });
+  const [isFree, setIsFree] = useState(false);
 
   // Add query for Stripe account data
   const { data: stripeAccountData } = useQuery({
@@ -110,7 +111,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         body: JSON.stringify({
           name: formData.name,
           description: formData.description,
-          price: parseFloat(formData.price),
+          price: isFree ? 0 : parseFloat(formData.price),
           packageType: formData.packageType,
           interval: formData.interval,
           features: formData.features,
@@ -188,7 +189,10 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
           Create New Product
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] bg-[#020817] text-white border border-[#4e43ff]/20">
+      <DialogContent
+        className="sm:max-w-[600px] bg-[#020817] text-white border border-[#4e43ff]/20"
+        style={{ maxHeight: "80vh", overflowY: "auto" }}
+      >
         <form onSubmit={handleSubmit}>
           <DialogHeader className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#4e43ff] to-[#8983ff] bg-clip-text text-transparent">
@@ -244,6 +248,22 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label
+                htmlFor="isFree"
+                className="text-sm font-medium text-white/90"
+              >
+                Free
+              </Label>
+              <Button
+                type="button"
+                onClick={() => setIsFree(!isFree)}
+                className={`mt-2 bg-${isFree ? "[#4e43ff]" : "[#1a1a1a]"} text-white hover:bg-${isFree ? "[#4e43ff]/90" : "[#4e43ff]/10"} transition-all`}
+              >
+                {isFree ? "Unset Free" : "Set as Free"}
+              </Button>
+            </div>
+
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label
@@ -268,6 +288,7 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                     placeholder="99.99"
                     className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] pl-12 transition-all"
                     required
+                    disabled={isFree}
                   />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
                     {getCurrencySymbol(formData.currency)}
