@@ -126,7 +126,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ ...capper, products });
+    // Fetch all active subscriptions for this capper
+    const subscriptions = await prisma.subscription.findMany({
+      where: {
+        capperId: capper.id,
+        status: "active",
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    // Get unique user IDs (subscribers)
+    const subscriberIds = [...new Set(subscriptions.map((sub) => sub.userId))];
+
+    return NextResponse.json({ ...capper, products, subscriberIds });
   } catch (error) {
     console.error("Error fetching capper:", error);
     return NextResponse.json(

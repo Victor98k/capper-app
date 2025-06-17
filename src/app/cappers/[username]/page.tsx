@@ -196,6 +196,7 @@ export default function CapperProfilePage({
 
         if (response.ok) {
           const data = await response.json();
+          console.log("Fetched subscriptions for profile:", data);
           setIsSubscribed(data.subscribedProducts.length > 0);
           setSubscribedProducts(data.subscribedProducts || []);
           setSubscriptionDetails(data.subscriptionDetails);
@@ -228,6 +229,15 @@ export default function CapperProfilePage({
       fetchPerformanceData();
     }
   }, [capper, resolvedParams.username]);
+
+  useEffect(() => {
+    if (capper) {
+      console.log(
+        "Capper subscriberIds (subscriptions):",
+        capper.subscriberIds
+      );
+    }
+  }, [capper]);
 
   // Add this useEffect to handle the initial scroll if there's a hash in the URL
   useEffect(() => {

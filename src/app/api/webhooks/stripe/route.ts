@@ -27,14 +27,14 @@ const webhookSecret =
     : process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL);
 
 // Add debug logging to see which secret is being used
-console.log("Webhook environment check:", {
-  NODE_ENV: process.env.NODE_ENV,
-  hasMainSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
-  hasProductionSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
-  hasLocalSecret: !!process.env.STRIPE_WEBHOOK_SECRET_LOCAL,
-  actualSecret: webhookSecret?.substring(0, 10) + "...", // Only log first 10 chars
-  isDevelopment: process.env.NODE_ENV === "development",
-});
+// console.log("Webhook environment check:", {
+//   NODE_ENV: process.env.NODE_ENV,
+//   hasMainSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+//   hasProductionSecret: !!process.env.STRIPE_WEBHOOK_SECRET_PRODUCTION_URL,
+//   hasLocalSecret: !!process.env.STRIPE_WEBHOOK_SECRET_LOCAL,
+//   actualSecret: webhookSecret?.substring(0, 10) + "...", // Only log first 10 chars
+//   isDevelopment: process.env.NODE_ENV === "development",
+// });
 
 const logWebhookError = (error: any, context: string) => {
   /*
@@ -103,19 +103,19 @@ export async function POST(req: Request) {
     const sig = headersList.get("stripe-signature");
 
     // Log all headers for debugging
-    console.log("All webhook headers:", {
-      headers: Object.fromEntries(headersList.entries()),
-    });
+    // console.log("All webhook headers:", {
+    //   headers: Object.fromEntries(headersList.entries()),
+    // });
 
-    console.log("Webhook request debug:", {
-      hasSignature: !!sig,
-      signaturePrefix: sig?.substring(0, 10) + "...",
-      hasWebhookSecret: !!webhookSecret,
-      webhookSecretPrefix: webhookSecret?.substring(0, 10) + "...",
-      environment: process.env.NODE_ENV,
-      rawBody: text.substring(0, 200) + "...", // Log first 200 chars of the request body
-      fullBody: text, // Log the full body for debugging
-    });
+    // console.log("Webhook request debug:", {
+    //   hasSignature: !!sig,
+    //   signaturePrefix: sig?.substring(0, 10) + "...",
+    //   hasWebhookSecret: !!webhookSecret,
+    //   webhookSecretPrefix: webhookSecret?.substring(0, 10) + "...",
+    //   environment: process.env.NODE_ENV,
+    //   rawBody: text.substring(0, 200) + "...", // Log first 200 chars of the request body
+    //   fullBody: text, // Log the full body for debugging
+    // });
 
     if (!sig || !webhookSecret) {
       console.error("Webhook validation failed:", {
@@ -132,13 +132,13 @@ export async function POST(req: Request) {
     let event;
     try {
       event = stripe.webhooks.constructEvent(text, sig, webhookSecret);
-      console.log("Stripe event constructed:", {
-        type: event.type,
-        id: event.id,
-        metadata: event.data.object.metadata,
-        object: event.data.object,
-        rawEvent: JSON.stringify(event, null, 2), // Log the entire event
-      });
+      // console.log("Stripe event constructed:", {
+      //   type: event.type,
+      //   id: event.id,
+      //   metadata: event.data.object.metadata,
+      //   object: event.data.object,
+      //   rawEvent: JSON.stringify(event, null, 2), // Log the entire event
+      // });
     } catch (err) {
       console.error("Webhook signature verification failed:", {
         error: err instanceof Error ? err.message : "Unknown error",
@@ -162,19 +162,19 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object;
-        console.log("Checkout Session Data:", {
-          id: session.id,
-          mode: session.mode,
-          paymentStatus: session.payment_status,
-          metadata: session.metadata,
-          customer: session.customer,
-          paymentIntent: session.payment_intent,
-          subscription: session.subscription,
-          lineItems: session.line_items,
-          status: session.status,
-          livemode: event.livemode,
-          rawSession: JSON.stringify(session, null, 2), // Add full session data
-        });
+        // console.log("Checkout Session Data:", {
+        //   id: session.id,
+        //   mode: session.mode,
+        //   paymentStatus: session.payment_status,
+        //   metadata: session.metadata,
+        //   customer: session.customer,
+        //   paymentIntent: session.payment_intent,
+        //   subscription: session.subscription,
+        //   lineItems: session.line_items,
+        //   status: session.status,
+        //   livemode: event.livemode,
+        //   rawSession: JSON.stringify(session, null, 2), // Add full session data
+        // });
 
         // Log the complete session object for debugging
         console.log(
