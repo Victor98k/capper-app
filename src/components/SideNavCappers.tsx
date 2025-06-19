@@ -194,7 +194,7 @@ export function SideNav() {
 
           <Link
             href="/home"
-            className="w-full flex items-center justify-center px-4 py-2 text-sm rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-all mb-4"
+            className="w-full flex items-center justify-center px-4 py-2 text-sm rounded-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 transition-all mb-4"
             onClick={() => setIsMenuOpen(false)}
           >
             <Home className="h-5 w-5 mr-2" />

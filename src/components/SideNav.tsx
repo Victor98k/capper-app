@@ -102,7 +102,7 @@ export function SideNav() {
   // NavLinks component - Shared between mobile and desktop
   const NavLinks = () => {
     const linkClasses =
-      "text-white hover:text-[#4e43ff] transition-colors flex items-center space-x-3 py-2";
+      "text-white hover:text-[#6b6bff] transition-colors duration-200 flex items-center space-x-3 py-2";
 
     return (
       <nav className="flex flex-col space-y-6">
@@ -112,7 +112,7 @@ export function SideNav() {
           onClick={() => setIsMenuOpen(false)}
         >
           <Home className="h-5 w-5" />
-          <span>Home</span>
+          <span className="hover:text-[#6b6bff]">Home</span>
         </Link>
 
         <Link
@@ -121,7 +121,7 @@ export function SideNav() {
           onClick={() => setIsMenuOpen(false)}
         >
           <Compass className="h-5 w-5" />
-          <span>Explore</span>
+          <span className="hover:text-[#6b6bff]">Explore</span>
         </Link>
 
         <Link
@@ -130,7 +130,7 @@ export function SideNav() {
           onClick={() => setIsMenuOpen(false)}
         >
           <UserCircle className="h-5 w-5" />
-          <span>My Profile</span>
+          <span className="hover:text-[#6b6bff]">My Profile</span>
         </Link>
 
         <Link
@@ -139,17 +139,17 @@ export function SideNav() {
           onClick={() => setIsMenuOpen(false)}
         >
           <TicketIcon className="h-5 w-5" />
-          <span>Bet tracker</span>
+          <span className="hover:text-[#6b6bff]">Bet tracker</span>
         </Link>
 
         {isCapper && (
           <Link
             href="/home-capper"
-            className={`${linkClasses} border border-white/20 hover:border-white/40 rounded-lg px-3`}
+            className={`${linkClasses} border bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white rounded-lg px-3`}
             onClick={() => setIsMenuOpen(false)}
           >
             <LineChart className="h-5 w-5" />
-            <span>Capper Dashboard</span>
+            <span className="hover:text-[#6b6bff]">Capper Dashboard</span>
           </Link>
         )}
       </nav>

@@ -29,6 +29,8 @@ export async function GET(req: Request) {
         email: true,
         isCapper: true,
         imageUrl: true,
+        roi: true,
+        winrate: true,
       },
     });
 
