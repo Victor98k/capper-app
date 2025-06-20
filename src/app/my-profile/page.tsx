@@ -114,6 +114,21 @@ function UserProfileContent() {
 
           const data = await response.json();
 
+          console.log("Full subscription data:", data);
+          console.log("Subscriptions array:", data.subscriptions);
+
+          // Log each subscription to see the structure
+          if (data.subscriptions && data.subscriptions.length > 0) {
+            data.subscriptions.forEach((sub: any, index: number) => {
+              console.log(`Subscription ${index + 1}:`, sub);
+              console.log(`Subscription ${index + 1} product:`, sub.product);
+              console.log(
+                `Subscription ${index + 1} productId:`,
+                sub.productId
+              );
+            });
+          }
+
           setSubscriptions(data.subscriptions || []);
         } catch (error) {
           console.error("Failed to cancel subscription:", error);
@@ -290,8 +305,8 @@ function UserProfileContent() {
                         className="text-gray-400 hover:text-white"
                       >
                         Edit
-                      </Button> */}
-                    {/* )} */}
+                      </Button>
+                    )} */}
                   </div>
                 </div>
                 <div>
@@ -399,18 +414,21 @@ function UserProfileContent() {
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-[#1E293B] rounded-lg space-y-4 sm:space-y-0"
                   >
                     <div className="flex items-center gap-3 w-full sm:w-auto">
-                      <div className="h-12 w-12 rounded-full overflow-hidden relative">
-                        <Image
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage
                           src={
                             subscription.capper.profileImage ||
                             subscription.capper.user.imageUrl ||
-                            "/default-avatar.png"
+                            ""
                           }
                           alt={subscription.capper.user.username}
-                          fill
-                          className="object-cover"
                         />
-                      </div>
+                        <AvatarFallback className="bg-[#4e43ff] text-white">
+                          {subscription.capper.user.username
+                            ?.charAt(0)
+                            ?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
                         <h4 className="font-medium text-white">
                           {subscription.capper.user.username}
@@ -418,7 +436,9 @@ function UserProfileContent() {
                         <p className="text-sm text-gray-400">
                           Bundle:{" "}
                           <span className="text-violet-400">
-                            {subscription.productId || "No Product ID"}
+                            {subscription.product?.name ||
+                              subscription.productId ||
+                              "No Bundle Name"}
                           </span>
                           <br />
                           Status: {subscription.status}

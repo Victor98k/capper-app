@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import Stripe from "stripe";
 
 export async function GET(req: Request) {
   try {
@@ -21,6 +22,11 @@ export async function GET(req: Request) {
       console.log("User not found:", userId);
       return new NextResponse("User not found", { status: 404 });
     }
+
+    // Initialize Stripe
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+      apiVersion: "2025-02-24.acacia",
+    });
 
     // First, get just the subscriptions
     const subscriptions = await prisma.subscription.findMany({
@@ -82,21 +88,47 @@ export async function GET(req: Request) {
               socialLinks: true,
               tags: true,
               roi: true,
+              profileImage: true,
               user: {
                 select: {
                   username: true,
                   firstName: true,
                   lastName: true,
                   imageUrl: true,
+                  stripeConnectId: true,
                 },
               },
             },
           });
 
           if (capperWithUser && capperWithUser.user) {
+            // Fetch product information from Stripe
+            let product = null;
+            if (subscription.productId && capperWithUser.user.stripeConnectId) {
+              try {
+                const stripeProduct = await stripe.products.retrieve(
+                  subscription.productId,
+                  {
+                    stripeAccount: capperWithUser.user.stripeConnectId,
+                  }
+                );
+                product = {
+                  name: stripeProduct.name,
+                  description: stripeProduct.description,
+                };
+              } catch (error) {
+                console.error(
+                  `Error fetching product ${subscription.productId}:`,
+                  error
+                );
+                // Continue without product info if Stripe call fails
+              }
+            }
+
             return {
               ...subscription,
               capper: capperWithUser,
+              product: product,
             };
           }
           return null;
