@@ -100,14 +100,29 @@ export default function MyPosts() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020817] text-gray-100 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#020817] text-gray-100 flex flex-col lg:flex-row relative">
+      {/* Background effects - same as capperDashboard */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-[#4e43ff]/40 rounded-full filter blur-3xl opacity-60" />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-blue-500/40 rounded-full filter blur-3xl opacity-30" />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-violet-500/40 rounded-full filter blur-3xl opacity-30" />
+
+        <div
+          className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:72px_72px]"
+          style={{
+            maskImage:
+              "linear-gradient(to bottom, transparent, black, transparent)",
+          }}
+        />
+      </div>
+
       {/* Hide SideNav on mobile */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block relative z-10">
         <SideNav />
       </div>
 
       {/* Add mobile header */}
-      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] border-b border-gray-800 p-4 flex items-center">
+      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817]/50 backdrop-blur-sm border-b border-gray-800 p-4 flex items-center">
         <div className="absolute left-4">
           <SideNav />
         </div>
@@ -116,7 +131,7 @@ export default function MyPosts() {
         </div>
       </div>
 
-      <main className="flex-1 p-2 sm:p-4 lg:p-8">
+      <main className="flex-1 p-2 sm:p-4 lg:p-8 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Profile Header - More compact on mobile */}
           <div className="bg-[#020817] rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
