@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heart, MoreHorizontal, Lock } from "lucide-react";
+import { Heart, MoreHorizontal, Lock, Check, Zap } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Badge } from "./ui/badge";
+import { SubscribeButton } from "./SubscribeButton";
 
 interface PostProps {
   _id: string;
@@ -41,6 +42,7 @@ interface PostProps {
     username: string;
     profileImage?: string;
     isVerified?: boolean;
+    stripeConnectId?: string;
   };
   fallbackImage?: {
     emoji: string;
@@ -65,6 +67,211 @@ const sportEmojiMap: { [key: string]: string } = {
   "E-Sports": "🎮",
 };
 
+// Subscription Plans Component
+const SubscriptionPlans = ({
+  capperId,
+  capperUsername,
+  stripeConnectId,
+}: {
+  capperId: string;
+  capperUsername: string;
+  stripeConnectId?: string;
+}) => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [subscribedProducts, setSubscribedProducts] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Fetch capper data which includes products
+        const capperResponse = await fetch(`/api/cappers/${capperUsername}`);
+        if (capperResponse.ok) {
+          const capperData = await capperResponse.json();
+          setProducts(capperData.products || []);
+        }
+
+        // Check subscription status
+        const subscriptionResponse = await fetch(
+          `/api/subscriptions/check?capperId=${capperId}`,
+          { credentials: "include" }
+        );
+        if (subscriptionResponse.ok) {
+          const subscriptionData = await subscriptionResponse.json();
+          setSubscribedProducts(subscriptionData.subscribedProducts || []);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [capperId, capperUsername]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4e43ff]"></div>
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">
+          This capper hasn't created any subscription plans yet.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+      <h3 className="text-lg font-semibold text-white mb-4">
+        Choose Your Plan
+      </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        {products.map((product, index) => {
+          const isSubscribedToProduct = subscribedProducts.includes(product.id);
+          const isMiddleCard = products.length === 3 && index === 1;
+
+          return (
+            <div
+              key={product.id}
+              className={`rounded-xl p-4 transition-all duration-200 flex flex-col
+                ${
+                  isSubscribedToProduct
+                    ? "bg-[#4e43ff] border-2 border-white/20"
+                    : isMiddleCard
+                      ? "bg-gradient-to-br from-violet-600/50 to-violet-900/50 border-2 border-violet-400/50"
+                      : "bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50"
+                }
+              `}
+            >
+              {isMiddleCard && (
+                <div className="text-center mb-2">
+                  <span className="bg-violet-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+
+              {/* Product Header */}
+              <div className="flex justify-between items-start mb-4">
+                <h4
+                  className={`text-lg font-bold ${
+                    isSubscribedToProduct
+                      ? "text-white"
+                      : isMiddleCard
+                        ? "text-violet-300"
+                        : "text-[#4e43ff]"
+                  }`}
+                >
+                  {product.name}
+                </h4>
+                {isSubscribedToProduct && (
+                  <span className="flex items-center gap-1 text-xs bg-white/20 text-white px-2 py-1 rounded-full">
+                    <Check className="h-3 w-3" />
+                    Active
+                  </span>
+                )}
+              </div>
+
+              {/* Price Display */}
+              <div className="mb-4">
+                <div className="flex items-baseline">
+                  <span className="text-2xl font-bold text-white">
+                    {product.default_price.unit_amount <= 1
+                      ? "Free"
+                      : new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: product.default_price.currency || "USD",
+                        }).format(product.default_price.unit_amount / 100)}
+                  </span>
+                  {product.default_price.unit_amount > 0 && (
+                    <span className="ml-1 text-gray-400 text-sm">
+                      {product.default_price?.recurring?.interval
+                        ? `/${product.default_price.recurring.interval}`
+                        : product.default_price.type === "one_time"
+                          ? " one-time"
+                          : ""}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-gray-400 text-sm">
+                  {product.description}
+                </p>
+              </div>
+
+              {/* Features List */}
+              {Array.isArray(product.marketing_features) &&
+                product.marketing_features.length > 0 && (
+                  <ul className="space-y-2 mb-4 flex-1">
+                    {product.marketing_features
+                      .slice(0, 3)
+                      .map((feature: string, featureIndex: number) => (
+                        <li
+                          key={featureIndex}
+                          className="flex items-start gap-2"
+                        >
+                          <Zap
+                            className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
+                              isSubscribedToProduct
+                                ? "text-white"
+                                : "text-[#4e43ff]"
+                            }`}
+                          />
+                          <span
+                            className={`text-sm ${
+                              isSubscribedToProduct
+                                ? "text-white/90"
+                                : "text-gray-300"
+                            }`}
+                          >
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    {product.marketing_features.length > 3 && (
+                      <li className="text-sm text-gray-400 ml-6">
+                        +{product.marketing_features.length - 3} more features
+                      </li>
+                    )}
+                  </ul>
+                )}
+
+              {/* Subscribe Button */}
+              <div className="mt-auto">
+                <SubscribeButton
+                  capperId={capperId}
+                  productId={product.id}
+                  priceId={product.default_price.id}
+                  stripeAccountId={stripeConnectId}
+                  isSubscribed={isSubscribedToProduct}
+                  className={`w-full relative overflow-hidden transition-all ${
+                    isSubscribedToProduct
+                      ? "bg-white/20 hover:bg-white/25 text-white"
+                      : isMiddleCard
+                        ? "bg-violet-500 hover:bg-violet-500/95 text-white"
+                        : "bg-[#4e43ff] hover:bg-[#4e43ff]/95 text-white"
+                  }`}
+                >
+                  <span className="relative z-10">
+                    {isSubscribedToProduct ? "Unsubscribe" : "Subscribe Now"}
+                  </span>
+                </SubscribeButton>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // First, let's create a reusable BetDialog component at the top of the file
 const BetDialog = ({
   bets,
@@ -77,6 +284,8 @@ const BetDialog = ({
   odds,
   tags,
   bookmaker,
+  capperId,
+  stripeConnectId,
 }: {
   bets: string[];
   isSubscribed: boolean;
@@ -88,8 +297,10 @@ const BetDialog = ({
   odds: string[];
   tags: string[];
   bookmaker?: string;
+  capperId: string;
+  stripeConnectId?: string;
 }) => (
-  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
+  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md sm:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
     {isSubscribed || isOwnPost ? (
       <>
         <DialogHeader className="space-y-4">
@@ -237,20 +448,13 @@ const BetDialog = ({
             </div>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-6">
-          <Button
-            onClick={() => {
-              const element = document.getElementById("subscription-plans");
-              element?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-            }}
-            className="w-full bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 py-6 text-lg font-semibold rounded-xl transition-transform hover:scale-[1.02]"
-          >
-            View Subscription Plans
-          </Button>
-        </DialogFooter>
+
+        {/* Render Subscription Plans */}
+        <SubscriptionPlans
+          capperId={capperId}
+          capperUsername={capperInfo.username}
+          stripeConnectId={stripeConnectId}
+        />
       </>
     )}
   </DialogContent>
@@ -430,6 +634,8 @@ function InstagramPost({
                   odds={odds}
                   tags={tags}
                   bookmaker={bookmaker}
+                  capperId={capperId}
+                  stripeConnectId={capperInfo?.stripeConnectId}
                 />
               </Dialog>
             )}
@@ -473,22 +679,32 @@ function InstagramPost({
                     odds={odds}
                     tags={tags}
                     bookmaker={bookmaker}
+                    capperId={capperId}
+                    stripeConnectId={capperInfo?.stripeConnectId}
                   />
                 </Dialog>
               ) : (
-                <button
-                  className="text-[#4e43ff] hover:underline font-medium"
-                  onClick={() => {
-                    const element =
-                      document.getElementById("subscription-plans");
-                    element?.scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    });
-                  }}
-                >
-                  See more
-                </button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="text-[#4e43ff] hover:underline font-medium">
+                      See more
+                    </button>
+                  </DialogTrigger>
+                  <BetDialog
+                    bets={bets}
+                    isSubscribed={isSubscribed}
+                    isOwnPost={isOwnPost}
+                    capperInfo={capperInfo}
+                    router={router}
+                    title={title}
+                    content={content}
+                    odds={odds}
+                    tags={tags}
+                    bookmaker={bookmaker}
+                    capperId={capperId}
+                    stripeConnectId={capperInfo?.stripeConnectId}
+                  />
+                </Dialog>
               )}
             </p>
 
@@ -726,6 +942,8 @@ function InstagramPost({
                         odds={odds}
                         tags={tags}
                         bookmaker={bookmaker}
+                        capperId={capperId}
+                        stripeConnectId={capperInfo?.stripeConnectId}
                       />
                     </Dialog>
                   )}
@@ -780,22 +998,32 @@ function InstagramPost({
                         odds={odds}
                         tags={tags}
                         bookmaker={bookmaker}
+                        capperId={capperId}
+                        stripeConnectId={capperInfo?.stripeConnectId}
                       />
                     </Dialog>
                   ) : (
-                    <button
-                      className="text-[#4e43ff] hover:underline font-medium"
-                      onClick={() => {
-                        const element =
-                          document.getElementById("subscription-plans");
-                        element?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                      }}
-                    >
-                      See more
-                    </button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="text-[#4e43ff] hover:underline font-medium">
+                          See more
+                        </button>
+                      </DialogTrigger>
+                      <BetDialog
+                        bets={bets}
+                        isSubscribed={isSubscribed}
+                        isOwnPost={isOwnPost}
+                        capperInfo={capperInfo}
+                        router={router}
+                        title={title}
+                        content={content}
+                        odds={odds}
+                        tags={tags}
+                        bookmaker={bookmaker}
+                        capperId={capperId}
+                        stripeConnectId={capperInfo?.stripeConnectId}
+                      />
+                    </Dialog>
                   )}
                 </div>
               </div>
@@ -928,6 +1156,8 @@ function InstagramPost({
                     odds={odds}
                     tags={tags}
                     bookmaker={bookmaker}
+                    capperId={capperId}
+                    stripeConnectId={capperInfo?.stripeConnectId}
                   />
                 </Dialog>
               </div>
