@@ -104,6 +104,8 @@ export async function GET(request: Request) {
             username: true,
             email: true,
             imageUrl: true,
+            roi: true,
+            winrate: true,
           },
         },
         posts: {
@@ -153,7 +155,8 @@ export async function GET(request: Request) {
           winrate: stats.winrate,
           totalBets: stats.totalBets,
         },
-        roi: capper.roi || 0,
+        roi: capper.user.roi || 0,
+        winrate: capper.user.winrate || 0,
       };
     });
 
