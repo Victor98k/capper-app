@@ -55,6 +55,17 @@ export async function GET(req: Request) {
         features: product.metadata.features
           ? JSON.parse(product.metadata.features)
           : [],
+        hasDiscount: product.metadata.hasDiscount === "true",
+        discountType: product.metadata.discountType,
+        discountValue: product.metadata.discountValue
+          ? parseFloat(product.metadata.discountValue)
+          : undefined,
+        discountDuration: product.metadata.discountDuration,
+        discountDurationInMonths: product.metadata.discountDurationInMonths
+          ? parseInt(product.metadata.discountDurationInMonths)
+          : undefined,
+        couponId: product.metadata.couponId,
+        freeCouponId: product.metadata.freeCouponId,
       })
     );
 
@@ -110,6 +121,11 @@ export async function POST(req: Request) {
       interval = "week",
       features = [],
       currency = "eur", // Default to EUR if not provided
+      hasDiscount = false,
+      discountType = "percentage",
+      discountValue,
+      discountDuration = "once",
+      discountDurationInMonths,
     } = await req.json();
 
     if (!name || price === undefined || price < 0) {
@@ -117,6 +133,33 @@ export async function POST(req: Request) {
         { error: "Invalid product data" },
         { status: 400 }
       );
+    }
+
+    // Validate discount data if discount is enabled
+    if (hasDiscount) {
+      if (!discountValue || discountValue <= 0) {
+        return NextResponse.json(
+          { error: "Invalid discount value" },
+          { status: 400 }
+        );
+      }
+
+      if (discountType === "percentage" && discountValue > 100) {
+        return NextResponse.json(
+          { error: "Percentage discount cannot exceed 100%" },
+          { status: 400 }
+        );
+      }
+
+      if (
+        discountDuration === "repeating" &&
+        (!discountDurationInMonths || discountDurationInMonths <= 0)
+      ) {
+        return NextResponse.json(
+          { error: "Invalid discount duration" },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate currency
@@ -137,6 +180,38 @@ export async function POST(req: Request) {
     const isRecurring = interval !== "one_time";
     const finalPackageType = isRecurring ? "recurring" : packageType;
 
+    // Create discount coupon if specified
+    let couponId = null;
+    if (hasDiscount && discountValue > 0) {
+      const couponData: any = {
+        duration: discountDuration,
+      };
+
+      if (discountType === "percentage") {
+        couponData.percent_off = discountValue;
+      } else {
+        couponData.amount_off = Math.round(discountValue * 100); // Convert to cents
+        couponData.currency = currency.toLowerCase();
+      }
+
+      if (discountDuration === "repeating") {
+        couponData.duration_in_months = discountDurationInMonths;
+      }
+
+      try {
+        const coupon = await stripe.coupons.create(couponData, {
+          stripeAccount: user.stripeConnectId,
+        });
+        couponId = coupon.id;
+      } catch (error) {
+        console.error("Error creating coupon:", error);
+        return NextResponse.json(
+          { error: "Failed to create discount coupon" },
+          { status: 500 }
+        );
+      }
+    }
+
     // Create the product
     const product = await stripe.products.create(
       {
@@ -147,6 +222,15 @@ export async function POST(req: Request) {
           features: JSON.stringify(features),
           interval: interval,
           packageType: finalPackageType,
+          hasDiscount: hasDiscount.toString(),
+          discountType: hasDiscount ? discountType : undefined,
+          discountValue: hasDiscount ? discountValue.toString() : undefined,
+          discountDuration: hasDiscount ? discountDuration : undefined,
+          discountDurationInMonths:
+            hasDiscount && discountDuration === "repeating"
+              ? discountDurationInMonths.toString()
+              : undefined,
+          couponId: couponId || undefined,
         },
       },
       { stripeAccount: user.stripeConnectId }
@@ -173,8 +257,8 @@ export async function POST(req: Request) {
         { stripeAccount: user.stripeConnectId }
       );
 
-      // Create a 100% off coupon
-      const coupon = await stripe.coupons.create(
+      // Create a 100% off coupon for free products (separate from discount coupon)
+      const freeCoupon = await stripe.coupons.create(
         {
           percent_off: 100,
           duration: isRecurring ? "forever" : "once",
@@ -182,10 +266,10 @@ export async function POST(req: Request) {
         { stripeAccount: user.stripeConnectId }
       );
 
-      // Store the coupon ID in the product metadata
+      // Store the free coupon ID in the product metadata (separate from discount coupon)
       await stripe.products.update(
         product.id,
-        { metadata: { ...product.metadata, couponId: coupon.id } },
+        { metadata: { ...product.metadata, freeCouponId: freeCoupon.id } },
         { stripeAccount: user.stripeConnectId }
       );
     } else {
@@ -215,7 +299,16 @@ export async function POST(req: Request) {
         description: product.description,
         default_price: priceObject,
         features: features,
-        couponId: price === 0 ? product.metadata.couponId : undefined,
+        couponId: price === 0 ? product.metadata.freeCouponId : couponId,
+        discountCouponId: couponId,
+        hasDiscount: hasDiscount,
+        discountType: hasDiscount ? discountType : undefined,
+        discountValue: hasDiscount ? discountValue : undefined,
+        discountDuration: hasDiscount ? discountDuration : undefined,
+        discountDurationInMonths:
+          hasDiscount && discountDuration === "repeating"
+            ? discountDurationInMonths
+            : undefined,
       },
     });
   } catch (error) {

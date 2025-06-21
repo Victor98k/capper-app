@@ -109,6 +109,9 @@ export async function GET(request: NextRequest) {
             productId: product.id,
             priceId: price?.id,
             priceType: price?.type,
+            hasDiscount: product.metadata.hasDiscount === "true",
+            discountType: product.metadata.discountType,
+            discountValue: product.metadata.discountValue,
           });
 
           return {
@@ -123,6 +126,17 @@ export async function GET(request: NextRequest) {
               type: price?.type || "one_time",
             },
             marketing_features,
+            hasDiscount: product.metadata.hasDiscount === "true",
+            discountType: product.metadata.discountType,
+            discountValue: product.metadata.discountValue
+              ? parseFloat(product.metadata.discountValue)
+              : undefined,
+            discountDuration: product.metadata.discountDuration,
+            discountDurationInMonths: product.metadata.discountDurationInMonths
+              ? parseInt(product.metadata.discountDurationInMonths)
+              : undefined,
+            couponId: product.metadata.couponId,
+            freeCouponId: product.metadata.freeCouponId,
           };
         }
       );

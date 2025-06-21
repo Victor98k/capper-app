@@ -10,7 +10,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Loader2, Zap, Edit2 } from "lucide-react";
+import { Check, Plus, Loader2, Zap, Edit2, Tag, Percent } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -25,6 +25,23 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Helper function to get currency symbol
+const getCurrencySymbol = (currency: string): string => {
+  const symbols: { [key: string]: string } = {
+    usd: "$",
+    eur: "€",
+    gbp: "£",
+  };
+  return symbols[currency.toLowerCase()] || currency.toUpperCase();
+};
 
 interface Product {
   id: string;
@@ -33,9 +50,62 @@ interface Product {
   unit_amount: number;
   currency: string;
   features: string[];
+  hasDiscount?: boolean;
+  discountType?: "percentage" | "fixed";
+  discountValue?: number;
+  discountDuration?: "once" | "repeating" | "forever";
+  discountDurationInMonths?: number;
+  couponId?: string;
+  freeCouponId?: string;
 }
 
 const MAX_PRODUCTS = 3;
+
+// Helper function to calculate discounted price
+const calculateDiscountedPrice = (product: Product) => {
+  if (
+    !product.hasDiscount ||
+    !product.discountValue ||
+    product.unit_amount <= 1
+  ) {
+    return null;
+  }
+
+  const originalPrice = product.unit_amount / 100;
+  let discountedPrice = originalPrice;
+
+  if (product.discountType === "percentage") {
+    discountedPrice = originalPrice * (1 - product.discountValue / 100);
+  } else if (product.discountType === "fixed") {
+    discountedPrice = Math.max(0, originalPrice - product.discountValue);
+  }
+
+  return discountedPrice;
+};
+
+// Helper function to format discount text
+const getDiscountText = (product: Product) => {
+  if (!product.hasDiscount || !product.discountValue) return null;
+
+  const discountText =
+    product.discountType === "percentage"
+      ? `${product.discountValue}% OFF`
+      : `${product.currency.toUpperCase()} ${product.discountValue} OFF`;
+
+  let durationText = "";
+  if (product.discountDuration === "once") {
+    durationText = "First payment";
+  } else if (product.discountDuration === "forever") {
+    durationText = "Forever";
+  } else if (
+    product.discountDuration === "repeating" &&
+    product.discountDurationInMonths
+  ) {
+    durationText = `${product.discountDurationInMonths} month${product.discountDurationInMonths > 1 ? "s" : ""}`;
+  }
+
+  return { discountText, durationText };
+};
 
 // Add EditProductDialog component
 const EditProductDialog = ({
@@ -54,6 +124,12 @@ const EditProductDialog = ({
     features: product.features || [],
     newFeature: "",
     currency: product.currency,
+    hasDiscount: product.hasDiscount || false,
+    discountType: product.discountType || "percentage",
+    discountValue: product.discountValue?.toString() || "",
+    discountDuration: product.discountDuration || "once",
+    discountDurationInMonths:
+      product.discountDurationInMonths?.toString() || "3",
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -72,6 +148,15 @@ const EditProductDialog = ({
           price: parseFloat(formData.price),
           features: formData.features,
           currency: formData.currency,
+          hasDiscount: formData.hasDiscount,
+          discountType: formData.discountType,
+          discountValue: formData.discountValue
+            ? parseFloat(formData.discountValue)
+            : undefined,
+          discountDuration: formData.discountDuration,
+          discountDurationInMonths: formData.discountDurationInMonths
+            ? parseInt(formData.discountDurationInMonths)
+            : undefined,
         }),
       });
 
@@ -121,7 +206,10 @@ const EditProductDialog = ({
           <span>Edit</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] bg-[#020817] text-white border border-[#4e43ff]/20">
+      <DialogContent
+        className="sm:max-w-[600px] bg-[#020817] text-white border border-[#4e43ff]/20"
+        style={{ maxHeight: "80vh", overflowY: "auto" }}
+      >
         <form onSubmit={handleSubmit}>
           <DialogHeader className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#4e43ff] to-[#8983ff] bg-clip-text text-transparent">
@@ -261,6 +349,168 @@ const EditProductDialog = ({
                 ))}
               </div>
             </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white/90">
+                    Discount Type
+                  </Label>
+                  <Select
+                    value={formData.discountType}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        discountType: value as "percentage" | "fixed",
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                      <SelectItem
+                        value="percentage"
+                        className="text-white hover:bg-[#4e43ff]/10"
+                      >
+                        Percentage Off
+                      </SelectItem>
+                      <SelectItem
+                        value="fixed"
+                        className="text-white hover:bg-[#4e43ff]/10"
+                      >
+                        Fixed Amount Off
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white/90">
+                    Discount Value
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="0"
+                      max={
+                        formData.discountType === "percentage"
+                          ? "100"
+                          : undefined
+                      }
+                      step={
+                        formData.discountType === "percentage" ? "1" : "0.01"
+                      }
+                      value={formData.discountValue}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          discountValue: e.target.value,
+                        }))
+                      }
+                      placeholder={
+                        formData.discountType === "percentage" ? "25" : "10.00"
+                      }
+                      className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] pr-8 transition-all"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60">
+                      {formData.discountType === "percentage"
+                        ? "%"
+                        : getCurrencySymbol(formData.currency)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-white/90">
+                  Discount Duration
+                </Label>
+                <Select
+                  value={formData.discountDuration}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      discountDuration: value as
+                        | "once"
+                        | "repeating"
+                        | "forever",
+                    }))
+                  }
+                >
+                  <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                    <SelectItem
+                      value="once"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      First Payment Only
+                    </SelectItem>
+                    <SelectItem
+                      value="repeating"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      Limited Time
+                    </SelectItem>
+                    <SelectItem
+                      value="forever"
+                      className="text-white hover:bg-[#4e43ff]/10"
+                    >
+                      Forever
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.discountDuration === "repeating" && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-white/90">
+                    Duration (Months)
+                  </Label>
+                  <Select
+                    value={formData.discountDurationInMonths}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        discountDurationInMonths: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                      <SelectItem
+                        value="1"
+                        className="text-white hover:bg-[#4e43ff]/10"
+                      >
+                        1 Month
+                      </SelectItem>
+                      <SelectItem
+                        value="3"
+                        className="text-white hover:bg-[#4e43ff]/10"
+                      >
+                        3 Months
+                      </SelectItem>
+                      <SelectItem
+                        value="6"
+                        className="text-white hover:bg-[#4e43ff]/10"
+                      >
+                        6 Months
+                      </SelectItem>
+                      <SelectItem
+                        value="12"
+                        className="text-white hover:bg-[#4e43ff]/10"
+                      >
+                        12 Months
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter className="pt-6 border-t border-[#4e43ff]/10">
@@ -368,11 +618,13 @@ export default function StripeProductDisplay() {
         {products.map((product: Product) => {
           const isMiddleCard =
             products.length === 3 && products.indexOf(product) === 1;
+          const discountedPrice = calculateDiscountedPrice(product);
+          const discountInfo = getDiscountText(product);
 
           return (
             <Card
               key={product.id}
-              className={`rounded-xl p-6 backdrop-blur-sm transition-all duration-300 hover:transform hover:scale-[1.02] flex flex-col
+              className={`rounded-xl p-6 backdrop-blur-sm transition-all duration-300 hover:transform hover:scale-[1.02] flex flex-col relative
                 ${
                   isMiddleCard
                     ? "bg-[#4e43ff] border-2 border-white/20 shadow-[0_0_30px_rgba(78,67,255,0.2)]"
@@ -382,6 +634,16 @@ export default function StripeProductDisplay() {
                 hover:shadow-[0_0_30px_rgba(78,67,255,0.2)]
               `}
             >
+              {/* Discount Badge */}
+              {product.hasDiscount && discountInfo && (
+                <div className="absolute -top-3 -right-3 z-10">
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                    <Tag className="h-3 w-3" />
+                    {discountInfo.discountText}
+                  </div>
+                </div>
+              )}
+
               <div className="flex-1">
                 {/* Product Header */}
                 <div className="flex justify-between items-start mb-6">
@@ -407,18 +669,44 @@ export default function StripeProductDisplay() {
 
                 {/* Price Display */}
                 <div className="mb-8">
-                  <div className="flex items-baseline">
-                    <span className="text-4xl font-bold text-white">
-                      {product.unit_amount <= 1
-                        ? "Free"
-                        : `$${(product.unit_amount / 100).toFixed(2)}`}
-                    </span>
-                    {product.unit_amount > 1 && (
-                      <span className="ml-2 text-white/80">
-                        {product.currency.toUpperCase()}
+                  <div className="flex items-baseline gap-2">
+                    {product.unit_amount <= 1 ? (
+                      <span className="text-4xl font-bold text-white">
+                        Free
                       </span>
+                    ) : (
+                      <>
+                        {discountedPrice !== null ? (
+                          <>
+                            <span className="text-4xl font-bold text-white">
+                              ${discountedPrice.toFixed(2)}
+                            </span>
+                            <span className="text-xl text-white/60 line-through">
+                              ${(product.unit_amount / 100).toFixed(2)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-4xl font-bold text-white">
+                            ${(product.unit_amount / 100).toFixed(2)}
+                          </span>
+                        )}
+                        <span className="ml-2 text-white/80">
+                          {product.currency.toUpperCase()}
+                        </span>
+                      </>
                     )}
                   </div>
+
+                  {/* Discount Duration Info */}
+                  {product.hasDiscount && discountInfo?.durationText && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <Percent className="h-4 w-4 text-red-400" />
+                      <span className="text-sm text-red-200 font-medium">
+                        {discountInfo.durationText}
+                      </span>
+                    </div>
+                  )}
+
                   <p className="mt-2 text-white/80">{product.description}</p>
                 </div>
 

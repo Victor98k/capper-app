@@ -47,6 +47,11 @@ export async function PUT(
       price,
       features = [],
       currency = "eur",
+      hasDiscount = false,
+      discountType = "percentage",
+      discountValue,
+      discountDuration = "once",
+      discountDurationInMonths,
     } = await req.json();
 
     if (!name || price === undefined || price < 0) {
@@ -54,6 +59,33 @@ export async function PUT(
         { error: "Invalid product data" },
         { status: 400 }
       );
+    }
+
+    // Validate discount data if discount is enabled
+    if (hasDiscount) {
+      if (!discountValue || discountValue <= 0) {
+        return NextResponse.json(
+          { error: "Invalid discount value" },
+          { status: 400 }
+        );
+      }
+
+      if (discountType === "percentage" && discountValue > 100) {
+        return NextResponse.json(
+          { error: "Percentage discount cannot exceed 100%" },
+          { status: 400 }
+        );
+      }
+
+      if (
+        discountDuration === "repeating" &&
+        (!discountDurationInMonths || discountDurationInMonths <= 0)
+      ) {
+        return NextResponse.json(
+          { error: "Invalid discount duration" },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate currency
@@ -78,7 +110,65 @@ export async function PUT(
       }
     );
 
-    // Update the product
+    // Handle discount coupon creation/update
+    let couponId = existingProduct.metadata.couponId || null;
+
+    if (hasDiscount && discountValue > 0) {
+      // If there's an existing coupon, delete it first
+      if (couponId) {
+        try {
+          await stripe.coupons.del(couponId, {
+            stripeAccount: user.stripeConnectId,
+          });
+        } catch (error) {
+          console.log("Failed to delete existing coupon:", error);
+          // Continue anyway - the old coupon might already be deleted
+        }
+      }
+
+      // Create new coupon
+      const couponData: any = {
+        duration: discountDuration,
+      };
+
+      if (discountType === "percentage") {
+        couponData.percent_off = discountValue;
+      } else {
+        couponData.amount_off = Math.round(discountValue * 100); // Convert to cents
+        couponData.currency = currency.toLowerCase();
+      }
+
+      if (discountDuration === "repeating") {
+        couponData.duration_in_months = discountDurationInMonths;
+      }
+
+      try {
+        const coupon = await stripe.coupons.create(couponData, {
+          stripeAccount: user.stripeConnectId,
+        });
+        couponId = coupon.id;
+      } catch (error) {
+        console.error("Error creating coupon:", error);
+        return NextResponse.json(
+          { error: "Failed to create discount coupon" },
+          { status: 500 }
+        );
+      }
+    } else if (!hasDiscount && couponId) {
+      // Remove existing coupon if discount is disabled
+      try {
+        await stripe.coupons.del(couponId, {
+          stripeAccount: user.stripeConnectId,
+        });
+        couponId = null;
+      } catch (error) {
+        console.log("Failed to delete existing coupon:", error);
+        // Continue anyway
+        couponId = null;
+      }
+    }
+
+    // Update the product with new metadata
     const updatedProduct = await stripe.products.update(
       (await params).productId,
       {
@@ -87,19 +177,29 @@ export async function PUT(
         metadata: {
           ...existingProduct.metadata,
           features: JSON.stringify(features),
+          hasDiscount: hasDiscount.toString(),
+          discountType: hasDiscount ? discountType : undefined,
+          discountValue: hasDiscount ? discountValue.toString() : undefined,
+          discountDuration: hasDiscount ? discountDuration : undefined,
+          discountDurationInMonths:
+            hasDiscount && discountDuration === "repeating"
+              ? discountDurationInMonths.toString()
+              : undefined,
+          couponId: couponId || undefined,
         },
       },
       { stripeAccount: user.stripeConnectId }
     );
 
     // Create a new price if the price has changed
-    if (price !== existingProduct.default_price?.unit_amount / 100) {
+    const existingPrice = existingProduct.default_price as Stripe.Price;
+    if (price !== (existingPrice?.unit_amount || 0) / 100) {
       const newPrice = await stripe.prices.create(
         {
           product: (await params).productId,
           unit_amount: Math.round(price * 100),
           currency: currency.toLowerCase(),
-          recurring: (existingProduct.default_price as Stripe.Price)?.recurring,
+          recurring: existingPrice?.recurring,
         },
         { stripeAccount: user.stripeConnectId }
       );
@@ -118,6 +218,15 @@ export async function PUT(
         name: updatedProduct.name,
         description: updatedProduct.description,
         features: features,
+        hasDiscount: hasDiscount,
+        discountType: hasDiscount ? discountType : undefined,
+        discountValue: hasDiscount ? discountValue : undefined,
+        discountDuration: hasDiscount ? discountDuration : undefined,
+        discountDurationInMonths:
+          hasDiscount && discountDuration === "repeating"
+            ? discountDurationInMonths
+            : undefined,
+        couponId: couponId,
       },
     });
   } catch (error) {

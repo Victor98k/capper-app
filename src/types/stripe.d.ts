@@ -6,6 +6,13 @@ export interface Product {
   unit_amount: number;
   currency: string;
   features: string[];
+  hasDiscount?: boolean;
+  discountType?: "percentage" | "fixed";
+  discountValue?: number;
+  discountDuration?: "once" | "repeating" | "forever";
+  discountDurationInMonths?: number;
+  couponId?: string;
+  freeCouponId?: string;
 }
 
 export interface PaywallComponentProps {

@@ -34,6 +34,8 @@ import {
   Phone,
   Zap,
   Mail,
+  Tag,
+  Percent,
 } from "lucide-react";
 import { use } from "react";
 // Components
@@ -58,6 +60,52 @@ import {
 } from "recharts";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
+
+// Helper function to calculate discounted price
+const calculateDiscountedPrice = (product: any) => {
+  if (
+    !product.hasDiscount ||
+    !product.discountValue ||
+    product.default_price.unit_amount <= 1
+  ) {
+    return null;
+  }
+
+  const originalPrice = product.default_price.unit_amount / 100;
+  let discountedPrice = originalPrice;
+
+  if (product.discountType === "percentage") {
+    discountedPrice = originalPrice * (1 - product.discountValue / 100);
+  } else if (product.discountType === "fixed") {
+    discountedPrice = Math.max(0, originalPrice - product.discountValue);
+  }
+
+  return discountedPrice;
+};
+
+// Helper function to format discount text
+const getDiscountText = (product: any) => {
+  if (!product.hasDiscount || !product.discountValue) return null;
+
+  const discountText =
+    product.discountType === "percentage"
+      ? `${product.discountValue}% OFF`
+      : `${product.default_price.currency.toUpperCase()} ${product.discountValue} OFF`;
+
+  let durationText = "";
+  if (product.discountDuration === "once") {
+    durationText = "First payment";
+  } else if (product.discountDuration === "forever") {
+    durationText = "Forever";
+  } else if (
+    product.discountDuration === "repeating" &&
+    product.discountDurationInMonths
+  ) {
+    durationText = `${product.discountDurationInMonths} month${product.discountDurationInMonths > 1 ? "s" : ""}`;
+  }
+
+  return { discountText, durationText };
+};
 
 interface PerformanceData {
   date: string;
@@ -693,7 +741,7 @@ export default function CapperProfilePage({
               <h2 className="text-2xl font-semibold text-white mb-6">
                 Subscription Plans
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                 {capper.products.length > 0 ? (
                   capper.products.map((product, index) => {
                     const isSubscribedToProduct = subscribedProducts.includes(
@@ -701,11 +749,13 @@ export default function CapperProfilePage({
                     );
                     const isMiddleCard =
                       capper.products.length === 3 && index === 1;
+                    const discountedPrice = calculateDiscountedPrice(product);
+                    const discountInfo = getDiscountText(product);
 
                     return (
                       <div
                         key={product.id}
-                        className={`rounded-xl p-6 transition-all duration-200 sm:hover:transform sm:hover:scale-[1.01] flex flex-col h-full
+                        className={`rounded-xl p-4 sm:p-6 transition-all duration-200 sm:hover:transform sm:hover:scale-[1.01] flex flex-col h-full relative overflow-visible
                           ${
                             isSubscribedToProduct
                               ? "bg-[#4e43ff] border-2 border-white/20"
@@ -717,17 +767,29 @@ export default function CapperProfilePage({
                           sm:hover:shadow-[0_0_20px_rgba(78,67,255,0.15)]
                         `}
                       >
+                        {/* Discount Badge */}
+                        {product.hasDiscount && discountInfo && (
+                          <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 z-10 max-w-[calc(100%-1rem)] sm:max-w-none">
+                            <div className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-full text-sm sm:text-base font-bold shadow-xl flex items-center gap-2 whitespace-nowrap overflow-hidden transform hover:scale-105 transition-all duration-300 border-2 border-red-300/50 shadow-[0_0_20px_rgba(239,68,68,0.6)] hover:shadow-[0_0_30px_rgba(239,68,68,0.8)]">
+                              <Tag className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                              <span className="truncate font-extrabold tracking-wide">
+                                {discountInfo.discountText}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex-1">
                           {isMiddleCard && (
-                            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-violet-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+                            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 sm:-top-3 bg-violet-500 text-white px-3 py-1 sm:px-4 sm:py-1 rounded-full text-xs sm:text-sm font-semibold shadow-lg whitespace-nowrap">
                               Most Popular
                             </div>
                           )}
 
                           {/* Product Header */}
-                          <div className="flex justify-between items-start mb-6">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 mb-6">
                             <h3
-                              className={`text-2xl font-bold ${
+                              className={`text-xl sm:text-2xl font-bold ${
                                 isSubscribedToProduct
                                   ? "text-white"
                                   : isMiddleCard
@@ -738,8 +800,8 @@ export default function CapperProfilePage({
                               {product.name}
                             </h3>
                             {isSubscribedToProduct && (
-                              <span className="flex items-center gap-1 text-sm bg-white/20 text-white px-3 py-1 rounded-full">
-                                <Check className="h-4 w-4" />
+                              <span className="flex items-center gap-1 text-xs sm:text-sm bg-white/20 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full w-fit">
+                                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                                 Active
                               </span>
                             )}
@@ -747,40 +809,103 @@ export default function CapperProfilePage({
 
                           {/* Price Display */}
                           <div className="mb-8">
-                            <div className="flex items-baseline">
-                              <span
-                                className={`text-4xl font-bold ${
-                                  isSubscribedToProduct
-                                    ? "text-white"
-                                    : "text-white"
-                                }`}
-                              >
-                                {product.default_price.unit_amount <= 1
-                                  ? "Free"
-                                  : new Intl.NumberFormat("en-US", {
-                                      style: "currency",
-                                      currency:
-                                        product.default_price.currency || "USD",
-                                    }).format(
-                                      product.default_price.unit_amount / 100
-                                    )}
-                              </span>
-                              {product.default_price.unit_amount > 0 && (
+                            <div className="flex flex-wrap items-baseline gap-2">
+                              {product.default_price.unit_amount <= 1 ? (
                                 <span
-                                  className={`ml-2 ${
+                                  className={`text-3xl sm:text-4xl font-bold ${
                                     isSubscribedToProduct
-                                      ? "text-white/80"
-                                      : "text-gray-400"
+                                      ? "text-white"
+                                      : "text-white"
                                   }`}
                                 >
-                                  {product.default_price?.recurring?.interval
-                                    ? `/${product.default_price.recurring.interval}`
-                                    : product.default_price.type === "one_time"
-                                      ? " one-time"
-                                      : ""}
+                                  Free
                                 </span>
+                              ) : (
+                                <>
+                                  {discountedPrice !== null ? (
+                                    <>
+                                      <span
+                                        className={`text-3xl sm:text-4xl font-bold ${
+                                          isSubscribedToProduct
+                                            ? "text-white"
+                                            : "text-white"
+                                        }`}
+                                      >
+                                        {new Intl.NumberFormat("en-US", {
+                                          style: "currency",
+                                          currency:
+                                            product.default_price.currency ||
+                                            "USD",
+                                        }).format(discountedPrice)}
+                                      </span>
+                                      <span
+                                        className={`text-lg sm:text-xl line-through ${
+                                          isSubscribedToProduct
+                                            ? "text-white/60"
+                                            : "text-gray-400"
+                                        }`}
+                                      >
+                                        {new Intl.NumberFormat("en-US", {
+                                          style: "currency",
+                                          currency:
+                                            product.default_price.currency ||
+                                            "USD",
+                                        }).format(
+                                          product.default_price.unit_amount /
+                                            100
+                                        )}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span
+                                      className={`text-3xl sm:text-4xl font-bold ${
+                                        isSubscribedToProduct
+                                          ? "text-white"
+                                          : "text-white"
+                                      }`}
+                                    >
+                                      {new Intl.NumberFormat("en-US", {
+                                        style: "currency",
+                                        currency:
+                                          product.default_price.currency ||
+                                          "USD",
+                                      }).format(
+                                        product.default_price.unit_amount / 100
+                                      )}
+                                    </span>
+                                  )}
+                                  {product.default_price.unit_amount > 0 && (
+                                    <span
+                                      className={`text-sm sm:text-base ${
+                                        isSubscribedToProduct
+                                          ? "text-white/80"
+                                          : "text-gray-400"
+                                      }`}
+                                    >
+                                      {product.default_price?.recurring
+                                        ?.interval
+                                        ? `/${product.default_price.recurring.interval}`
+                                        : product.default_price.type ===
+                                            "one_time"
+                                          ? " one-time"
+                                          : ""}
+                                    </span>
+                                  )}
+                                </>
                               )}
                             </div>
+
+                            {/* Discount Duration Info */}
+                            {product.hasDiscount &&
+                              discountInfo?.durationText && (
+                                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                  <Percent className="h-4 w-4 text-red-400 flex-shrink-0" />
+                                  <span className="text-sm text-red-200 font-medium break-words">
+                                    {discountInfo.durationText}
+                                  </span>
+                                </div>
+                              )}
+
                             <p
                               className={`mt-2 ${
                                 isSubscribedToProduct
@@ -831,6 +956,9 @@ export default function CapperProfilePage({
                             priceId={product.default_price.id}
                             stripeAccountId={capper.user.stripeConnectId}
                             isSubscribed={isSubscribedToProduct}
+                            couponId={
+                              product.hasDiscount ? product.couponId : undefined
+                            }
                             className={`w-full relative overflow-hidden sm:group sm:transition-all sm:duration-200 sm:ease-out sm:hover:scale-[1.02] active:scale-[0.98] ${
                               isSubscribedToProduct
                                 ? "bg-white/20 sm:hover:bg-white/25 text-white"

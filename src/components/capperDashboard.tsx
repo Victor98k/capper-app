@@ -63,6 +63,11 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     features: [] as string[],
     newFeature: "",
     currency: "eur",
+    hasDiscount: false,
+    discountType: "percentage",
+    discountValue: "",
+    discountDuration: "once",
+    discountDurationInMonths: "3",
   });
   const [isFree, setIsFree] = useState(false);
 
@@ -116,6 +121,16 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
           interval: formData.interval,
           features: formData.features,
           currency: formData.currency,
+          hasDiscount: formData.hasDiscount,
+          discountType: formData.discountType,
+          discountValue: formData.hasDiscount
+            ? parseFloat(formData.discountValue)
+            : undefined,
+          discountDuration: formData.discountDuration,
+          discountDurationInMonths:
+            formData.discountDuration === "repeating"
+              ? parseInt(formData.discountDurationInMonths)
+              : undefined,
         }),
       });
 
@@ -138,6 +153,11 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         features: [],
         newFeature: "",
         currency: stripeAccountData?.defaultCurrency?.toLowerCase() || "eur",
+        hasDiscount: false,
+        discountType: "percentage",
+        discountValue: "",
+        discountDuration: "once",
+        discountDurationInMonths: "3",
       });
     } catch (error) {
       toast.error(
@@ -431,6 +451,205 @@ const CreateProductDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                     : "Customers will be billed at the selected interval"}
                 </p>
               </div>
+            </div>
+
+            <div className="space-y-4 border-t border-[#4e43ff]/10 pt-6">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-white/90">
+                  Discount
+                </Label>
+                <Button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      hasDiscount: !prev.hasDiscount,
+                    }))
+                  }
+                  className={`text-sm ${formData.hasDiscount ? "bg-[#4e43ff] hover:bg-[#4e43ff]/90" : "bg-[#1a1a1a] hover:bg-[#4e43ff]/10"} transition-all`}
+                >
+                  {formData.hasDiscount ? "Remove Discount" : "Add Discount"}
+                </Button>
+              </div>
+
+              {formData.hasDiscount && (
+                <div className="space-y-4 bg-[#1a1a1a]/50 p-4 rounded-lg border border-[#4e43ff]/10">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-white/90">
+                        Discount Type
+                      </Label>
+                      <Select
+                        value={formData.discountType}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            discountType: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                          <SelectItem
+                            value="percentage"
+                            className="text-white hover:bg-[#4e43ff]/10"
+                          >
+                            Percentage Off
+                          </SelectItem>
+                          <SelectItem
+                            value="fixed"
+                            className="text-white hover:bg-[#4e43ff]/10"
+                          >
+                            Fixed Amount Off
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-white/90">
+                        Discount Value
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          min="0"
+                          max={
+                            formData.discountType === "percentage"
+                              ? "100"
+                              : undefined
+                          }
+                          step={
+                            formData.discountType === "percentage"
+                              ? "1"
+                              : "0.01"
+                          }
+                          value={formData.discountValue}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              discountValue: e.target.value,
+                            }))
+                          }
+                          placeholder={
+                            formData.discountType === "percentage"
+                              ? "25"
+                              : "10.00"
+                          }
+                          className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] pr-8 transition-all"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60">
+                          {formData.discountType === "percentage"
+                            ? "%"
+                            : getCurrencySymbol(formData.currency)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-white/90">
+                      Discount Duration
+                    </Label>
+                    <Select
+                      value={formData.discountDuration}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          discountDuration: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                        <SelectItem
+                          value="once"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          First Payment Only
+                        </SelectItem>
+                        <SelectItem
+                          value="repeating"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          Limited Time
+                        </SelectItem>
+                        <SelectItem
+                          value="forever"
+                          className="text-white hover:bg-[#4e43ff]/10"
+                        >
+                          Forever
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.discountDuration === "repeating" && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-white/90">
+                        Duration (Months)
+                      </Label>
+                      <Select
+                        value={formData.discountDurationInMonths}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            discountDurationInMonths: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 focus:border-[#4e43ff] focus:ring-1 focus:ring-[#4e43ff] transition-all">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a1a] border-[#4e43ff]/20">
+                          <SelectItem
+                            value="1"
+                            className="text-white hover:bg-[#4e43ff]/10"
+                          >
+                            1 Month
+                          </SelectItem>
+                          <SelectItem
+                            value="3"
+                            className="text-white hover:bg-[#4e43ff]/10"
+                          >
+                            3 Months
+                          </SelectItem>
+                          <SelectItem
+                            value="6"
+                            className="text-white hover:bg-[#4e43ff]/10"
+                          >
+                            6 Months
+                          </SelectItem>
+                          <SelectItem
+                            value="12"
+                            className="text-white hover:bg-[#4e43ff]/10"
+                          >
+                            12 Months
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <div className="bg-[#4e43ff]/10 p-3 rounded-lg">
+                    <p className="text-sm text-white/80">
+                      <strong>Preview:</strong>{" "}
+                      {formData.discountType === "percentage"
+                        ? `${formData.discountValue}% off`
+                        : `${getCurrencySymbol(formData.currency)}${formData.discountValue} off`}{" "}
+                      {formData.discountDuration === "once"
+                        ? "for the first payment"
+                        : formData.discountDuration === "forever"
+                          ? "for all payments"
+                          : `for ${formData.discountDurationInMonths} month${formData.discountDurationInMonths !== "1" ? "s" : ""}`}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">

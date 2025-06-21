@@ -29,6 +29,7 @@ interface SubscribeButtonProps {
   children?: React.ReactNode;
   scrollToBundles?: boolean;
   onClick?: () => void;
+  couponId?: string;
 }
 
 export function SubscribeButton({
@@ -42,6 +43,7 @@ export function SubscribeButton({
   children,
   scrollToBundles = false,
   onClick,
+  couponId,
 }: SubscribeButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isDebouncing, setIsDebouncing] = useState(false);
@@ -109,6 +111,7 @@ export function SubscribeButton({
           priceId,
           capperId,
           productId,
+          couponId,
         }),
       });
 
@@ -160,6 +163,7 @@ export function SubscribeButton({
     isLoading,
     isDebouncing,
     router,
+    couponId,
   ]);
 
   const handleClick = async (e: React.MouseEvent) => {

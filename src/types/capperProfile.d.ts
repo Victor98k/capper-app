@@ -32,6 +32,13 @@ export type CapperProfile = {
       type: "one_time" | "recurring";
     };
     marketing_features: string[];
+    hasDiscount?: boolean;
+    discountType?: "percentage" | "fixed";
+    discountValue?: number;
+    discountDuration?: "once" | "repeating" | "forever";
+    discountDurationInMonths?: number;
+    couponId?: string;
+    freeCouponId?: string;
   }[];
   roi: number;
   winrate: number;

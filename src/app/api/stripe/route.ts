@@ -11,9 +11,14 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { priceId, capperId, productId } = await req.json();
+    const { priceId, capperId, productId, couponId } = await req.json();
 
-    console.log("Received request with:", { priceId, capperId, productId });
+    console.log("Received request with:", {
+      priceId,
+      capperId,
+      productId,
+      couponId,
+    });
 
     // Get capper first
     const capper = await prisma.capper.findUnique({
@@ -214,12 +219,30 @@ export async function POST(req: Request) {
     }
 
     // Create checkout session with different mode based on price type
+    // Check if this should be a recurring subscription based on both price type and product metadata
+    const shouldBeRecurring =
+      price.type === "recurring" ||
+      (product.metadata?.packageType === "recurring" &&
+        product.metadata?.interval &&
+        product.metadata?.interval !== "one_time" &&
+        price.recurring); // Only if the price actually has recurring data
+
+    // Log detailed price and product information for debugging
+    console.log("Price and product analysis:", {
+      priceType: price.type,
+      priceRecurring: price.recurring,
+      productPackageType: product.metadata?.packageType,
+      productInterval: product.metadata?.interval,
+      shouldBeRecurring,
+      mismatchDetected:
+        product.metadata?.packageType === "recurring" &&
+        price.type !== "recurring",
+    });
+
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
-      mode:
-        price.type === "recurring" ||
-        product.metadata?.packageType === "recurring"
-          ? ("subscription" as const)
-          : ("payment" as const),
+      mode: shouldBeRecurring
+        ? ("subscription" as const)
+        : ("payment" as const),
       payment_method_types: ["card"],
       line_items: [
         {
@@ -244,11 +267,7 @@ export async function POST(req: Request) {
         priceType: price.type,
         interval:
           price.recurring?.interval || product.metadata?.interval || "one_time",
-        packageType:
-          price.type === "recurring" ||
-          product.metadata?.packageType === "recurring"
-            ? "recurring"
-            : "one_time",
+        packageType: shouldBeRecurring ? "recurring" : "one_time",
         stripeAccountId: capper.user.stripeConnectId,
       },
     };
@@ -262,8 +281,29 @@ export async function POST(req: Request) {
       productMetadata: product.metadata,
     });
 
-    // If this is a zero-price product (price.unit_amount === 1), apply the coupon
-    if (price.unit_amount === 1) {
+    // Apply coupon if provided
+    if (couponId) {
+      try {
+        // Verify the coupon exists and is valid
+        const coupon = await stripe.coupons.retrieve(couponId, {
+          stripeAccount: capper.user.stripeConnectId,
+        });
+
+        if (coupon.valid) {
+          sessionConfig.discounts = [
+            {
+              coupon: couponId,
+            },
+          ];
+          console.log("Applied coupon to session:", couponId);
+        }
+      } catch (error) {
+        console.error("Error retrieving coupon:", error);
+        // Continue without the coupon if coupon retrieval fails
+      }
+    }
+    // If this is a zero-price product (price.unit_amount === 1), apply the coupon from product metadata
+    else if (price.unit_amount === 1) {
       try {
         const product = await stripe.products.retrieve(productId, {
           stripeAccount: capper.user.stripeConnectId,
