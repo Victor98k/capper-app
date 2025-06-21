@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heart, MoreHorizontal, Lock, Check, Zap } from "lucide-react";
+import {
+  Heart,
+  MoreHorizontal,
+  Lock,
+  Check,
+  Zap,
+  Tag,
+  Percent,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter } from "./ui/card";
@@ -65,6 +73,52 @@ const sportEmojiMap: { [key: string]: string } = {
   F1: "🏎️",
   "Horse Racing": "🏇",
   "E-Sports": "🎮",
+};
+
+// Helper function to calculate discounted price
+const calculateDiscountedPrice = (product: any) => {
+  if (
+    !product.hasDiscount ||
+    !product.discountValue ||
+    product.default_price.unit_amount <= 1
+  ) {
+    return null;
+  }
+
+  const originalPrice = product.default_price.unit_amount / 100;
+  let discountedPrice = originalPrice;
+
+  if (product.discountType === "percentage") {
+    discountedPrice = originalPrice * (1 - product.discountValue / 100);
+  } else if (product.discountType === "fixed") {
+    discountedPrice = Math.max(0, originalPrice - product.discountValue);
+  }
+
+  return discountedPrice;
+};
+
+// Helper function to format discount text
+const getDiscountText = (product: any) => {
+  if (!product.hasDiscount || !product.discountValue) return null;
+
+  const discountText =
+    product.discountType === "percentage"
+      ? `${product.discountValue}% OFF`
+      : `${product.default_price.currency.toUpperCase()} ${product.discountValue} OFF`;
+
+  let durationText = "";
+  if (product.discountDuration === "once") {
+    durationText = "First payment";
+  } else if (product.discountDuration === "forever") {
+    durationText = "Forever";
+  } else if (
+    product.discountDuration === "repeating" &&
+    product.discountDurationInMonths
+  ) {
+    durationText = `${product.discountDurationInMonths} month${product.discountDurationInMonths > 1 ? "s" : ""}`;
+  }
+
+  return { discountText, durationText };
 };
 
 // Subscription Plans Component
@@ -137,11 +191,13 @@ const SubscriptionPlans = ({
         {products.map((product, index) => {
           const isSubscribedToProduct = subscribedProducts.includes(product.id);
           const isMiddleCard = products.length === 3 && index === 1;
+          const discountedPrice = calculateDiscountedPrice(product);
+          const discountInfo = getDiscountText(product);
 
           return (
             <div
               key={product.id}
-              className={`rounded-xl p-4 transition-all duration-200 flex flex-col
+              className={`rounded-xl p-4 transition-all duration-200 flex flex-col relative
                 ${
                   isSubscribedToProduct
                     ? "bg-[#4e43ff] border-2 border-white/20"
@@ -151,6 +207,16 @@ const SubscriptionPlans = ({
                 }
               `}
             >
+              {/* Discount Badge */}
+              {product.hasDiscount && discountInfo && (
+                <div className="absolute -top-3 -right-3 z-10">
+                  <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                    <Tag className="h-3 w-3" />
+                    {discountInfo.discountText}
+                  </div>
+                </div>
+              )}
+
               {isMiddleCard && (
                 <div className="text-center mb-2">
                   <span className="bg-violet-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
@@ -182,25 +248,57 @@ const SubscriptionPlans = ({
 
               {/* Price Display */}
               <div className="mb-4">
-                <div className="flex items-baseline">
-                  <span className="text-2xl font-bold text-white">
-                    {product.default_price.unit_amount <= 1
-                      ? "Free"
-                      : new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: product.default_price.currency || "USD",
-                        }).format(product.default_price.unit_amount / 100)}
-                  </span>
-                  {product.default_price.unit_amount > 0 && (
-                    <span className="ml-1 text-gray-400 text-sm">
-                      {product.default_price?.recurring?.interval
-                        ? `/${product.default_price.recurring.interval}`
-                        : product.default_price.type === "one_time"
-                          ? " one-time"
-                          : ""}
-                    </span>
+                <div className="flex items-baseline gap-2">
+                  {product.default_price.unit_amount <= 1 ? (
+                    <span className="text-2xl font-bold text-white">Free</span>
+                  ) : (
+                    <>
+                      {discountedPrice !== null ? (
+                        <>
+                          <span className="text-2xl font-bold text-white">
+                            {new Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: product.default_price.currency || "USD",
+                            }).format(discountedPrice)}
+                          </span>
+                          <span className="text-lg text-gray-400 line-through">
+                            {new Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: product.default_price.currency || "USD",
+                            }).format(product.default_price.unit_amount / 100)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-2xl font-bold text-white">
+                          {new Intl.NumberFormat("en-US", {
+                            style: "currency",
+                            currency: product.default_price.currency || "USD",
+                          }).format(product.default_price.unit_amount / 100)}
+                        </span>
+                      )}
+                      {product.default_price.unit_amount > 0 && (
+                        <span className="ml-1 text-gray-400 text-sm">
+                          {product.default_price?.recurring?.interval
+                            ? `/${product.default_price.recurring.interval}`
+                            : product.default_price.type === "one_time"
+                              ? " one-time"
+                              : ""}
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
+
+                {/* Discount Duration Info */}
+                {product.hasDiscount && discountInfo?.durationText && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Percent className="h-4 w-4 text-red-400" />
+                    <span className="text-sm text-red-200 font-medium">
+                      {discountInfo.durationText}
+                    </span>
+                  </div>
+                )}
+
                 <p className="mt-1 text-gray-400 text-sm">
                   {product.description}
                 </p>
