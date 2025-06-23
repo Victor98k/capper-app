@@ -598,11 +598,50 @@ export default function CapperProfilePage({
                           labelStyle={{ color: "#9CA3AF" }}
                           formatter={(value: any, name: string, props: any) => {
                             const bet = performanceData[props.payload.index];
-                            if (!bet) return [value + "u", "Units"];
+                            if (!bet) return [value + "u", "Cumulative Units"];
+
+                            const betResult =
+                              bet.status === "WON"
+                                ? `+${bet.unitChange}`
+                                : `${bet.unitChange}`;
+                            const resultColor =
+                              bet.status === "WON" ? "#22c55e" : "#ef4444";
+
                             return [
-                              `${value}u (${bet.status === "WON" ? "+" + bet.unitChange : bet.unitChange}u)`,
-                              "Units",
-                              bet.title,
+                              <div key="tooltip" style={{ color: "#fff" }}>
+                                <div
+                                  style={{
+                                    fontSize: "14px",
+                                    fontWeight: "bold",
+                                    marginBottom: "4px",
+                                  }}
+                                >
+                                  {bet.title}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "12px",
+                                    color: "#9CA3AF",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  This Bet:{" "}
+                                  <span
+                                    style={{
+                                      color: resultColor,
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    {betResult}u
+                                  </span>
+                                </div>
+                                <div
+                                  style={{ fontSize: "12px", color: "#9CA3AF" }}
+                                >
+                                  Cumulative: {value}u
+                                </div>
+                              </div>,
+                              "",
                             ];
                           }}
                         />
