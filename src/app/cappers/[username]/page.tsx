@@ -36,6 +36,7 @@ import {
   Mail,
   Tag,
   Percent,
+  TrendingDown,
 } from "lucide-react";
 import { use } from "react";
 // Components
@@ -257,11 +258,30 @@ export default function CapperProfilePage({
         const response = await fetch(
           `/api/cappers/${resolvedParams.username}/bets`
         );
-        if (!response.ok) throw new Error("Failed to fetch performance data");
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`API Error ${response.status}:`, errorText);
+          throw new Error(
+            `Failed to fetch performance data: ${response.status} ${errorText}`
+          );
+        }
+
         const data = await response.json();
+
+        // Handle case where data might be empty or invalid
+        if (!Array.isArray(data)) {
+          console.warn("Performance data is not an array:", data);
+          setPerformanceData([]);
+          return;
+        }
+
+        console.log("Performance data loaded:", data);
         setPerformanceData(data);
       } catch (error) {
         console.error("Error fetching performance data:", error);
+        // Set empty array so chart doesn't break
+        setPerformanceData([]);
       }
     };
 
@@ -554,67 +574,209 @@ export default function CapperProfilePage({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis
-                        dataKey="date"
-                        stroke="#9CA3AF"
-                        tickFormatter={(date) =>
-                          new Date(date).toLocaleDateString()
-                        }
-                      />
-                      <YAxis
-                        stroke="#9CA3AF"
-                        tickFormatter={(value) => `${value}u`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#1F2937",
-                          border: "1px solid #374151",
-                        }}
-                        labelStyle={{ color: "#9CA3AF" }}
-                        formatter={(value: any, name: string, props: any) => {
-                          const bet = performanceData[props.payload.index];
-                          if (!bet) return [value + "u", "Units"];
-                          return [
-                            `${value}u (${bet.status === "WON" ? "+" + bet.unitChange : bet.unitChange}u)`,
-                            "Units",
-                            bet.title,
-                          ];
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="units"
-                        stroke="#8B5CF6"
-                        strokeWidth={2}
-                        dot={(props: any) => {
-                          const bet = performanceData[props.index];
-                          return (
-                            <circle
-                              key={`dot-${props.index}`}
-                              cx={props.cx}
-                              cy={props.cy}
-                              r={4}
-                              fill={
-                                !bet
-                                  ? "#8B5CF6"
-                                  : bet.status === "WON"
-                                    ? "#22c55e"
-                                    : "#ef4444"
-                              }
-                              stroke="none"
-                            />
-                          );
-                        }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                {performanceData.length > 0 ? (
+                  <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={performanceData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis
+                          dataKey="date"
+                          stroke="#9CA3AF"
+                          tickFormatter={(date) =>
+                            new Date(date).toLocaleDateString()
+                          }
+                        />
+                        <YAxis
+                          stroke="#9CA3AF"
+                          tickFormatter={(value) => `${value}u`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#1F2937",
+                            border: "1px solid #374151",
+                          }}
+                          labelStyle={{ color: "#9CA3AF" }}
+                          formatter={(value: any, name: string, props: any) => {
+                            const bet = performanceData[props.payload.index];
+                            if (!bet) return [value + "u", "Units"];
+                            return [
+                              `${value}u (${bet.status === "WON" ? "+" + bet.unitChange : bet.unitChange}u)`,
+                              "Units",
+                              bet.title,
+                            ];
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="units"
+                          stroke="#8B5CF6"
+                          strokeWidth={2}
+                          dot={(props: any) => {
+                            const bet = performanceData[props.index];
+                            return (
+                              <circle
+                                key={`dot-${props.index}`}
+                                cx={props.cx}
+                                cy={props.cy}
+                                r={4}
+                                fill={
+                                  !bet
+                                    ? "#8B5CF6"
+                                    : bet.status === "WON"
+                                      ? "#22c55e"
+                                      : "#ef4444"
+                                }
+                                stroke="none"
+                              />
+                            );
+                          }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[300px] w-full flex items-center justify-center">
+                    <div className="text-center">
+                      <TrendingUp className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                      <p className="text-gray-400 text-lg mb-2">
+                        No betting data available
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        This capper hasn't posted any verified bets yet.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Key Metrics Display - Right under the graph */}
+                {performanceData.length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-gray-700">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                      {/* Units Won */}
+                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <TrendingUp className="h-5 w-5 text-green-400" />
+                          <span className="text-sm text-gray-300 font-medium">
+                            Units Won
+                          </span>
+                        </div>
+                        <p className="text-2xl font-bold text-green-400 text-center">
+                          +
+                          {performanceData
+                            .filter((bet) => bet.status === "WON")
+                            .reduce((sum, bet) => sum + bet.unitChange, 0)
+                            .toFixed(1)}
+                          u
+                        </p>
+                      </div>
+
+                      {/* Units Lost */}
+                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <TrendingDown className="h-5 w-5 text-red-400" />
+                          <span className="text-sm text-gray-300 font-medium">
+                            Units Lost
+                          </span>
+                        </div>
+                        <p className="text-2xl font-bold text-red-400 text-center">
+                          {performanceData
+                            .filter((bet) => bet.status === "LOST")
+                            .reduce((sum, bet) => sum + bet.unitChange, 0)
+                            .toFixed(1)}
+                          u
+                        </p>
+                      </div>
+
+                      {/* Net Profit */}
+                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Zap className="h-5 w-5 text-yellow-400" />
+                          <span className="text-sm text-gray-300 font-medium">
+                            Net Profit
+                          </span>
+                        </div>
+                        <p
+                          className={`text-2xl font-bold text-center ${
+                            performanceData[performanceData.length - 1]
+                              ?.units >= 0
+                              ? "text-green-400"
+                              : "text-red-400"
+                          }`}
+                        >
+                          {performanceData[performanceData.length - 1]?.units >=
+                          0
+                            ? "+"
+                            : ""}
+                          {performanceData[performanceData.length - 1]?.units ||
+                            0}
+                          u
+                        </p>
+                      </div>
+
+                      {/* Biggest Win */}
+                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <CheckCircle className="h-5 w-5 text-green-400" />
+                          <span className="text-sm text-gray-300 font-medium">
+                            Biggest Win
+                          </span>
+                        </div>
+                        <p className="text-2xl font-bold text-green-400 text-center">
+                          +
+                          {Math.max(
+                            ...performanceData
+                              .filter((bet) => bet.status === "WON")
+                              .map((bet) => bet.unitChange),
+                            0
+                          ).toFixed(1)}
+                          u
+                        </p>
+                      </div>
+
+                      {/* Average Bet Size */}
+                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <User className="h-5 w-5 text-blue-400" />
+                          <span className="text-sm text-gray-300 font-medium">
+                            Avg Bet Size
+                          </span>
+                        </div>
+                        <p className="text-2xl font-bold text-white text-center">
+                          {(
+                            performanceData.reduce(
+                              (sum, bet) => sum + Math.abs(bet.unitChange),
+                              0
+                            ) / performanceData.length
+                          ).toFixed(1)}
+                          u
+                        </p>
+                      </div>
+
+                      {/* Last 10 Bets Performance */}
+                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Star className="h-5 w-5 text-blue-400" />
+                          <span className="text-sm text-gray-300 font-medium">
+                            Last 10 Bets
+                          </span>
+                        </div>
+                        <p className="text-lg font-bold text-white text-center">
+                          {(() => {
+                            const last10 = performanceData.slice(-10);
+                            const wins = last10.filter(
+                              (bet) => bet.status === "WON"
+                            ).length;
+                            return `${wins}W-${last10.length - wins}L`;
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* Units Statistics Section */}
 
             {/* ROI Calculator */}
             {showROICalculator && (
