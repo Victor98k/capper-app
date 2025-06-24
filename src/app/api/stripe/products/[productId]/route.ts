@@ -237,3 +237,170 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ productId: string }> }
+) {
+  try {
+    // Get token from cookies
+    const cookies = req.headers.get("cookie");
+    const cookiesArray =
+      cookies?.split(";").map((cookie) => cookie.trim()) || [];
+    const tokenCookie = cookiesArray.find((cookie) =>
+      cookie.startsWith("token=")
+    );
+    const token = tokenCookie?.split("=")[1];
+
+    if (!token) {
+      return NextResponse.json({ error: "No token provided" }, { status: 401 });
+    }
+
+    const payload = await verifyJWT(token);
+    if (!payload?.userId) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    // Get the user's Stripe Connect ID
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { stripeConnectId: true },
+    });
+
+    if (!user?.stripeConnectId) {
+      return NextResponse.json(
+        { error: "No Stripe account found" },
+        { status: 404 }
+      );
+    }
+
+    const productId = (await params).productId;
+
+    // Get the existing product
+    const existingProduct = await stripe.products.retrieve(productId, {
+      stripeAccount: user.stripeConnectId,
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // Instead of deleting, we'll archive the product by setting it as inactive
+    // and adding an archived flag to metadata
+    const archivedProduct = await stripe.products.update(
+      productId,
+      {
+        active: false,
+        metadata: {
+          ...existingProduct.metadata,
+          archived: "true",
+          archivedAt: new Date().toISOString(),
+        },
+      },
+      { stripeAccount: user.stripeConnectId }
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: "Product archived successfully",
+      product: {
+        id: archivedProduct.id,
+        name: archivedProduct.name,
+        archived: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error archiving product:", error);
+    return NextResponse.json(
+      { error: "Failed to archive product" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ productId: string }> }
+) {
+  try {
+    // Get token from cookies
+    const cookies = req.headers.get("cookie");
+    const cookiesArray =
+      cookies?.split(";").map((cookie) => cookie.trim()) || [];
+    const tokenCookie = cookiesArray.find((cookie) =>
+      cookie.startsWith("token=")
+    );
+    const token = tokenCookie?.split("=")[1];
+
+    if (!token) {
+      return NextResponse.json({ error: "No token provided" }, { status: 401 });
+    }
+
+    const payload = await verifyJWT(token);
+    if (!payload?.userId) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    // Get the user's Stripe Connect ID
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { stripeConnectId: true },
+    });
+
+    if (!user?.stripeConnectId) {
+      return NextResponse.json(
+        { error: "No Stripe account found" },
+        { status: 404 }
+      );
+    }
+
+    const { action } = await req.json();
+    const productId = (await params).productId;
+
+    if (action === "restore") {
+      // Get the existing product
+      const existingProduct = await stripe.products.retrieve(productId, {
+        stripeAccount: user.stripeConnectId,
+      });
+
+      if (!existingProduct) {
+        return NextResponse.json(
+          { error: "Product not found" },
+          { status: 404 }
+        );
+      }
+
+      // Restore the product by setting it as active and removing archived flag
+      const restoredProduct = await stripe.products.update(
+        productId,
+        {
+          active: true,
+          metadata: {
+            ...existingProduct.metadata,
+            archived: "false",
+            restoredAt: new Date().toISOString(),
+          },
+        },
+        { stripeAccount: user.stripeConnectId }
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: "Product restored successfully",
+        product: {
+          id: restoredProduct.id,
+          name: restoredProduct.name,
+          archived: false,
+        },
+      });
+    }
+
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  } catch (error) {
+    console.error("Error processing product action:", error);
+    return NextResponse.json(
+      { error: "Failed to process product action" },
+      { status: 500 }
+    );
+  }
+}

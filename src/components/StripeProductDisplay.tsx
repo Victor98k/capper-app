@@ -10,7 +10,16 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Loader2, Zap, Edit2, Tag, Percent } from "lucide-react";
+import {
+  Check,
+  Plus,
+  Loader2,
+  Zap,
+  Edit2,
+  Tag,
+  Percent,
+  Archive,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -57,6 +66,9 @@ interface Product {
   discountDurationInMonths?: number;
   couponId?: string;
   freeCouponId?: string;
+  archived?: boolean;
+  archivedAt?: string;
+  active?: boolean;
 }
 
 const MAX_PRODUCTS = 3;
@@ -544,14 +556,21 @@ const EditProductDialog = ({
 };
 
 export default function StripeProductDisplay() {
+  const [showArchived, setShowArchived] = useState(false);
+  const [archiveDialogProductId, setArchiveDialogProductId] = useState<
+    string | null
+  >(null);
+
   const {
     data: products,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", showArchived],
     queryFn: async () => {
-      const response = await fetch("/api/stripe/products");
+      const response = await fetch(
+        `/api/stripe/products?archived=${showArchived}`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -560,6 +579,50 @@ export default function StripeProductDisplay() {
   });
 
   const queryClient = useQueryClient();
+
+  const archiveProduct = async (productId: string) => {
+    try {
+      const response = await fetch(`/api/stripe/products/${productId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to archive product");
+      }
+
+      toast.success("Product archived successfully!");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to archive product"
+      );
+    }
+  };
+
+  const restoreProduct = async (productId: string) => {
+    try {
+      const response = await fetch(`/api/stripe/products/${productId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "restore" }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to restore product");
+      }
+
+      toast.success("Product restored successfully!");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to restore product"
+      );
+    }
+  };
 
   const openStripeDashboard = async (path: string = "") => {
     try {
@@ -601,19 +664,90 @@ export default function StripeProductDisplay() {
 
   if (!products?.length) {
     return (
-      <Card className="bg-[#1a1a1a] border-[#4e43ff]/20">
-        <CardContent className="flex flex-col items-center justify-center p-8">
-          <p className="text-gray-400 text-center">
-            No products found. Create your first product to start accepting
-            subscriptions.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        {/* Toggle for archived products */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-white">
+            {showArchived ? "Archived Products" : "Active Products"}
+          </h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowArchived(!showArchived)}
+            className="bg-[#1a1a1a] border-[#4e43ff]/20 text-white hover:bg-[#4e43ff]/10"
+          >
+            {showArchived ? "Show Active" : "Show Archived"}
+          </Button>
+        </div>
+
+        <Card className="bg-[#1a1a1a] border-[#4e43ff]/20">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <p className="text-gray-400 text-center">
+              {showArchived
+                ? "No archived products found."
+                : "No products found. Create your first product to start accepting subscriptions."}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Archive Confirmation Dialog */}
+      <Dialog
+        open={!!archiveDialogProductId}
+        onOpenChange={(open) => !open && setArchiveDialogProductId(null)}
+      >
+        <DialogContent className="bg-[#020817] text-white border border-[#4e43ff]/20">
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to archive this product? This action can be
+              undone from the archived products tab.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setArchiveDialogProductId(null)}
+              className="border-[#4e43ff]/40 hover:bg-[#4e43ff]/10 text-white transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (archiveDialogProductId) {
+                  archiveProduct(archiveDialogProductId);
+                  setArchiveDialogProductId(null);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Archive Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Toggle for archived products */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-white">
+          {showArchived
+            ? `Archived Products (${products.length})`
+            : `Active Products (${products.length})`}
+        </h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowArchived(!showArchived)}
+          className="bg-[#1a1a1a] border-[#4e43ff]/20 text-white hover:bg-[#4e43ff]/10"
+        >
+          {showArchived ? "Show Active" : "Show Archived"}
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product: Product) => {
           const isMiddleCard =
@@ -626,16 +760,27 @@ export default function StripeProductDisplay() {
               key={product.id}
               className={`rounded-xl p-6 backdrop-blur-sm transition-all duration-300 hover:transform hover:scale-[1.02] flex flex-col relative
                 ${
-                  isMiddleCard
-                    ? "bg-[#4e43ff] border-2 border-white/20 shadow-[0_0_30px_rgba(78,67,255,0.2)]"
-                    : "bg-[#4e43ff] border border-white/20 hover:border-white/30"
+                  product.archived
+                    ? "bg-gray-600/50 border border-gray-500/50 opacity-80"
+                    : isMiddleCard
+                      ? "bg-[#4e43ff] border-2 border-white/20 shadow-[0_0_30px_rgba(78,67,255,0.2)]"
+                      : "bg-[#4e43ff] border border-white/20 hover:border-white/30"
                 }
-                ${isMiddleCard ? "lg:-mt-4 lg:p-8" : ""}
-                hover:shadow-[0_0_30px_rgba(78,67,255,0.2)]
+                ${isMiddleCard && !product.archived ? "lg:-mt-4 lg:p-8" : ""}
+                ${!product.archived ? "hover:shadow-[0_0_30px_rgba(78,67,255,0.2)]" : ""}
               `}
             >
+              {/* Archive Badge */}
+              {product.archived && (
+                <div className="absolute -top-3 -right-3 z-10">
+                  <div className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    Archived
+                  </div>
+                </div>
+              )}
+
               {/* Discount Badge */}
-              {product.hasDiscount && discountInfo && (
+              {product.hasDiscount && discountInfo && !product.archived && (
                 <div className="absolute -top-3 -right-3 z-10">
                   <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                     <Tag className="h-3 w-3" />
@@ -649,48 +794,62 @@ export default function StripeProductDisplay() {
                 <div className="flex justify-between items-start mb-6">
                   <h3
                     className={`text-2xl font-bold ${
-                      isMiddleCard ? "text-white" : "text-white"
+                      product.archived ? "text-gray-300" : "text-white"
                     }`}
                   >
                     {product.name}
-                    {isMiddleCard && (
+                    {isMiddleCard && !product.archived && (
                       <div className="text-sm font-normal text-white/80 mt-1">
                         Most Popular
                       </div>
                     )}
                   </h3>
-                  <EditProductDialog
-                    product={product}
-                    onSuccess={() => {
-                      queryClient.invalidateQueries({ queryKey: ["products"] });
-                    }}
-                  />
+                  {!product.archived && (
+                    <EditProductDialog
+                      product={product}
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({
+                          queryKey: ["products"],
+                        });
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Price Display */}
                 <div className="mb-8">
                   <div className="flex items-baseline gap-2">
                     {product.unit_amount <= 1 ? (
-                      <span className="text-4xl font-bold text-white">
+                      <span
+                        className={`text-4xl font-bold ${product.archived ? "text-gray-300" : "text-white"}`}
+                      >
                         Free
                       </span>
                     ) : (
                       <>
                         {discountedPrice !== null ? (
                           <>
-                            <span className="text-4xl font-bold text-white">
+                            <span
+                              className={`text-4xl font-bold ${product.archived ? "text-gray-300" : "text-white"}`}
+                            >
                               ${discountedPrice.toFixed(2)}
                             </span>
-                            <span className="text-xl text-white/60 line-through">
+                            <span
+                              className={`text-xl line-through ${product.archived ? "text-gray-400" : "text-white/60"}`}
+                            >
                               ${(product.unit_amount / 100).toFixed(2)}
                             </span>
                           </>
                         ) : (
-                          <span className="text-4xl font-bold text-white">
+                          <span
+                            className={`text-4xl font-bold ${product.archived ? "text-gray-300" : "text-white"}`}
+                          >
                             ${(product.unit_amount / 100).toFixed(2)}
                           </span>
                         )}
-                        <span className="ml-2 text-white/80">
+                        <span
+                          className={`ml-2 ${product.archived ? "text-gray-400" : "text-white/80"}`}
+                        >
                           {product.currency.toUpperCase()}
                         </span>
                       </>
@@ -698,16 +857,30 @@ export default function StripeProductDisplay() {
                   </div>
 
                   {/* Discount Duration Info */}
-                  {product.hasDiscount && discountInfo?.durationText && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <Percent className="h-4 w-4 text-red-400" />
-                      <span className="text-sm text-red-200 font-medium">
-                        {discountInfo.durationText}
-                      </span>
-                    </div>
-                  )}
+                  {product.hasDiscount &&
+                    discountInfo?.durationText &&
+                    !product.archived && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <Percent className="h-4 w-4 text-red-400" />
+                        <span className="text-sm text-red-200 font-medium">
+                          {discountInfo.durationText}
+                        </span>
+                      </div>
+                    )}
 
-                  <p className="mt-2 text-white/80">{product.description}</p>
+                  <p
+                    className={`mt-2 ${product.archived ? "text-gray-400" : "text-white/80"}`}
+                  >
+                    {product.description}
+                  </p>
+
+                  {/* Archived date */}
+                  {product.archived && product.archivedAt && (
+                    <p className="mt-2 text-sm text-gray-500">
+                      Archived on{" "}
+                      {new Date(product.archivedAt).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
 
                 {/* Features List */}
@@ -715,29 +888,61 @@ export default function StripeProductDisplay() {
                   {product.features?.length > 0 ? (
                     product.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start gap-3">
-                        <Zap className="h-5 w-5 flex-shrink-0 text-white" />
-                        <span className="text-white/90">{feature}</span>
+                        <Zap
+                          className={`h-5 w-5 flex-shrink-0 ${product.archived ? "text-gray-400" : "text-white"}`}
+                        />
+                        <span
+                          className={
+                            product.archived ? "text-gray-400" : "text-white/90"
+                          }
+                        >
+                          {feature}
+                        </span>
                       </li>
                     ))
                   ) : (
-                    <li className="text-white/80 text-center">
+                    <li
+                      className={`text-center ${product.archived ? "text-gray-500" : "text-white/80"}`}
+                    >
                       No features listed. Add features in your Stripe dashboard.
                     </li>
                   )}
                 </ul>
               </div>
 
-              {/* Manage Button */}
-              <Button
-                className={`w-full ${
-                  isMiddleCard
-                    ? "bg-white/20 hover:bg-white/25 text-white"
-                    : "bg-white/20 hover:bg-white/25 text-white"
-                }`}
-                onClick={() => openStripeDashboard(`/products/${product.id}`)}
-              >
-                Manage Product
-              </Button>
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                {product.archived ? (
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => restoreProduct(product.id)}
+                  >
+                    Restore Product
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      className={`w-full ${
+                        isMiddleCard
+                          ? "bg-white/20 hover:bg-white/25 text-white"
+                          : "bg-white/20 hover:bg-white/25 text-white"
+                      }`}
+                      onClick={() =>
+                        openStripeDashboard(`/products/${product.id}`)
+                      }
+                    >
+                      Manage Product
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full bg-red-600/20 border-red-500/50 text-red-200 hover:bg-red-600/30 hover:border-red-500"
+                      onClick={() => setArchiveDialogProductId(product.id)}
+                    >
+                      Archive Product
+                    </Button>
+                  </>
+                )}
+              </div>
             </Card>
           );
         })}

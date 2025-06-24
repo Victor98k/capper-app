@@ -37,15 +37,29 @@ export async function GET(req: Request) {
       );
     }
 
+    // Get query parameters
+    const url = new URL(req.url);
+    const showArchived = url.searchParams.get("archived") === "true";
+
     // Fetch products for this connected account
+    // If showArchived is true, get all products (both active and inactive)
+    // Otherwise, only get active products that are not archived
     const products = await stripe.products.list(
-      { active: true, expand: ["data.default_price"] },
+      {
+        active: showArchived ? undefined : true,
+        expand: ["data.default_price"],
+        limit: 100, // Increase limit to get more products
+      },
       { stripeAccount: user.stripeConnectId }
     );
 
-    // Transform the products data
-    const transformedProducts = products.data.map(
-      (product: Stripe.Product) => ({
+    // Transform the products data and filter based on archived status
+    const transformedProducts = products.data
+      .filter((product: Stripe.Product) => {
+        const isArchived = product.metadata.archived === "true";
+        return showArchived ? isArchived : !isArchived;
+      })
+      .map((product: Stripe.Product) => ({
         id: product.id,
         name: product.name,
         description: product.description,
@@ -66,8 +80,10 @@ export async function GET(req: Request) {
           : undefined,
         couponId: product.metadata.couponId,
         freeCouponId: product.metadata.freeCouponId,
-      })
-    );
+        archived: product.metadata.archived === "true",
+        archivedAt: product.metadata.archivedAt,
+        active: product.active,
+      }));
 
     return NextResponse.json(transformedProducts);
   } catch (error) {
