@@ -6,7 +6,7 @@ import Stripe from "stripe";
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, bio } = body;
+    const { userId, bio, updateStats } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -15,12 +15,106 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatedCapper = await prisma.capper.update({
-      where: { userId: userId },
-      data: { bio },
-    });
+    let updateData: any = {};
 
-    return NextResponse.json(updatedCapper);
+    // Handle bio update
+    if (bio !== undefined) {
+      updateData.bio = bio;
+    }
+
+    // Handle stats update (winrate and ROI recalculation)
+    if (updateStats) {
+      // Get the capper's betting data
+      const capper = await prisma.capper.findUnique({
+        where: { userId },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!capper) {
+        return NextResponse.json(
+          { error: "Capper not found" },
+          { status: 404 }
+        );
+      }
+
+      // Fetch all verified bets for this capper
+      const bets = await prisma.bet.findMany({
+        where: {
+          userId: capper.user.id,
+          status: {
+            in: ["WON", "LOST"],
+          },
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+      console.log(`📊 Recalculating stats for ${capper.user.username}`);
+      console.log(`📈 Found ${bets.length} verified bets`);
+
+      let cumulativeUnits = 0;
+      let completedBets = 0;
+      let wonBets = 0;
+
+      // Calculate cumulative performance and stats
+      for (const bet of bets) {
+        if (bet.status === "WON" || bet.status === "LOST") {
+          completedBets++;
+          if (bet.status === "WON") {
+            wonBets++;
+            cumulativeUnits += (bet.units || 0) * (bet.odds - 1); // Profit: units * (odds - 1)
+          } else {
+            cumulativeUnits -= bet.units || 0; // Loss: negative units
+          }
+        }
+      }
+
+      // Calculate winrate
+      const winrate = completedBets > 0 ? (wonBets / completedBets) * 100 : 0;
+
+      // Calculate ROI (Return on Investment)
+      const totalWagered = bets
+        .filter((bet) => bet.status === "WON" || bet.status === "LOST")
+        .reduce((sum, bet) => sum + (bet.units || 0), 0);
+
+      const roi = totalWagered > 0 ? (cumulativeUnits / totalWagered) * 100 : 0;
+
+      console.log(
+        `🏆 Calculated winrate: ${winrate.toFixed(2)}% (${wonBets}/${completedBets})`
+      );
+      console.log(`💰 Calculated ROI: ${roi.toFixed(2)}%`);
+      console.log(
+        `💵 Total wagered: ${totalWagered}, Net profit: ${cumulativeUnits}`
+      );
+
+      // Update user stats
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          winrate: Number(winrate.toFixed(2)),
+          roi: Number(roi.toFixed(2)),
+        },
+      });
+
+      console.log(`✅ Updated stats for ${capper.user.username}`);
+    }
+
+    // Update capper data if there's anything to update
+    if (Object.keys(updateData).length > 0) {
+      const updatedCapper = await prisma.capper.update({
+        where: { userId: userId },
+        data: updateData,
+      });
+      return NextResponse.json(updatedCapper);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Stats updated successfully",
+    });
   } catch (error) {
     console.error("Error updating capper profile:", error);
     return NextResponse.json(

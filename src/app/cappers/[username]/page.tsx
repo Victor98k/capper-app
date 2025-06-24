@@ -255,6 +255,10 @@ export default function CapperProfilePage({
   useEffect(() => {
     const fetchPerformanceData = async () => {
       try {
+        // console.log(
+        //   `🔄 Fetching performance data for: ${resolvedParams.username}`
+        // );
+
         const response = await fetch(
           `/api/cappers/${resolvedParams.username}/bets`
         );
@@ -276,7 +280,94 @@ export default function CapperProfilePage({
           return;
         }
 
-        console.log("Performance data loaded:", data);
+        // console.log("📊 Raw performance data received:", data);
+        // console.log("📈 Number of bets:", data.length);
+
+        if (data.length > 0) {
+          // console.log("🎯 First bet example:", data[0]);
+          // console.log("🏁 Last bet example:", data[data.length - 1]);
+
+          // Count bet statuses
+          const statusCounts = data.reduce((counts, bet) => {
+            counts[bet.status] = (counts[bet.status] || 0) + 1;
+            return counts;
+          }, {});
+          // console.log("📊 Bet status breakdown:", statusCounts);
+
+          // Show final cumulative units
+          const finalUnits = data[data.length - 1]?.units;
+          // console.log("💰 Final cumulative units:", finalUnits);
+
+          // Calculate win rate for verification
+          const completedBets = data.filter(
+            (bet) => bet.status === "WON" || bet.status === "LOST"
+          );
+          const wonBets = completedBets.filter(
+            (bet) => bet.status === "WON"
+          ).length;
+          const calculatedWinRate =
+            completedBets.length > 0
+              ? ((wonBets / completedBets.length) * 100).toFixed(1)
+              : "0";
+          // console.log(
+          //   "🏆 Calculated win rate:",
+          //   `${calculatedWinRate}% (${wonBets}/${completedBets.length})`
+          // );
+
+          // Check if stored winrate matches calculated winrate
+          const storedWinRate = capper?.winrate || 0;
+          const calculatedWinRateNum = parseFloat(calculatedWinRate);
+
+          if (Math.abs(storedWinRate - calculatedWinRateNum) > 0.1) {
+            // console.log(
+            //   `🔄 Stored winrate (${storedWinRate}%) doesn't match calculated (${calculatedWinRate}%). Updating...`
+            // );
+
+            // Update the capper's stats in the database
+            try {
+              const updateResponse = await fetch(
+                `/api/cappers/${resolvedParams.username}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    userId: capper?.userId,
+                    updateStats: true,
+                  }),
+                }
+              );
+
+              if (updateResponse.ok) {
+                // console.log("✅ Successfully updated capper stats in database");
+
+                // Update the local capper state with new values
+                setCapper((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        winrate: calculatedWinRateNum,
+                        user: {
+                          ...prev.user,
+                          winrate: calculatedWinRateNum,
+                        },
+                      }
+                    : null
+                );
+              } else {
+                console.error("❌ Failed to update capper stats");
+              }
+            } catch (updateError) {
+              console.error("❌ Error updating capper stats:", updateError);
+            }
+          } else {
+            // console.log(
+            //   "✅ Stored winrate matches calculated winrate - no update needed"
+            // );
+          }
+        }
+
         setPerformanceData(data);
       } catch (error) {
         console.error("Error fetching performance data:", error);
@@ -547,7 +638,7 @@ export default function CapperProfilePage({
               <StatCard
                 icon={<Trophy />}
                 title="Win Rate"
-                value={`${capper.winrate || 0}%`}
+                value={calculateWinRate(performanceData)}
               />
               <StatCard
                 icon={<TrendingUp />}
