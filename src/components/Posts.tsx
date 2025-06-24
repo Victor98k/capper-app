@@ -679,12 +679,12 @@ function InstagramPost({
     <Card
       className={`${
         template === "text-only"
-          ? "overflow-hidden bg-[#020817] border-0 w-[92%] sm:w-[85%] md:w-[80%] max-w-[1024px] mx-auto"
-          : "w-[92%] sm:w-[85%] md:w-[80%] bg-gray-900 border-0 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-[1024px]"
+          ? "overflow-hidden bg-[#020817] border-0 w-[92%] sm:w-[85%] md:w-[80%] max-w-[1024px] mx-auto md:h-[600px] md:flex md:flex-col"
+          : "w-[92%] sm:w-[85%] md:w-[80%] bg-gray-900 border-0 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-[1024px] md:h-[800px]"
       }`}
     >
       {template === "text-only" ? (
-        <div className="bg-[#020817] w-full mx-auto">
+        <div className="bg-[#020817] w-full mx-auto md:h-full md:flex md:flex-col">
           <div className="flex items-center justify-between p-3 sm:p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10 sm:h-16 sm:w-16 border border-gray-700">
@@ -739,85 +739,87 @@ function InstagramPost({
             )}
           </div>
 
-          <div className="px-3 sm:px-3 py-3 sm:py-4">
-            <h2 className="text-base sm:text-xl font-bold text-white mb-2 sm:mb-4">
-              {title}
-            </h2>
+          <div className="px-3 sm:px-3 py-3 sm:py-4 md:flex md:flex-col md:flex-1">
+            <div className="md:flex-1">
+              <h2 className="text-base sm:text-xl md:text-xl lg:text-2xl font-bold text-white mb-4 sm:mb-6">
+                {title}
+              </h2>
 
-            {/* If there's an image */}
-            {imageUrl && (
-              <div className="relative w-full aspect-[4/3] mb-3 sm:mb-4 rounded-lg overflow-hidden">
-                <Image
-                  src={imageUrl}
-                  alt={title}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 95vw, (max-width: 1024px) 90vw, 1024px"
-                />
-              </div>
-            )}
-
-            <p className="text-sm sm:text-lg text-gray-200 mb-3 whitespace-pre-wrap">
-              {content.slice(0, 150)}...{" "}
-              {isSubscribed || isOwnPost ? (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="text-[#4e43ff] hover:underline font-medium">
-                      See more
-                    </button>
-                  </DialogTrigger>
-                  <BetDialog
-                    bets={bets}
-                    isSubscribed={isSubscribed}
-                    isOwnPost={isOwnPost}
-                    capperInfo={capperInfo}
-                    router={router}
-                    title={title}
-                    content={content}
-                    odds={odds}
-                    tags={tags}
-                    bookmaker={bookmaker}
-                    capperId={capperId}
-                    stripeConnectId={capperInfo?.stripeConnectId}
+              {/* If there's an image */}
+              {imageUrl && (
+                <div className="relative w-full aspect-[4/3] mb-3 sm:mb-4 rounded-lg overflow-hidden">
+                  <Image
+                    src={imageUrl}
+                    alt={title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 95vw, (max-width: 1024px) 90vw, 1024px"
                   />
-                </Dialog>
-              ) : (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="text-[#4e43ff] hover:underline font-medium">
-                      See more
-                    </button>
-                  </DialogTrigger>
-                  <BetDialog
-                    bets={bets}
-                    isSubscribed={isSubscribed}
-                    isOwnPost={isOwnPost}
-                    capperInfo={capperInfo}
-                    router={router}
-                    title={title}
-                    content={content}
-                    odds={odds}
-                    tags={tags}
-                    bookmaker={bookmaker}
-                    capperId={capperId}
-                    stripeConnectId={capperInfo?.stripeConnectId}
-                  />
-                </Dialog>
+                </div>
               )}
-            </p>
 
-            <p className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">
-              {new Date(createdAt).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
+              <p className="text-sm sm:text-lg md:text-lg lg:text-xl text-gray-200 mb-4 sm:mb-6 whitespace-pre-wrap">
+                {content.slice(0, 120)}...{" "}
+                {isSubscribed || isOwnPost ? (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="text-[#4e43ff] hover:underline font-medium">
+                        See more
+                      </button>
+                    </DialogTrigger>
+                    <BetDialog
+                      bets={bets}
+                      isSubscribed={isSubscribed}
+                      isOwnPost={isOwnPost}
+                      capperInfo={capperInfo}
+                      router={router}
+                      title={title}
+                      content={content}
+                      odds={odds}
+                      tags={tags}
+                      bookmaker={bookmaker}
+                      capperId={capperId}
+                      stripeConnectId={capperInfo?.stripeConnectId}
+                    />
+                  </Dialog>
+                ) : (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="text-[#4e43ff] hover:underline font-medium">
+                        See more
+                      </button>
+                    </DialogTrigger>
+                    <BetDialog
+                      bets={bets}
+                      isSubscribed={isSubscribed}
+                      isOwnPost={isOwnPost}
+                      capperInfo={capperInfo}
+                      router={router}
+                      title={title}
+                      content={content}
+                      odds={odds}
+                      tags={tags}
+                      bookmaker={bookmaker}
+                      capperId={capperId}
+                      stripeConnectId={capperInfo?.stripeConnectId}
+                    />
+                  </Dialog>
+                )}
+              </p>
 
-            {/* Badges section - Update this part */}
-            <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2">
+              <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-400 mb-0">
+                {new Date(createdAt).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+
+            {/* Badges section - Move to bottom with mt-auto */}
+            <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2">
               {/* Likes */}
               <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
                 <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
@@ -1050,7 +1052,7 @@ function InstagramPost({
             )}
           </div>
 
-          <div className="p-3">
+          <div className="p-3 md:flex-1 md:flex md:flex-col">
             <div className="flex items-center justify-between sm:justify-start sm:gap-4 mb-3">
               <div className="flex items-center gap-2">
                 <Button
@@ -1073,11 +1075,11 @@ function InstagramPost({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4 md:flex-1">
               <div className="space-y-2">
                 <h3 className="font-bold text-sm text-gray-100">{title}</h3>
                 <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
-                  {content.slice(0, 150)}...{" "}
+                  {content.slice(0, 120)}...{" "}
                   {isSubscribed || isOwnPost ? (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -1126,7 +1128,7 @@ function InstagramPost({
                 </div>
               </div>
 
-              <div className="hidden sm:flex sm:flex-col sm:gap-4 sm:w-[140px]">
+              <div className="hidden sm:flex sm:flex-col sm:gap-4 sm:w-[140px] md:justify-end">
                 {odds.length > 0 && (
                   <div className="flex flex-col items-end">
                     <p className="text-xs font-semibold text-white mb-1">
@@ -1182,7 +1184,7 @@ function InstagramPost({
               </div>
             </div>
 
-            <div className="sm:hidden mt-3 space-y-3 px-4">
+            <div className="sm:hidden mt-3 space-y-3 px-4 md:mt-auto">
               <div className="flex gap-1">
                 {tags.map((tag) => (
                   <span
