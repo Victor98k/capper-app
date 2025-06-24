@@ -137,6 +137,50 @@ type PageData = {
   hasMore: boolean;
 };
 
+// Helper Components
+const StatCard = ({
+  icon,
+  title,
+  value,
+  onClick,
+  className,
+  bgClassName,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  onClick?: () => void;
+  className?: string;
+  bgClassName?: string;
+}) => (
+  <div onClick={onClick} className={`cursor-pointer ${className}`}>
+    {/* Mobile version - just icon and value */}
+    <div className="sm:hidden flex flex-col items-center">
+      <div className="text-violet-400 mb-1">
+        {React.cloneElement(icon as React.ReactElement, {
+          className: "h-6 w-6",
+        })}
+      </div>
+      <p className="text-base font-bold">{value}</p>
+    </div>
+
+    {/* Desktop version - full card */}
+    <div
+      className={`hidden sm:flex p-4 rounded-lg items-center space-x-4 ${bgClassName || "bg-gray-700/50"}`}
+    >
+      <div className="text-violet-400">
+        {React.cloneElement(icon as React.ReactElement, {
+          className: "h-6 w-6",
+        })}
+      </div>
+      <div>
+        <p className="text-sm text-gray-400">{title}</p>
+        <p className="text-xl font-bold">{value}</p>
+      </div>
+    </div>
+  </div>
+);
+
 export default function CapperProfilePage({
   params,
 }: {
@@ -662,7 +706,7 @@ export default function CapperProfilePage({
               <StatCard
                 icon={<TrendingUp />}
                 title="ROI"
-                value={`${capper.roi || 0}%`}
+                value={`${(capper.roi || 0).toFixed(2)}%`}
               />
               <StatCard
                 icon={<Calculator />}
@@ -1315,45 +1359,6 @@ export default function CapperProfilePage({
     </div>
   );
 }
-// Helper Components
-const StatCard = ({
-  icon,
-  title,
-  value,
-  onClick,
-  className,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  value: string;
-  onClick?: () => void;
-  className?: string;
-}) => (
-  <div onClick={onClick} className={`cursor-pointer ${className}`}>
-    {/* Mobile version - just icon and value */}
-    <div className="sm:hidden flex flex-col items-center">
-      <div className="text-violet-400 mb-1">
-        {React.cloneElement(icon as React.ReactElement, {
-          className: "h-6 w-6",
-        })}
-      </div>
-      <p className="text-base font-bold">{value}</p>
-    </div>
-
-    {/* Desktop version - full card */}
-    <div className="hidden sm:flex bg-gray-700/50 p-4 rounded-lg items-center space-x-4">
-      <div className="text-violet-400">
-        {React.cloneElement(icon as React.ReactElement, {
-          className: "h-6 w-6",
-        })}
-      </div>
-      <div>
-        <p className="text-sm text-gray-400">{title}</p>
-        <p className="text-xl font-bold">{value}</p>
-      </div>
-    </div>
-  </div>
-);
 
 const PickCard = ({ sport, prediction, result, date, odds }: Pick) => (
   <Card className="bg-gray-800 border-gray-700">
