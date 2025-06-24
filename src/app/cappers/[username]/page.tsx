@@ -280,6 +280,25 @@ export default function CapperProfilePage({
           return;
         }
 
+        // Lägg till en nollpunkt i början om det finns minst ett bet
+        let chartData = data;
+        if (data.length > 0) {
+          const firstBet = data[0];
+          // Sätt datumet till en sekund före första bettets datum
+          const zeroDate = new Date(firstBet.date);
+          zeroDate.setSeconds(zeroDate.getSeconds() - 1);
+          chartData = [
+            {
+              date: zeroDate.toISOString(),
+              title: "Start",
+              units: 0,
+              status: "START",
+              unitChange: 0,
+            },
+            ...data,
+          ];
+        }
+
         // console.log("📊 Raw performance data received:", data);
         // console.log("📈 Number of bets:", data.length);
 
@@ -368,7 +387,7 @@ export default function CapperProfilePage({
           }
         }
 
-        setPerformanceData(data);
+        setPerformanceData(chartData);
       } catch (error) {
         console.error("Error fetching performance data:", error);
         // Set empty array so chart doesn't break
@@ -661,7 +680,7 @@ export default function CapperProfilePage({
                   Betting Performance
                 </CardTitle>
                 <CardDescription className="text-white">
-                  Cumulative units over time
+                  Total units over time
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -689,7 +708,7 @@ export default function CapperProfilePage({
                           labelStyle={{ color: "#9CA3AF" }}
                           formatter={(value: any, name: string, props: any) => {
                             const bet = performanceData[props.payload.index];
-                            if (!bet) return [value + "u", "Cumulative Units"];
+                            if (!bet) return [value + "u", "Total Units"];
 
                             const betResult =
                               bet.status === "WON"
@@ -729,7 +748,7 @@ export default function CapperProfilePage({
                                 <div
                                   style={{ fontSize: "12px", color: "#9CA3AF" }}
                                 >
-                                  Cumulative: {value}u
+                                  Total: {value}u
                                 </div>
                               </div>,
                               "",
@@ -743,19 +762,23 @@ export default function CapperProfilePage({
                           strokeWidth={2}
                           dot={(props: any) => {
                             const bet = performanceData[props.index];
+                            let fillColor = "#8B5CF6";
+                            if (bet) {
+                              if (bet.status === "START") {
+                                fillColor = "#FFD600"; // Gul för startpunkt
+                              } else if (bet.status === "WON") {
+                                fillColor = "#22c55e";
+                              } else if (bet.status === "LOST") {
+                                fillColor = "#ef4444";
+                              }
+                            }
                             return (
                               <circle
                                 key={`dot-${props.index}`}
                                 cx={props.cx}
                                 cy={props.cy}
                                 r={4}
-                                fill={
-                                  !bet
-                                    ? "#8B5CF6"
-                                    : bet.status === "WON"
-                                      ? "#22c55e"
-                                      : "#ef4444"
-                                }
+                                fill={fillColor}
                                 stroke="none"
                               />
                             );
