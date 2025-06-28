@@ -6,6 +6,7 @@ export type CapperProfile = {
     lastName: string;
     username: string;
     stripeConnectId: string;
+    initialRoi?: number;
   };
   bio?: string;
   title?: string;

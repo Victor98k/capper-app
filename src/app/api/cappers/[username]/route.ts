@@ -155,6 +155,7 @@ export async function GET(request: NextRequest) {
             stripeConnectId: true,
             roi: true,
             winrate: true,
+            initialRoi: true,
           },
         },
       },

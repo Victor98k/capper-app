@@ -145,37 +145,46 @@ const StatCard = ({
   onClick,
   className,
   bgClassName,
+  small = false,
 }: {
   icon: React.ReactNode;
-  title: string;
+  title: string | React.ReactNode;
   value: string;
   onClick?: () => void;
   className?: string;
   bgClassName?: string;
+  small?: boolean;
 }) => (
   <div onClick={onClick} className={`cursor-pointer ${className}`}>
     {/* Mobile version - just icon and value */}
-    <div className="sm:hidden flex flex-col items-center">
-      <div className="text-violet-400 mb-1">
+    <div
+      className={`sm:hidden flex flex-col items-center${small ? " p-1" : ""}`}
+    >
+      <div className={`text-violet-400 mb-1${small ? " text-base" : ""}`}>
         {React.cloneElement(icon as React.ReactElement, {
-          className: "h-6 w-6",
+          className: small ? "h-4 w-4" : "h-6 w-6",
         })}
       </div>
-      <p className="text-base font-bold">{value}</p>
+      <p className={`font-bold ${small ? "text-xs" : "text-base"}`}>{value}</p>
     </div>
 
     {/* Desktop version - full card */}
     <div
-      className={`hidden sm:flex p-4 rounded-lg items-center space-x-4 ${bgClassName || "bg-gray-700/50"}`}
+      className={`hidden sm:flex rounded-lg items-center space-x-4 ${bgClassName || "bg-gray-700/50"} ${small ? "p-2" : "p-4"}`}
+      style={small ? { minWidth: 0, maxWidth: "180px" } : {}}
     >
       <div className="text-violet-400">
         {React.cloneElement(icon as React.ReactElement, {
-          className: "h-6 w-6",
+          className: small ? "h-4 w-4" : "h-6 w-6",
         })}
       </div>
       <div>
-        <p className="text-sm text-gray-400">{title}</p>
-        <p className="text-xl font-bold">{value}</p>
+        <p className={`text-gray-400 ${small ? "text-xs" : "text-sm"}`}>
+          {title}
+        </p>
+        <p className={`font-bold ${small ? "text-base" : "text-xl"}`}>
+          {value}
+        </p>
       </div>
     </div>
   </div>
@@ -714,6 +723,23 @@ export default function CapperProfilePage({
                 value="Calculate"
                 onClick={() => setShowROICalculator(!showROICalculator)}
                 className="cursor-pointer hover:bg-gray-600/50 transition-colors"
+              />
+            </div>
+
+            {/* Previous ROI Section */}
+            <div className="mt-6 mb-2">
+              <h3 className="text-lg font-semibold text-gray-200 mb-2">
+                Previous ROI Before Joining Cappers
+              </h3>
+              <StatCard
+                icon={<TrendingUp />}
+                title="Prev. ROI"
+                value={
+                  typeof capper.user.initialRoi === "number"
+                    ? `${capper.user.initialRoi.toFixed(2)}%`
+                    : "N/A"
+                }
+                small
               />
             </div>
 
