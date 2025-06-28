@@ -93,11 +93,37 @@ export async function PUT(req: NextRequest) {
         ? (totalCapperUnitsWon / totalCapperUnitsBet) * 100
         : 0;
 
-    // Update capper with new winrate and roi
+    const capper = await prisma.capper.findUnique({
+      where: { userId: updatedBet.userId },
+    });
+
+    const finalWinrate =
+      capper && capper.initialWinrate != null
+        ? (capperWinrate + capper.initialWinrate) / 2
+        : capperWinrate;
+
+    const finalRoi =
+      capper && capper.initialRoi != null
+        ? capper.initialRoi + capperRoi
+        : capperRoi;
+
     await prisma.capper.update({
       where: { userId: updatedBet.userId },
-      data: { winrate: capperWinrate, roi: capperRoi },
+      data: { roi: finalRoi, winrate: finalWinrate },
     });
+
+    if (capper && capper.initialRoi != null) {
+      await prisma.user.update({
+        where: { id: updatedBet.userId },
+        data: {
+          roi: capper.initialRoi + roi,
+          winrate:
+            capper.initialWinrate != null
+              ? capper.initialWinrate + winrate
+              : winrate,
+        },
+      });
+    }
 
     return NextResponse.json(updatedBet);
   } catch (error) {

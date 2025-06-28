@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    console.log("Performance data:", performanceData);
+    // console.log("Performance data:", performanceData);
 
     return NextResponse.json(performanceData);
   } catch (error) {

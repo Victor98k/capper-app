@@ -2,6 +2,8 @@ interface Capper {
   id: string;
   userId: string;
   bio: string | null;
+  initialWinrate: number | null;
+  initialRoi: number | null;
   tags: string[];
   socials: {
     instagram: string;

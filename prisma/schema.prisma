@@ -65,6 +65,8 @@ model Capper {
   updatedAt     DateTime      @updatedAt
   subscriptions Subscription[]
   profileImage  String?
+  initialWinrate Float?
+  initialRoi Float?
   winrate       Float?          @default(0) // Win rate percentage
 }
   
