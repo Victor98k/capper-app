@@ -677,10 +677,11 @@ function InstagramPost({
 
   return (
     <Card
-      className={`${
+      className={`$
         template === "text-only"
-          ? "overflow-hidden bg-[#020817] border-0 w-[92%] sm:w-[85%] md:w-[80%] max-w-[1024px] mx-auto md:h-[600px] md:flex md:flex-col"
-          : "w-[92%] sm:w-[85%] md:w-[80%] bg-gray-900 border-0 flex flex-col mx-auto rounded-none lg:rounded-lg lg:max-w-[1024px] md:h-[800px]"
+          ? "overflow-hidden bg-[#020817] border-0 w-full max-w-none mx-auto md:h-[600px] md:flex md:flex-col"
+          :
+            "w-full max-w-none bg-gray-900 border-0 flex flex-col mx-auto rounded-none lg:rounded-lg md:h-[800px]"
       }`}
     >
       {template === "text-only" ? (
@@ -699,12 +700,12 @@ function InstagramPost({
               <div className="flex flex-col">
                 <button
                   onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-                  className="text-base sm:text-xl font-medium text-gray-200 hover:text-[#4e43ff] transition-colors text-left"
+                  className="text-sm sm:text-base font-medium text-gray-200 hover:text-[#4e43ff] transition-colors text-left"
                 >
                   @{capperInfo.username}
                 </button>
                 {productName && (
-                  <span className="text-xs sm:text-base text-[#4e43ff] font-semibold mt-0.5 sm:mt-1">
+                  <span className="text-xs sm:text-xs text-[#4e43ff] font-semibold mt-0.5 sm:mt-1">
                     {productName}
                   </span>
                 )}
@@ -741,7 +742,7 @@ function InstagramPost({
 
           <div className="px-3 sm:px-3 py-3 sm:py-4 md:flex md:flex-col md:flex-1">
             <div className="md:flex-1">
-              <h2 className="text-base sm:text-xl md:text-xl lg:text-2xl font-bold text-white mb-4 sm:mb-6">
+              <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-10 sm:mb-12">
                 {title}
               </h2>
 
@@ -758,7 +759,7 @@ function InstagramPost({
                 </div>
               )}
 
-              <p className="text-sm sm:text-lg md:text-lg lg:text-xl text-gray-200 mb-4 sm:mb-6 whitespace-pre-wrap">
+              <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-3 sm:mb-4 whitespace-pre-wrap">
                 {content.slice(0, 120)}...{" "}
                 {isSubscribed || isOwnPost ? (
                   <Dialog>
@@ -807,7 +808,7 @@ function InstagramPost({
                 )}
               </p>
 
-              <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-400 mb-0">
+              <p className="text-xs sm:text-xs md:text-xs lg:text-sm text-gray-400 mt-1 mb-0">
                 {new Date(createdAt).toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "long",
@@ -834,12 +835,12 @@ function InstagramPost({
                       className="h-6 w-6 sm:h-8 sm:w-8 hover:text-[#4e43ff] p-0"
                     >
                       <span
-                        className={`text-base sm:text-xl ${isLiked ? "text-[#4e43ff]" : "text-gray-300"}`}
+                        className={`text-sm sm:text-base ${isLiked ? "text-[#4e43ff]" : "text-gray-300"}`}
                       >
                         🚀
                       </span>
                     </Button>
-                    <span className="text-sm sm:text-lg font-bold text-white">
+                    <span className="text-xs sm:text-sm font-bold text-white">
                       {likeCount}
                     </span>
                   </div>
@@ -857,7 +858,7 @@ function InstagramPost({
                       {tags.map((tag) => (
                         <span
                           key={tag}
-                          className="text-base sm:text-2xl text-white"
+                          className="text-sm sm:text-base text-white"
                           title={tag}
                         >
                           {sportEmojiMap[tag] || tag}
@@ -894,10 +895,10 @@ function InstagramPost({
                     <div className="flex items-center justify-center">
                       {odds.map((odd, index) => (
                         <div key={index} className="flex items-center">
-                          <span className="text-xs sm:text-xl font-bold text-white">
+                          <span className="text-xs sm:text-base font-bold text-white">
                             {odd}
                           </span>
-                          <span className="text-xs sm:text-xl font-bold text-white/80 mr-0.5 sm:mr-1">
+                          <span className="text-xs sm:text-base font-bold text-white/80 mr-0.5 sm:mr-1">
                             x
                           </span>
                         </div>
@@ -940,7 +941,7 @@ function InstagramPost({
               <div className="flex flex-col sm:flex-row sm:items-center">
                 <button
                   onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-                  className="font-semibold text-sm text-gray-100 hover:text-[#4e43ff] transition-colors"
+                  className="font-semibold text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
                 >
                   {capperInfo.username}
                 </button>
@@ -1077,8 +1078,8 @@ function InstagramPost({
 
             <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4 md:flex-1">
               <div className="space-y-2">
-                <h3 className="font-bold text-sm text-gray-100">{title}</h3>
-                <div className="max-h-[100px] overflow-y-auto text-xs text-gray-200">
+                <h3 className="font-bold text-xs text-gray-100">{title}</h3>
+                <div className="max-h-[100px] overflow-y-auto text-[10px] text-gray-200">
                   {content.slice(0, 120)}...{" "}
                   {isSubscribed || isOwnPost ? (
                     <Dialog>
@@ -1154,10 +1155,10 @@ function InstagramPost({
                       <div className="flex justify-end items-center">
                         {odds.map((odd, index) => (
                           <div key={index} className="flex items-center">
-                            <span className="text-2xl font-bold text-white px-1">
+                            <span className="text-xs sm:text-base font-bold text-white px-1">
                               {odd}
                             </span>
-                            <span className="text-2xl font-bold text-white/80">
+                            <span className="text-xs sm:text-base font-bold text-white/80">
                               x
                             </span>
                           </div>
@@ -1173,7 +1174,7 @@ function InstagramPost({
                     {tags.map((tag) => (
                       <span
                         key={tag}
-                        className="text-xl bg-[#4e43ff] text-white px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
+                        className="text-sm sm:text-base text-white px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
                         title={tag}
                       >
                         {sportEmojiMap[tag] || tag}

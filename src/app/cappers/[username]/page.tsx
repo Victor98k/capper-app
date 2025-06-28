@@ -509,7 +509,7 @@ export default function CapperProfilePage({
       </div>
 
       <main className="flex-1 p-2 sm:p-4 lg:p-8">
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full max-w-none">
           {/* Profile Header - More compact on mobile */}
           <div className="bg-gray-800/30 rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
             {/* Profile Info Section - Make it more compact on mobile */}
@@ -1027,7 +1027,7 @@ export default function CapperProfilePage({
             {/* Show preview posts for non-subscribers */}
             {!isSubscribed && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                   {allPosts.slice(0, 4).map((post) => (
                     <InstagramPost
                       key={post._id}
@@ -1072,7 +1072,7 @@ export default function CapperProfilePage({
             {/* Show all paginated posts for subscribers */}
             {isSubscribed && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-8">
                   {allPosts.map((post) => (
                     <InstagramPost
                       key={post._id}
