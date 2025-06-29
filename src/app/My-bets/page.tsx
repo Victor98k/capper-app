@@ -59,6 +59,14 @@ export default function MyBets() {
     odds: "",
     date: "",
   });
+  const [formErrors, setFormErrors] = useState({
+    game: "",
+    amount: "",
+    odds: "",
+    date: "",
+  });
+  const [addingBet, setAddingBet] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchBets();
@@ -66,7 +74,7 @@ export default function MyBets() {
 
   const fetchBets = async () => {
     try {
-      const response = await axios.get("/api/bets");
+      const response = await axios.get("/api/normalUserBets");
       setBets(response.data);
     } catch (error) {
       console.error("Failed to fetch bets:", error);
@@ -91,30 +99,55 @@ export default function MyBets() {
     }
   };
 
+  const validateForm = () => {
+    const errors: any = {};
+    if (!newBet.game) errors.game = "Game is required.";
+    if (
+      !newBet.amount ||
+      isNaN(Number(newBet.amount)) ||
+      Number(newBet.amount) <= 0
+    )
+      errors.amount = "Enter a valid amount.";
+    if (!newBet.odds || isNaN(Number(newBet.odds)) || Number(newBet.odds) <= 1)
+      errors.odds = "Odds must be greater than 1.";
+    if (!newBet.date) errors.date = "Date is required.";
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const addBet = async () => {
+    if (!validateForm()) return;
+    setAddingBet(true);
     try {
-      const response = await axios.post("/api/bets", {
+      const response = await axios.post("/api/normalUserBets", {
         game: newBet.game,
-        amount: parseFloat(newBet.amount),
+        amount: newBet.amount,
         currency: newBet.currency,
-        odds: parseFloat(newBet.odds),
+        odds: newBet.odds,
         date: newBet.date,
       });
-
       setBets([response.data, ...bets]);
       setNewBet({ game: "", amount: "", currency: "USD", odds: "", date: "" });
-      toast.success("Bet added successfully");
+      setFormErrors({ game: "", amount: "", odds: "", date: "" });
+      toast.success("Bet added successfully", {
+        description: `Game: ${response.data.game}`,
+      });
+      setIsDialogOpen(false);
     } catch (error) {
       console.error("Failed to add bet:", error);
       toast.error("Failed to add bet");
+    } finally {
+      setAddingBet(false);
     }
   };
 
   const updateBetStatus = async (id: string, status: "WON" | "LOST") => {
     try {
-      const response = await axios.patch(`/api/bets/${id}`, { status });
+      const response = await axios.patch(`/api/normalUserBets/${id}`, {
+        status,
+      });
       setBets(bets.map((bet) => (bet.id === id ? response.data : bet)));
-      toast.success("Bet status updated");
+      toast.success(`Bet marked as ${status === "WON" ? "Won" : "Lost"}`);
     } catch (error) {
       console.error("Failed to update bet:", error);
       toast.error("Failed to update bet status");
@@ -170,6 +203,36 @@ export default function MyBets() {
     }
   };
 
+  // Calculate pagination for corrected bets
+  const correctedBets = bets.filter((bet) => bet.status !== "PENDING");
+  const correctedBetsPerPage = 7;
+  const [correctedCurrentPage, setCorrectedCurrentPage] = useState(1);
+  const correctedIndexOfLastBet = correctedCurrentPage * correctedBetsPerPage;
+  const correctedIndexOfFirstBet =
+    correctedIndexOfLastBet - correctedBetsPerPage;
+  const currentCorrectedBets = correctedBets.slice(
+    correctedIndexOfFirstBet,
+    correctedIndexOfLastBet
+  );
+  const correctedTotalPages = Math.ceil(
+    correctedBets.length / correctedBetsPerPage
+  );
+
+  const nextCorrectedPage = () => {
+    if (correctedCurrentPage < correctedTotalPages) {
+      setCorrectedCurrentPage(correctedCurrentPage + 1);
+    }
+  };
+
+  const prevCorrectedPage = () => {
+    if (correctedCurrentPage > 1) {
+      setCorrectedCurrentPage(correctedCurrentPage - 1);
+    }
+  };
+
+  // Only show pending bets in Active Bets
+  const activeBets = currentBets.filter((bet) => bet.status === "PENDING");
+
   // Add this new function to prepare data for line chart
   const prepareLineChartData = () => {
     const sortedBets = [...bets]
@@ -192,35 +255,198 @@ export default function MyBets() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 to-black">
-      {/* SideNav */}
-      <SideNav />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
+      {/* SideNav: mobile hamburger */}
+      <div className="block lg:hidden fixed top-4 left-4 z-50">
+        <SideNav />
+      </div>
+      {/* SideNav: sidebar only on large screens */}
+      <div className="hidden lg:block">
+        <SideNav />
+      </div>
+      {/* Main Content: full width on mobile */}
+      <main className="flex-1 w-full overflow-y-auto flex justify-center">
         <div className="container mx-auto py-12 px-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold text-white">My Bets</h1>
-            <Dialog>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white">
+                <Button
+                  className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+                  onClick={() => setIsDialogOpen(true)}
+                >
                   Add New Bet
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900 text-gray-100 border-gray-800">
+              <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 rounded-2xl shadow-2xl p-8 max-w-lg mx-auto">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold">
+                  <DialogTitle className="text-2xl font-extrabold tracking-tight text-white mb-2">
                     Add New Bet
                   </DialogTitle>
+                  <div className="border-b border-gray-700 mb-4" />
                 </DialogHeader>
-                <div className="py-6 text-center">
-                  <p className="text-gray-300 mb-4">
-                    This feature is currently under development and not yet
-                    available.
-                  </p>
-                  <p className="text-gray-400 text-sm">
-                    Please check back later for updates.
-                  </p>
-                </div>
+                <form
+                  className="mt-2 md:grid md:grid-cols-2 md:gap-6 bg-gray-800/60 rounded-xl p-6 shadow-lg"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    await addBet();
+                  }}
+                >
+                  <div className="flex flex-col gap-2 mb-6">
+                    <Label
+                      htmlFor="game"
+                      className="font-bold text-base text-white mb-1"
+                    >
+                      Game
+                    </Label>
+                    <Input
+                      id="game"
+                      className="bg-gray-900 border-gray-700 focus:ring-2 focus:ring-[#4e43ff] focus:border-[#4e43ff] text-white placeholder-gray-500 rounded-lg px-3 py-2 transition-all"
+                      value={newBet.game}
+                      onChange={(e) =>
+                        setNewBet({ ...newBet, game: e.target.value })
+                      }
+                      required
+                      aria-invalid={!!formErrors.game}
+                      placeholder="e.g. Lakers vs Celtics"
+                    />
+                    <span className="text-xs text-red-400 min-h-[18px] mt-1">
+                      {formErrors.game}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2 mb-6">
+                    <Label
+                      htmlFor="amount"
+                      className="font-bold text-base text-white mb-1"
+                    >
+                      Amount
+                    </Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      className="bg-gray-900 border-gray-700 focus:ring-2 focus:ring-[#4e43ff] focus:border-[#4e43ff] text-white placeholder-gray-500 rounded-lg px-3 py-2 transition-all"
+                      value={newBet.amount}
+                      onChange={(e) =>
+                        setNewBet({ ...newBet, amount: e.target.value })
+                      }
+                      required
+                      aria-invalid={!!formErrors.amount}
+                      placeholder="Enter amount"
+                    />
+                    <span className="text-xs text-gray-400 mt-1">
+                      Enter the stake amount.
+                    </span>
+                    <span className="text-xs text-red-400 min-h-[18px]">
+                      {formErrors.amount}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2 mb-6">
+                    <Label
+                      htmlFor="currency"
+                      className="font-bold text-base text-white mb-1"
+                    >
+                      Currency
+                    </Label>
+                    <select
+                      id="currency"
+                      className="w-full bg-gray-900 text-white border border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#4e43ff] focus:border-[#4e43ff] transition-all"
+                      value={newBet.currency}
+                      onChange={(e) =>
+                        setNewBet({
+                          ...newBet,
+                          currency: e.target.value as Currency,
+                        })
+                      }
+                    >
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="SEK">SEK</option>
+                      <option value="NOK">NOK</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-2 mb-6">
+                    <Label
+                      htmlFor="odds"
+                      className="font-bold text-base text-white mb-1"
+                    >
+                      Odds
+                    </Label>
+                    <Input
+                      id="odds"
+                      type="number"
+                      step="0.01"
+                      className="bg-gray-900 border-gray-700 focus:ring-2 focus:ring-[#4e43ff] focus:border-[#4e43ff] text-white placeholder-gray-500 rounded-lg px-3 py-2 transition-all"
+                      value={newBet.odds}
+                      onChange={(e) =>
+                        setNewBet({ ...newBet, odds: e.target.value })
+                      }
+                      required
+                      aria-invalid={!!formErrors.odds}
+                      placeholder="e.g. 2.5"
+                    />
+                    <span className="text-xs text-gray-400 mt-1">e.g. 2.5</span>
+                    <span className="text-xs text-red-400 min-h-[18px]">
+                      {formErrors.odds}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2 col-span-2 mb-6">
+                    <Label
+                      htmlFor="date"
+                      className="font-bold text-base text-white mb-1"
+                    >
+                      Date
+                    </Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      className="bg-gray-900 border-gray-700 focus:ring-2 focus:ring-[#4e43ff] focus:border-[#4e43ff] text-white rounded-lg px-3 py-2 transition-all"
+                      value={newBet.date}
+                      onChange={(e) =>
+                        setNewBet({ ...newBet, date: e.target.value })
+                      }
+                      required
+                      aria-invalid={!!formErrors.date}
+                    />
+                    <span className="text-xs text-gray-400 mt-1">
+                      Date of the event.
+                    </span>
+                    <span className="text-xs text-red-400 min-h-[18px]">
+                      {formErrors.date}
+                    </span>
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full col-span-2 bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white mt-4 py-3 text-lg font-bold rounded-xl shadow-lg transition-all focus:ring-2 focus:ring-[#4e43ff] focus:outline-none"
+                    disabled={addingBet}
+                  >
+                    {addingBet ? (
+                      <span className="flex items-center justify-center">
+                        <svg
+                          className="animate-spin h-4 w-4 mr-2 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8z"
+                          ></path>
+                        </svg>
+                        Adding...
+                      </span>
+                    ) : (
+                      "Add Bet"
+                    )}
+                  </Button>
+                </form>
               </DialogContent>
             </Dialog>
           </div>
@@ -231,55 +457,52 @@ export default function MyBets() {
                 Active Bets
               </h2>
               <div className="space-y-4">
-                {currentBets.map((bet) => (
+                {activeBets.length === 0 && (
+                  <div className="text-gray-400">No active bets.</div>
+                )}
+                {activeBets.map((bet) => (
                   <Card
                     key={bet.id}
                     className="bg-gray-800/30 border-gray-700 p-4 backdrop-blur-sm"
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="font-medium text-white">{bet.game}</h3>
-                        <p className="text-sm text-gray-400">
-                          Amount: {getCurrencySymbol(bet.currency)}
-                          {bet.amount} | Odds: {bet.odds} |{" "}
-                          {new Date(bet.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      {bet.status === "PENDING" && (
-                        <div className="space-x-2">
-                          <Button
-                            size="sm"
-                            className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
-                            onClick={() => updateBetStatus(bet.id, "WON")}
-                          >
-                            Won
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="bg-red-500/80 hover:bg-red-600 text-white"
-                            onClick={() => updateBetStatus(bet.id, "LOST")}
-                          >
-                            Lost
-                          </Button>
+                        <h3 className="font-semibold text-lg text-white mb-2">
+                          {bet.game}
+                        </h3>
+                        <div className="flex flex-wrap gap-2 mb-1">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#4e43ff]/20 text-[#4e43ff] font-bold text-sm">
+                            💰 {getCurrencySymbol(bet.currency)}
+                            {bet.amount}
+                          </span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/20 text-green-400 font-bold text-sm">
+                            🎲 Odds: {bet.odds}
+                          </span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-700/40 text-gray-200 font-medium text-sm">
+                            📅 {new Date(bet.date).toLocaleDateString()}
+                          </span>
                         </div>
-                      )}
-                      {bet.status !== "PENDING" && (
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm ${
-                            bet.status === "WON"
-                              ? "bg-[#4e43ff]/20 text-[#4e43ff]"
-                              : "bg-red-500/20 text-red-500"
-                          }`}
+                      </div>
+                      <div className="flex flex-col xs:flex-row gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => updateBetStatus(bet.id, "WON")}
                         >
-                          {bet.status.charAt(0).toUpperCase() +
-                            bet.status.slice(1)}
-                        </span>
-                      )}
+                          Won
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-red-500/80 hover:bg-red-600 text-white"
+                          onClick={() => updateBetStatus(bet.id, "LOST")}
+                        >
+                          Lost
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 ))}
-
-                {/* Pagination Controls */}
+                {/* Pagination Controls for Active Bets */}
                 {bets.length > betsPerPage && (
                   <div className="flex justify-center items-center mt-6 space-x-4">
                     <Button
@@ -297,6 +520,77 @@ export default function MyBets() {
                       variant="outline"
                       onClick={nextPage}
                       disabled={currentPage === totalPages}
+                      className="bg-gray-800/30 border-gray-700"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {/* Corrected Bets Section */}
+              <div className="mt-10">
+                <h2 className="text-2xl font-semibold mb-4 text-white">
+                  Corrected Bets
+                </h2>
+                <div className="space-y-4">
+                  {currentCorrectedBets.length === 0 && (
+                    <div className="text-gray-400">No corrected bets.</div>
+                  )}
+                  {currentCorrectedBets.map((bet) => (
+                    <Card
+                      key={bet.id}
+                      className="bg-gray-800/50 border border-gray-700 p-4 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 backdrop-blur-sm"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-lg text-white mb-2">
+                            {bet.game}
+                          </h3>
+                          <div className="flex flex-wrap gap-2 mb-1">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#4e43ff]/20 text-[#4e43ff] font-bold text-sm">
+                              💰 {getCurrencySymbol(bet.currency)}
+                              {bet.amount}
+                            </span>
+                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-500/20 text-green-400 font-bold text-sm">
+                              🎲 Odds: {bet.odds}
+                            </span>
+                            <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-700/40 text-gray-200 font-medium text-sm">
+                              📅 {new Date(bet.date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm ${
+                            bet.status === "WON"
+                              ? "bg-green-600/20 text-green-500"
+                              : "bg-red-500/20 text-red-500"
+                          }`}
+                        >
+                          {bet.status.charAt(0).toUpperCase() +
+                            bet.status.slice(1)}
+                        </span>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                {/* Pagination Controls for Corrected Bets */}
+                {correctedBets.length > correctedBetsPerPage && (
+                  <div className="flex justify-center items-center mt-6 space-x-4">
+                    <Button
+                      variant="outline"
+                      onClick={prevCorrectedPage}
+                      disabled={correctedCurrentPage === 1}
+                      className="bg-gray-800/30 border-gray-700"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-white">
+                      Page {correctedCurrentPage} of {correctedTotalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={nextCorrectedPage}
+                      disabled={correctedCurrentPage === correctedTotalPages}
                       className="bg-gray-800/30 border-gray-700"
                     >
                       <ChevronRight className="h-4 w-4" />

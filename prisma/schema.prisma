@@ -31,6 +31,7 @@ model User {
   resetTokenExpiry DateTime?
   capperApplications CapperApplication[]
   bets          Bet[]     @relation("UserBets")
+  normalUserBets NormalUserBet[]
   socialLinks   Json?           
   Subscription Subscription[]
   totalUnitsBet Float @default(0)
@@ -169,6 +170,22 @@ model Bet {
 
   @@index([userId])
   @@index([postId])
+}
+
+model NormalUserBet {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  game      String
+  amount    Float
+  currency  String     @default("USD")
+  odds      Float
+  date      DateTime
+  status    BetStatus  @default(PENDING)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  userId    String     @db.ObjectId
+  user      User       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 enum BetStatus {
