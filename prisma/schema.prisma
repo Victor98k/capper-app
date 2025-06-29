@@ -37,6 +37,9 @@ model User {
   totalUnitsWon Float @default(0)
   roi           Float @default(0)
   winrate       Float?          @default(0) // Win rate percentage
+  initialRoi Float?   // <-- add this line
+   
+
 }
 
 
