@@ -740,9 +740,9 @@ function InstagramPost({
             )}
           </div>
 
-          <div className="px-3 sm:px-3 py-3 sm:py-4 md:flex md:flex-col md:flex-1">
-            <div className="md:flex-1">
-              <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-10 sm:mb-12">
+          <div className="px-3 sm:px-3 py-3 sm:py-4">
+            <div>
+              <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-6">
                 {title}
               </h2>
 
@@ -808,7 +808,7 @@ function InstagramPost({
                 )}
               </p>
 
-              <p className="text-xs sm:text-xs md:text-xs lg:text-sm text-gray-400 mt-1 mb-0">
+              <p className="text-xs sm:text-xs md:text-xs mb-10 lg:text-sm text-gray-400 mt-1 mb-0">
                 {new Date(createdAt).toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "long",
