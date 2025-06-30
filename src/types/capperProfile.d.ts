@@ -14,6 +14,10 @@ export type CapperProfile = {
   profileImage?: string;
   tags: string[];
   subscriberIds: string[];
+  subscribers: {
+    id: string;
+    status: "ACTIVE" | "INACTIVE";
+  }[];
   socialLinks?: {
     instagram?: { username: string; url: string };
     x?: { username: string; url: string };

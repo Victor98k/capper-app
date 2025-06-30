@@ -190,6 +190,38 @@ const StatCard = ({
   </div>
 );
 
+// Helper to filter performance data to last 12 months
+const filterLast12Months = (data: PerformanceData[]) => {
+  const now = new Date();
+  const twelveMonthsAgo = new Date(
+    now.getFullYear(),
+    now.getMonth() - 12,
+    now.getDate()
+  );
+  return data.filter((bet) => {
+    const betDate = new Date(bet.date);
+    return betDate >= twelveMonthsAgo && betDate <= now;
+  });
+};
+
+// Helper to calculate ROI from performance data
+const calculateROI = (performanceData: PerformanceData[]) => {
+  // Only consider WON/LOST bets
+  const completedBets = performanceData.filter(
+    (bet) => bet.status === "WON" || bet.status === "LOST"
+  );
+  if (completedBets.length === 0) return 0;
+  // Total wagered (sum of abs(unitChange) for WON/LOST)
+  const totalWagered = completedBets.reduce(
+    (sum, bet) => sum + Math.abs(bet.unitChange),
+    0
+  );
+  // Net profit (sum of unitChange)
+  const netProfit = completedBets.reduce((sum, bet) => sum + bet.unitChange, 0);
+  if (totalWagered === 0) return 0;
+  return (netProfit / totalWagered) * 100;
+};
+
 export default function CapperProfilePage({
   params,
 }: {
@@ -304,6 +336,10 @@ export default function CapperProfilePage({
 
     checkSubscriptionStatus();
   }, [capper?.id, capper?.products]);
+
+  useEffect(() => {
+    console.log("capper", capper);
+  }, [capper]);
 
   useEffect(() => {
     const fetchPerformanceData = async () => {
@@ -707,6 +743,7 @@ export default function CapperProfilePage({
                 title="Subscribers"
                 value={capper.subscriberIds.length.toLocaleString()}
               />
+
               <StatCard
                 icon={<Trophy />}
                 title="Win Rate"
@@ -714,8 +751,8 @@ export default function CapperProfilePage({
               />
               <StatCard
                 icon={<TrendingUp />}
-                title="ROI"
-                value={`${(capper.roi || 0).toFixed(2)}%`}
+                title="ROI (12mo)"
+                value={`${calculateROI(filterLast12Months(performanceData)).toFixed(2)}%`}
               />
               <StatCard
                 icon={<Calculator />}
@@ -728,8 +765,9 @@ export default function CapperProfilePage({
 
             {/* Previous ROI Section */}
             <div className="mt-6 mb-2">
-              <h3 className="text-lg font-semibold text-gray-200 mb-2">
+              <h3 className="text-lg font-semibold text-gray-200 mb-2 flex items-center gap-2">
                 Previous ROI Before Joining Cappers
+                <CheckCircle className="h-5 w-5 text-blue-400" />
               </h3>
               <StatCard
                 icon={<TrendingUp />}
@@ -1005,7 +1043,7 @@ export default function CapperProfilePage({
             {showROICalculator && (
               <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gray-700/30 rounded-lg">
                 <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-3">
-                  ROI Calculator
+                  ROI Calculator (last 12 months)
                 </h3>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                   <div className="w-full sm:w-auto sm:flex-1 max-w-xs">
@@ -1015,8 +1053,11 @@ export default function CapperProfilePage({
                       className="bg-gray-800 border-gray-600 text-white text-sm sm:text-base"
                       onChange={(e) => {
                         const value = parseFloat(e.target.value);
+                        const roi12mo = calculateROI(
+                          filterLast12Months(performanceData)
+                        );
                         if (!isNaN(value)) {
-                          const roi = value * (1 + (capper.roi || 0) / 100);
+                          const roi = value * (1 + roi12mo / 100);
                           setCalculatedAmount(roi.toFixed(2));
                         } else {
                           setCalculatedAmount("0.00");
@@ -1031,7 +1072,8 @@ export default function CapperProfilePage({
                 </div>
                 <p className="text-xs sm:text-sm text-gray-400 mt-2">
                   Calculate your potential returns based on historical ROI of{" "}
-                  {capper.roi || 0}%
+                  {calculateROI(filterLast12Months(performanceData)).toFixed(2)}
+                  % (last 12 months)
                 </p>
               </div>
             )}
