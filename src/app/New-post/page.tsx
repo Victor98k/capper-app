@@ -221,7 +221,7 @@ function NewPostPage() {
   );
   const [betUnits, setBetUnits] = useState<string>("");
   const [newBetUnits, setNewBetUnits] = useState<string>("");
-  const [postTemplate, setPostTemplate] = useState<"standard" | "text-only">(
+  const [postTemplate, setPostTemplate] = useState<"text-only" | "live-bet">(
     "text-only"
   );
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -425,17 +425,18 @@ function NewPostPage() {
       // Validate required fields first
       if (
         !title ||
-        !content ||
         !selectedProduct ||
         !tags.length ||
         !bets.length ||
         !odds.length ||
         !betDate ||
-        !oddsScreenshot
+        !oddsScreenshot ||
+        (postTemplate !== "live-bet" && !content)
       ) {
         toast.error("Please fill in all required fields", {
           description:
-            "All fields are required including the odds screenshot for verification",
+            "All fields are required including the odds screenshot for verification" +
+            (postTemplate !== "live-bet" ? " and analysis/content" : ""),
         });
         return;
       }
@@ -443,7 +444,7 @@ function NewPostPage() {
       // Create the request body
       const postData = {
         title,
-        content,
+        content: postTemplate === "live-bet" ? content || "" : content,
         tags,
         bets,
         odds,
@@ -485,7 +486,7 @@ function NewPostPage() {
       }
 
       // If we have a post image, upload it with the POSTS preset
-      if (image && postTemplate === "standard") {
+      if (image && postTemplate === "text-only") {
         try {
           console.log("=== Client Upload Configuration ===");
           console.log("Upload Configuration:", {
@@ -706,6 +707,13 @@ function NewPostPage() {
     checkStripeStatus();
   }, [user?.isCapper]);
 
+  // Add effect to auto-set betDate if template is live-bet
+  useEffect(() => {
+    if (postTemplate === "live-bet") {
+      setBetDate(new Date().toISOString().split("T")[0]);
+    }
+  }, [postTemplate]);
+
   // Show loading state while checking status
   if (loading || checkingStripeStatus) {
     return (
@@ -806,6 +814,39 @@ function NewPostPage() {
                   </div>
 
                   <div className="space-y-10">
+                    {/* Template Selector */}
+                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                      <LabelWithTooltip
+                        label="Post Template"
+                        tooltip="Choose how your post will be displayed to users"
+                        required
+                      />
+                      <div className="flex gap-4">
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded-lg font-semibold border transition-all focus:outline-none ${
+                            postTemplate === "text-only"
+                              ? "bg-[#4e43ff] text-white border-[#4e43ff] shadow-lg"
+                              : "bg-[#1a1a1a] text-gray-300 border-[#4e43ff]/20 hover:bg-[#4e43ff]/10"
+                          }`}
+                          onClick={() => setPostTemplate("text-only")}
+                        >
+                          Text Only
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded-lg font-semibold border transition-all focus:outline-none ${
+                            postTemplate === "live-bet"
+                              ? "bg-red-600 text-white border-red-600 shadow-lg animate-pulse"
+                              : "bg-[#1a1a1a] text-gray-300 border-[#4e43ff]/20 hover:bg-red-600/10"
+                          }`}
+                          onClick={() => setPostTemplate("live-bet")}
+                        >
+                          LIVE Bet
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Bundle Selection */}
                     <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
                       <LabelWithTooltip
@@ -868,35 +909,37 @@ function NewPostPage() {
                     </div>
 
                     {/* Content Input */}
-                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
-                      <LabelWithTooltip
-                        label="Content"
-                        tooltip="Provide detailed analysis and reasoning for your picks"
-                        required
-                      />
-                      <div className="relative">
-                        <textarea
-                          value={content}
-                          onChange={(e) => {
-                            if (e.target.value.length <= MAX_CONTENT_LENGTH) {
-                              setContent(e.target.value);
-                            }
-                          }}
-                          className="mt-1 w-full min-h-[200px] p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
-                          placeholder="Write your post content..."
-                          maxLength={MAX_CONTENT_LENGTH}
+                    {postTemplate !== "live-bet" && (
+                      <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                        <LabelWithTooltip
+                          label="Content"
+                          tooltip="Provide detailed analysis and reasoning for your picks"
+                          required
                         />
-                        <span
-                          className={`absolute right-2 bottom-2 text-sm ${
-                            content.length === MAX_CONTENT_LENGTH
-                              ? "text-red-500"
-                              : "text-gray-400"
-                          }`}
-                        >
-                          {content.length}/{MAX_CONTENT_LENGTH}
-                        </span>
+                        <div className="relative">
+                          <textarea
+                            value={content}
+                            onChange={(e) => {
+                              if (e.target.value.length <= MAX_CONTENT_LENGTH) {
+                                setContent(e.target.value);
+                              }
+                            }}
+                            className="mt-1 w-full min-h-[200px] p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
+                            placeholder="Write your post content..."
+                            maxLength={MAX_CONTENT_LENGTH}
+                          />
+                          <span
+                            className={`absolute right-2 bottom-2 text-sm ${
+                              content.length === MAX_CONTENT_LENGTH
+                                ? "text-red-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {content.length}/{MAX_CONTENT_LENGTH}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Tags Section */}
                     <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
@@ -1088,22 +1131,24 @@ function NewPostPage() {
                     </div>
 
                     {/* Bet Placement Date */}
-                    <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
-                      <LabelWithTooltip
-                        label="Bet Placement Date"
-                        tooltip="When did you place this bet? Cannot be in the future"
-                        required
-                      />
-                      <div className="mt-2">
-                        <input
-                          type="date"
-                          value={betDate}
-                          onChange={(e) => setBetDate(e.target.value)}
-                          className="w-full p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white"
-                          max={new Date().toISOString().split("T")[0]}
+                    {postTemplate !== "live-bet" && (
+                      <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                        <LabelWithTooltip
+                          label="Bet Placement Date"
+                          tooltip="When did you place this bet? Cannot be in the future"
+                          required
                         />
+                        <div className="mt-2">
+                          <input
+                            type="date"
+                            value={betDate}
+                            onChange={(e) => setBetDate(e.target.value)}
+                            className="w-full p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white"
+                            max={new Date().toISOString().split("T")[0]}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Bookmaker Section */}
                     <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
@@ -1217,7 +1262,7 @@ function NewPostPage() {
                     productName={selectedProductName}
                     createdAt={new Date().toISOString()}
                     updatedAt={new Date().toISOString()}
-                    template={postTemplate}
+                    template={postTemplate as "text-only" | "live-bet"}
                     capperInfo={{
                       firstName: user?.firstName || "",
                       lastName: user?.lastName || "",

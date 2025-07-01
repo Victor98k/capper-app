@@ -56,7 +56,7 @@ interface PostProps {
     emoji: string;
     profileImage: string;
   };
-  template?: "standard" | "text-only";
+  template?: "text-only" | "live-bet";
 }
 
 const sportEmojiMap: { [key: string]: string } = {
@@ -582,7 +582,7 @@ function InstagramPost({
   },
   fallbackImage,
   isOwnPost,
-  template = "standard",
+  template = "text-only",
 }: PostProps) {
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
@@ -676,89 +676,85 @@ function InstagramPost({
   }, [capperId, productId]);
 
   return (
-    <Card
-      className={`$
-        template === "text-only"
-          ? "overflow-hidden bg-[#020817] border-0 w-full max-w-none mx-auto md:h-[600px] md:flex md:flex-col"
-          :
-            "w-full max-w-none bg-gray-900 border-0 flex flex-col mx-auto rounded-none lg:rounded-lg md:h-[800px]"
-      }`}
-    >
-      {template === "text-only" ? (
-        <div className="bg-[#020817] w-full mx-auto md:h-full md:flex md:flex-col">
-          <div className="flex items-center justify-between p-3 sm:p-4">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 sm:h-16 sm:w-16 border border-gray-700">
-                <AvatarImage
-                  src={capperInfo.profileImage || ""}
-                  alt={capperInfo.username}
-                />
-                <AvatarFallback className="bg-violet-600 text-white text-lg sm:text-2xl">
-                  {capperInfo.username.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <button
-                  onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-                  className="text-sm sm:text-base font-medium text-gray-200 hover:text-[#4e43ff] transition-colors text-left"
-                >
-                  @{capperInfo.username}
-                </button>
-                {productName && (
-                  <span className="text-xs sm:text-xs text-[#4e43ff] font-semibold mt-0.5 sm:mt-1">
-                    {productName}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {bets.length > 0 && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-[120px] h-[36px] sm:w-[140px] sm:h-[40px] md:w-auto text-xs sm:text-sm md:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
-                  >
-                    See Bet 🎯
-                  </Button>
-                </DialogTrigger>
-                <BetDialog
-                  bets={bets}
-                  isSubscribed={isSubscribed}
-                  isOwnPost={isOwnPost}
-                  capperInfo={capperInfo}
-                  router={router}
-                  title={title}
-                  content={content}
-                  odds={odds}
-                  tags={tags}
-                  bookmaker={bookmaker}
-                  capperId={capperId}
-                  stripeConnectId={capperInfo?.stripeConnectId}
-                />
-              </Dialog>
-            )}
-          </div>
-
-          <div className="px-3 sm:px-3 py-3 sm:py-4">
-            <div>
-              <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-6">
-                {title}
-              </h2>
-
-              {/* If there's an image */}
-              {imageUrl && (
-                <div className="relative w-full aspect-[4/3] mb-3 sm:mb-4 rounded-lg overflow-hidden">
-                  <Image
-                    src={imageUrl}
-                    alt={title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 95vw, (max-width: 1024px) 90vw, 1024px"
-                  />
-                </div>
+    <Card className="overflow-hidden bg-[#020817] border-0 w-full max-w-none mx-auto md:h-[600px] md:flex md:flex-col">
+      <div className="bg-[#020817] w-full mx-auto md:h-full md:flex md:flex-col relative">
+        <div className="flex items-center justify-between p-3 sm:p-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 sm:h-16 sm:w-16 border border-gray-700">
+              <AvatarImage
+                src={capperInfo.profileImage || ""}
+                alt={capperInfo.username}
+              />
+              <AvatarFallback className="bg-violet-600 text-white text-lg sm:text-2xl">
+                {capperInfo.username.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <button
+                onClick={() => router.push(`/cappers/${capperInfo.username}`)}
+                className="text-sm sm:text-base font-medium text-gray-200 hover:text-[#4e43ff] transition-colors text-left"
+              >
+                @{capperInfo.username}
+              </button>
+              {productName && (
+                <span className="text-xs sm:text-xs text-[#4e43ff] font-semibold mt-0.5 sm:mt-1">
+                  {productName}
+                </span>
               )}
-
+            </div>
+          </div>
+          {bets.length > 0 && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-[120px] h-[36px] sm:w-[140px] sm:h-[40px] md:w-auto text-xs sm:text-sm md:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
+                >
+                  See Bet 🎯
+                </Button>
+              </DialogTrigger>
+              <BetDialog
+                bets={bets}
+                isSubscribed={isSubscribed}
+                isOwnPost={isOwnPost}
+                capperInfo={capperInfo}
+                router={router}
+                title={title}
+                content={content}
+                odds={odds}
+                tags={tags}
+                bookmaker={bookmaker}
+                capperId={capperId}
+                stripeConnectId={capperInfo?.stripeConnectId}
+              />
+            </Dialog>
+          )}
+        </div>
+        <div className="px-3 sm:px-3 py-3 sm:py-4">
+          <div>
+            <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-2">
+              {title}
+            </h2>
+            {template === "live-bet" && (
+              <div className="mb-4 flex justify-start">
+                <span className="px-4 py-1 bg-red-600 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg animate-pulse border-2 border-white uppercase tracking-widest">
+                  LIVE BET
+                </span>
+              </div>
+            )}
+            {/* If there's an image */}
+            {imageUrl && (
+              <div className="relative w-full aspect-[4/3] mb-3 sm:mb-4 rounded-lg overflow-hidden">
+                <Image
+                  src={imageUrl}
+                  alt={title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 95vw, (max-width: 1024px) 90vw, 1024px"
+                />
+              </div>
+            )}
+            {template !== "live-bet" && (
               <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-3 sm:mb-4 whitespace-pre-wrap">
                 {content.slice(0, 120)}...{" "}
                 {isSubscribed || isOwnPost ? (
@@ -807,374 +803,56 @@ function InstagramPost({
                   </Dialog>
                 )}
               </p>
-
-              <p className="text-xs sm:text-xs md:text-xs mb-10 lg:text-sm text-gray-400 mt-1 mb-0">
-                {new Date(createdAt).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-
-            {/* Badges section - Move to bottom with mt-auto */}
-            <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2">
-              {/* Likes */}
-              <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
-                <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
-                  LIKES
-                </p>
-                <div className="w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg flex items-center justify-center">
-                  <div className="flex items-center justify-center gap-1 sm:gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleLike}
-                      className="h-6 w-6 sm:h-8 sm:w-8 hover:text-[#4e43ff] p-0"
-                    >
-                      <span
-                        className={`text-sm sm:text-base ${isLiked ? "text-[#4e43ff]" : "text-gray-300"}`}
-                      >
-                        🚀
-                      </span>
-                    </Button>
-                    <span className="text-xs sm:text-sm font-bold text-white">
-                      {likeCount}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Sport */}
-              {tags.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
-                  <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
-                    SPORT
-                  </p>
-                  <div className="bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
-                    <div className="flex items-center justify-center gap-1 sm:gap-3">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-sm sm:text-base text-white"
-                          title={tag}
-                        >
-                          {sportEmojiMap[tag] || tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Odds */}
-              {odds.length > 0 && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
-                  <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
-                    ODDS
-                  </p>
-                  <div
-                    className={`bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center ${
-                      !isSubscribed && !isOwnPost
-                        ? "cursor-pointer blur-[8px] hover:blur-[6px] transition-all"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      if (!isSubscribed && !isOwnPost) {
-                        const element =
-                          document.getElementById("subscription-plans");
-                        element?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                      }
-                    }}
-                  >
-                    <div className="flex items-center justify-center">
-                      {odds.map((odd, index) => (
-                        <div key={index} className="flex items-center">
-                          <span className="text-xs sm:text-base font-bold text-white">
-                            {odd}
-                          </span>
-                          <span className="text-xs sm:text-base font-bold text-white/80 mr-0.5 sm:mr-1">
-                            x
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Comment out Bundle 4 now 8/6 */}
-              {/* {productName && (
-                <div className="flex-shrink-0 flex flex-col items-center min-w-[100px] max-w-[140px]">
-                  <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
-                    BUNDLE
-                  </p>
-                  <div className="bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-2 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
-                    <span className="text-xs sm:text-sm md:text-base font-bold text-white truncate">
-                      {productName}
-                    </span>
-                  </div>
-                </div>
-              )} */}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between p-2 border-b border-gray-800">
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-6 w-6 sm:h-7 sm:w-7 border border-gray-700">
-                <AvatarImage
-                  src={capperInfo.profileImage || ""}
-                  alt={capperInfo.username}
-                  sizes="28px"
-                />
-                <AvatarFallback className="bg-violet-600 text-white text-xs">
-                  {capperInfo.username.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col sm:flex-row sm:items-center">
-                <button
-                  onClick={() => router.push(`/cappers/${capperInfo.username}`)}
-                  className="font-semibold text-xs text-gray-100 hover:text-[#4e43ff] transition-colors"
-                >
-                  {capperInfo.username}
-                </button>
-                {productName && (
-                  <span className="text-xs text-[#4e43ff] font-semibold sm:ml-2">
-                    {productName}
-                  </span>
-                )}
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 uppercase">
+            )}
+            <p className="text-xs sm:text-xs md:text-xs mb-10 lg:text-sm text-gray-400 mt-1 mb-0">
               {new Date(createdAt).toLocaleDateString(undefined, {
+                year: "numeric",
                 month: "long",
                 day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
               })}
             </p>
           </div>
-
-          <div className="relative w-full h-56 md:h-[32rem] lg:h-[36rem] overflow-hidden rounded-lg mb-4">
-            {imageUrl ? (
-              <Image
-                src={imageUrl}
-                alt={title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center relative">
-                <div className="absolute inset-0 overflow-hidden">
-                  <Image
-                    src={
-                      fallbackImage?.profileImage ||
-                      capperInfo.profileImage ||
-                      "/default-avatar.png"
-                    }
-                    alt="Background"
-                    fill
-                    className="object-cover blur-xl opacity-20"
-                    sizes="100vw"
-                  />
-
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="max-w-lg text-center space-y-6 select-none">
-                      <div className="space-y-4">
-                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                          🎯 Match Winner
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                          📊 Over/Under 2.5
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                          ⚡ Special Picks
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                          🔥 Exclusive Tips
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-400 text-2xl md:text-3xl opacity-20">
-                          💫 Premium Analysis
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center gap-8 relative z-10">
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden relative shadow-lg">
-                    <Image
-                      src={
-                        fallbackImage?.profileImage ||
-                        capperInfo.profileImage ||
-                        "/default-avatar.png"
-                      }
-                      alt="Capper avatar"
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 128px, 160px"
-                    />
-                  </div>
-
-                  {bets.length > 0 && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-[120px] h-[36px] sm:w-[140px] sm:h-[40px] md:w-auto text-xs sm:text-sm md:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
-                        >
-                          See Bet 🎯
-                        </Button>
-                      </DialogTrigger>
-                      <BetDialog
-                        bets={bets}
-                        isSubscribed={isSubscribed}
-                        isOwnPost={isOwnPost}
-                        capperInfo={capperInfo}
-                        router={router}
-                        title={title}
-                        content={content}
-                        odds={odds}
-                        tags={tags}
-                        bookmaker={bookmaker}
-                        capperId={capperId}
-                        stripeConnectId={capperInfo?.stripeConnectId}
-                      />
-                    </Dialog>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="p-3 md:flex-1 md:flex md:flex-col">
-            <div className="flex items-center justify-between sm:justify-start sm:gap-4 mb-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleLike}
-                  className="h-8 w-8"
-                >
-                  <span
-                    className={`text-lg ${
-                      isLiked ? "text-[#4e43ff]" : "text-gray-300"
-                    }`}
+          {/* Badges section - Move to bottom with mt-auto */}
+          <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2 items-center">
+            {/* Likes */}
+            <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
+              <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
+                LIKES
+              </p>
+              <div className="w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg flex items-center justify-center">
+                <div className="flex items-center justify-center gap-1 sm:gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleLike}
+                    className="h-6 w-6 sm:h-8 sm:w-8 hover:text-[#4e43ff] p-0"
                   >
-                    🚀
+                    <span
+                      className={`text-sm sm:text-base ${isLiked ? "text-[#4e43ff]" : "text-gray-300"}`}
+                    >
+                      🚀
+                    </span>
+                  </Button>
+                  <span className="text-xs sm:text-sm font-bold text-white">
+                    {likeCount}
                   </span>
-                </Button>
-                <p className="font-semibold text-xs text-gray-100">
-                  {likeCount} likes
-                </p>
+                </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-4 md:flex-1">
-              <div className="space-y-2">
-                <h3 className="font-bold text-xs text-gray-100">{title}</h3>
-                <div className="max-h-[100px] overflow-y-auto text-[10px] text-gray-200">
-                  {content.slice(0, 120)}...{" "}
-                  {isSubscribed || isOwnPost ? (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <button className="text-[#4e43ff] hover:underline font-medium">
-                          See more
-                        </button>
-                      </DialogTrigger>
-                      <BetDialog
-                        bets={bets}
-                        isSubscribed={isSubscribed}
-                        isOwnPost={isOwnPost}
-                        capperInfo={capperInfo}
-                        router={router}
-                        title={title}
-                        content={content}
-                        odds={odds}
-                        tags={tags}
-                        bookmaker={bookmaker}
-                        capperId={capperId}
-                        stripeConnectId={capperInfo?.stripeConnectId}
-                      />
-                    </Dialog>
-                  ) : (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <button className="text-[#4e43ff] hover:underline font-medium">
-                          See more
-                        </button>
-                      </DialogTrigger>
-                      <BetDialog
-                        bets={bets}
-                        isSubscribed={isSubscribed}
-                        isOwnPost={isOwnPost}
-                        capperInfo={capperInfo}
-                        router={router}
-                        title={title}
-                        content={content}
-                        odds={odds}
-                        tags={tags}
-                        bookmaker={bookmaker}
-                        capperId={capperId}
-                        stripeConnectId={capperInfo?.stripeConnectId}
-                      />
-                    </Dialog>
-                  )}
-                </div>
-              </div>
-
-              <div className="hidden sm:flex sm:flex-col sm:gap-4 sm:w-[140px] md:justify-end">
-                {odds.length > 0 && (
-                  <div className="flex flex-col items-end">
-                    <p className="text-xs font-semibold text-white mb-1">
-                      ODDS
-                    </p>
-                    <div
-                      className={`bg-[#4e43ff] p-2 rounded-lg shadow-lg shadow-[#4e43ff]/20 ${
-                        !isSubscribed && !isOwnPost
-                          ? "cursor-pointer blur-[8px] hover:blur-[6px] transition-all"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        if (!isSubscribed && !isOwnPost) {
-                          const element =
-                            document.getElementById("subscription-plans");
-                          element?.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start",
-                          });
-                        }
-                      }}
-                    >
-                      <div className="flex justify-end items-center">
-                        {odds.map((odd, index) => (
-                          <div key={index} className="flex items-center">
-                            <span className="text-xs sm:text-base font-bold text-white px-1">
-                              {odd}
-                            </span>
-                            <span className="text-xs sm:text-base font-bold text-white/80">
-                              x
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-col items-end">
-                  <p className="text-xs font-semibold text-white mb-1">SPORT</p>
-                  <div className="flex flex-wrap gap-2 justify-end">
+            {/* Sport */}
+            {tags.length > 0 && (
+              <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
+                <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
+                  SPORT
+                </p>
+                <div className="bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center">
+                  <div className="flex items-center justify-center gap-1 sm:gap-3">
                     {tags.map((tag) => (
                       <span
                         key={tag}
-                        className="text-sm sm:text-base text-white px-4 py-2 rounded-lg shadow-lg shadow-[#4e43ff]/20"
+                        className="text-sm sm:text-base text-white"
                         title={tag}
                       >
                         {sportEmojiMap[tag] || tag}
@@ -1183,24 +861,15 @@ function InstagramPost({
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="sm:hidden mt-3 space-y-3 px-4 md:mt-auto">
-              <div className="flex gap-1">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-base bg-[#4e43ff]/10 text-[#4e43ff] px-2 py-1 rounded-md"
-                    title={tag}
-                  >
-                    {sportEmojiMap[tag] || tag}
-                  </span>
-                ))}
-              </div>
-
-              {odds.length > 0 && (
+            )}
+            {/* Odds */}
+            {odds.length > 0 && (
+              <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
+                <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
+                  ODDS
+                </p>
                 <div
-                  className={`bg-[#4e43ff]/10 px-3 py-1.5 rounded-lg ${
+                  className={`bg-[#4e43ff] w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg shadow-lg shadow-[#4e43ff]/20 flex items-center justify-center ${
                     !isSubscribed && !isOwnPost
                       ? "cursor-pointer blur-[8px] hover:blur-[6px] transition-all"
                       : ""
@@ -1216,56 +885,24 @@ function InstagramPost({
                     }
                   }}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[#4e43ff]">
-                      ODDS
-                    </span>
+                  <div className="flex items-center justify-center">
                     {odds.map((odd, index) => (
                       <div key={index} className="flex items-center">
-                        <span className="text-sm font-bold text-[#4e43ff]">
+                        <span className="text-xs sm:text-base font-bold text-white">
                           {odd}
                         </span>
-                        <span className="text-sm font-bold text-[#4e43ff]/80">
+                        <span className="text-xs sm:text-base font-bold text-white/80 mr-0.5 sm:mr-1">
                           x
                         </span>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
-
-            {bets.length > 0 && (
-              <div className="mt-3 px-4">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-[120px] h-[36px] sm:w-[140px] sm:h-[40px] md:w-auto text-xs sm:text-sm md:text-base font-semibold bg-[#4e43ff] text-white hover:bg-[#4e43ff]/90 border-0 px-2 sm:px-4 md:px-8 py-1 sm:py-2 md:py-4 rounded-full shadow-lg shadow-[#4e43ff]/20 transition-all hover:scale-105"
-                    >
-                      See Bet 🎯
-                    </Button>
-                  </DialogTrigger>
-                  <BetDialog
-                    bets={bets}
-                    isSubscribed={isSubscribed}
-                    isOwnPost={isOwnPost}
-                    capperInfo={capperInfo}
-                    router={router}
-                    title={title}
-                    content={content}
-                    odds={odds}
-                    tags={tags}
-                    bookmaker={bookmaker}
-                    capperId={capperId}
-                    stripeConnectId={capperInfo?.stripeConnectId}
-                  />
-                </Dialog>
               </div>
             )}
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </Card>
   );
 }
