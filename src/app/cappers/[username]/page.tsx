@@ -144,7 +144,6 @@ const StatCard = ({
   value,
   onClick,
   className,
-  bgClassName,
   small = false,
 }: {
   icon: React.ReactNode;
@@ -152,39 +151,26 @@ const StatCard = ({
   value: string;
   onClick?: () => void;
   className?: string;
-  bgClassName?: string;
   small?: boolean;
 }) => (
-  <div onClick={onClick} className={`cursor-pointer ${className}`}>
-    {/* Mobile version - just icon and value */}
-    <div
-      className={`sm:hidden flex flex-col items-center${small ? " p-1" : ""}`}
-    >
-      <div className={`text-violet-400 mb-1${small ? " text-base" : ""}`}>
-        {React.cloneElement(icon as React.ReactElement, {
-          className: small ? "h-4 w-4" : "h-6 w-6",
-        })}
-      </div>
-      <p className={`font-bold ${small ? "text-xs" : "text-base"}`}>{value}</p>
+  <div
+    onClick={onClick}
+    className={`bg-gray-700/50 p-2 sm:p-4 rounded-lg flex flex-row items-center justify-center text-center gap-3 ${className || ""} ${onClick ? "cursor-pointer hover:bg-gray-600/50 transition-colors" : ""}`}
+    style={small ? { minWidth: 0, maxWidth: "180px" } : {}}
+  >
+    <div className="flex items-center justify-center">
+      {React.cloneElement(icon as React.ReactElement, {
+        className: small ? "h-4 w-4" : "h-6 w-6",
+      })}
     </div>
-
-    {/* Desktop version - full card */}
-    <div
-      className={`hidden sm:flex rounded-lg items-center space-x-4 ${bgClassName || "bg-gray-700/50"} ${small ? "p-2" : "p-4"}`}
-      style={small ? { minWidth: 0, maxWidth: "180px" } : {}}
-    >
-      <div className="text-violet-400">
-        {React.cloneElement(icon as React.ReactElement, {
-          className: small ? "h-4 w-4" : "h-6 w-6",
-        })}
+    <div className="flex flex-col items-start justify-center text-left">
+      <div className="text-gray-400 text-xs sm:text-sm font-medium mb-0">
+        {title}
       </div>
-      <div>
-        <p className={`text-gray-400 ${small ? "text-xs" : "text-sm"}`}>
-          {title}
-        </p>
-        <p className={`font-bold ${small ? "text-base" : "text-xl"}`}>
-          {value}
-        </p>
+      <div
+        className={`font-bold ${small ? "text-base" : "text-2xl"} ${title === "Win Rate" ? "text-green-400" : title === "Subscribers" ? "text-blue-400" : title === "ROI (12mo)" ? "text-violet-400" : "text-white"}`}
+      >
+        {value}
       </div>
     </div>
   </div>
@@ -650,7 +636,7 @@ export default function CapperProfilePage({
                   <div className="flex items-center gap-2 mb-3">
                     <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
                     <p className="text-xs sm:text-sm md:text-base text-gray-400">
-                      Communication channels for details and analysis
+                      get bet notifications via:{" "}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -742,54 +728,48 @@ export default function CapperProfilePage({
               </div>
             </div>
 
-            {/* Stats Overview - Stack on mobile */}
-            <div className="grid grid-cols-4 sm:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-6">
+            {/* Stats Overview - Match Betting Performance Card Design and Size */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-4xl mx-auto mt-4 sm:mt-6">
               <StatCard
-                icon={<Users />}
+                icon={<Users style={{ color: "#4e43ff" }} />}
                 title="Subscribers"
                 value={capper.subscriberIds.length.toLocaleString()}
               />
-
               <StatCard
-                icon={<Trophy />}
+                icon={<Trophy style={{ color: "#4e43ff" }} />}
                 title="Win Rate"
                 value={calculateWinRate(performanceData)}
               />
               <StatCard
-                icon={<TrendingUp />}
+                icon={<TrendingUp style={{ color: "#4e43ff" }} />}
                 title="ROI (12mo)"
                 value={`${calculateROI(filterLast12Months(performanceData)).toFixed(2)}%`}
               />
-              <StatCard
-                icon={<Calculator />}
-                title="ROI Calculator"
-                value="Calculate"
-                onClick={() => setShowROICalculator(!showROICalculator)}
-                className="cursor-pointer hover:bg-gray-600/50 transition-colors"
-              />
             </div>
 
-            {/* Previous ROI Section */}
-            <div className="mt-6 mb-2">
+            {/* Previous ROI Section - aligned with stats cards */}
+            <div className="max-w-4xl mx-auto mt-6 mb-2">
               <h3 className="text-lg font-semibold text-gray-200 mb-2 flex items-center gap-2">
                 Previous ROI Before Joining Cappers
                 <CheckCircle className="h-5 w-5 text-blue-400" />
               </h3>
-              <StatCard
-                icon={<TrendingUp />}
-                title="Prev. ROI"
-                value={
-                  typeof capper.user.initialRoi === "number"
-                    ? `${capper.user.initialRoi.toFixed(2)}%`
-                    : "N/A"
-                }
-                small
-              />
+              <div className="w-full md:w-1/3">
+                <StatCard
+                  icon={<TrendingUp style={{ color: "#4e43ff" }} />}
+                  title="Prev. ROI"
+                  value={
+                    typeof capper.user.initialRoi === "number"
+                      ? `${capper.user.initialRoi.toFixed(2)}%`
+                      : "N/A"
+                  }
+                  small
+                />
+              </div>
             </div>
 
             {/* Performance Chart - Moved here */}
-            <Card className="mt-8 bg-gray-800/30 border-gray-700 p-4 backdrop-blur-sm">
-              <CardHeader>
+            <Card className="mt-8 bg-gray-800/30 border-gray-700  backdrop-blur-sm">
+              <CardHeader className="p-2 sm:p-6">
                 <CardTitle className="text-white font-bold text-2xl">
                   Betting Performance
                 </CardTitle>
@@ -797,7 +777,7 @@ export default function CapperProfilePage({
                   Total units over time
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-2 sm:p-6">
                 {performanceData.length > 0 ? (
                   <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -920,7 +900,7 @@ export default function CapperProfilePage({
                   <div className="mt-6 pt-4 border-t border-gray-700">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
                       {/* Units Won */}
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <TrendingUp className="h-5 w-5 text-green-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -938,7 +918,7 @@ export default function CapperProfilePage({
                       </div>
 
                       {/* Units Lost */}
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <TrendingDown className="h-5 w-5 text-red-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -955,7 +935,7 @@ export default function CapperProfilePage({
                       </div>
 
                       {/* Net Profit */}
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <Zap className="h-5 w-5 text-yellow-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -981,7 +961,7 @@ export default function CapperProfilePage({
                       </div>
 
                       {/* Biggest Win */}
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <CheckCircle className="h-5 w-5 text-green-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -1001,7 +981,7 @@ export default function CapperProfilePage({
                       </div>
 
                       {/* Average Bet Size */}
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <User className="h-5 w-5 text-blue-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -1020,7 +1000,7 @@ export default function CapperProfilePage({
                       </div>
 
                       {/* Last 10 Bets Performance */}
-                      <div className="bg-gray-700/50 p-4 rounded-lg">
+                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <Star className="h-5 w-5 text-blue-400" />
                           <span className="text-sm text-gray-300 font-medium">
