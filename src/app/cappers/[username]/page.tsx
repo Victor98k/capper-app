@@ -238,6 +238,7 @@ export default function CapperProfilePage({
   const [currentPage, setCurrentPage] = useState(1);
   const POSTS_PER_PAGE = 6;
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
+  const [showSeeMoreButton, setShowSeeMoreButton] = useState(false);
 
   const {
     data,
@@ -270,10 +271,15 @@ export default function CapperProfilePage({
   const { ref, inView } = useInView();
 
   useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+    if (inView && hasNextPage && !isFetchingNextPage && !showSeeMoreButton) {
+      setShowSeeMoreButton(true);
     }
-  }, [inView, fetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, showSeeMoreButton]);
+
+  const handleSeeMore = () => {
+    fetchNextPage();
+    setShowSeeMoreButton(false);
+  };
 
   const allPosts = data?.pages.flatMap((page) => page.posts) ?? [];
 
@@ -1156,9 +1162,20 @@ export default function CapperProfilePage({
                   ))}
                 </div>
 
-                {/* Loading indicator */}
-                <div ref={ref} className="flex justify-center py-4">
+                {/* Loading indicator and See More Posts button */}
+                <div
+                  ref={ref}
+                  className="flex flex-col items-center justify-center py-4"
+                >
                   {isFetchingNextPage && <Loader />}
+                  {showSeeMoreButton && hasNextPage && !isFetchingNextPage && (
+                    <button
+                      onClick={handleSeeMore}
+                      className="mt-4 px-6 py-2 rounded-full bg-[#4e43ff] text-white font-semibold shadow-lg hover:bg-[#372fcf] transition-colors text-base"
+                    >
+                      See more posts
+                    </button>
+                  )}
                 </div>
               </>
             )}

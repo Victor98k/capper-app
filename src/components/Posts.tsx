@@ -676,8 +676,8 @@ function InstagramPost({
   }, [capperId, productId]);
 
   return (
-    <Card className="overflow-hidden bg-[#020817] border-0 w-full max-w-none mx-auto md:h-[600px] md:flex md:flex-col">
-      <div className="bg-[#020817] w-full mx-auto md:h-full md:flex md:flex-col relative">
+    <Card className="overflow-hidden bg-[#020817] border-0 w-full max-w-none mx-auto">
+      <div className="bg-[#020817] w-full mx-auto relative">
         <div className="flex items-center justify-between p-3 sm:p-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 sm:h-16 sm:w-16 border border-gray-700">
@@ -730,9 +730,9 @@ function InstagramPost({
             </Dialog>
           )}
         </div>
-        <div className="px-3 sm:px-3 py-3 sm:py-4">
-          <div>
-            <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-2">
+        <div className="px-3 sm:px-3 py-3 sm:py-4 flex-1 flex flex-col">
+          <div className="max-h-[180px] overflow-hidden">
+            <h2 className="line-clamp-2 text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-2">
               {title}
             </h2>
             {template === "live-bet" && (
@@ -755,7 +755,7 @@ function InstagramPost({
               </div>
             )}
             {template !== "live-bet" && (
-              <p className="text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-3 sm:mb-4 whitespace-pre-wrap">
+              <p className="line-clamp-3 text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-3 sm:mb-4 whitespace-pre-wrap">
                 {content.slice(0, 120)}...{" "}
                 {isSubscribed || isOwnPost ? (
                   <Dialog>
