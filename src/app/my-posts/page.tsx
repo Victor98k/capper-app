@@ -122,12 +122,12 @@ export default function MyPosts() {
       </div>
 
       {/* Add mobile header */}
-      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817]/50 backdrop-blur-sm border-b border-gray-800 p-4 flex items-center">
+      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] p-4 flex items-center">
         <div className="absolute left-4">
           <SideNav />
         </div>
         <div className="flex-1 text-right pr-4">
-          <h1 className="text-xl font-semibold">@{capperData.user.username}</h1>
+          <h2 className="text-xl font-semibold">My Posts</h2>
         </div>
       </div>
 

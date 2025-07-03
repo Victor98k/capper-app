@@ -886,7 +886,9 @@ export function CapperDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-100">
-        <SideNav />
+        <div className="hidden lg:block">
+          <SideNav />
+        </div>
         <div className="flex-1">
           <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
             <Loader />
@@ -1036,11 +1038,13 @@ export function CapperDashboard() {
         />
       </div>
 
-      <SideNav />
+      <div className="hidden lg:block">
+        <SideNav />
+      </div>
       <div className="flex-1 relative z-10">
         <header className="bg-[#020817]/50 backdrop-blur-sm shadow px-4 md:pl-16 lg:pl-0">
           <div className="max-w-7xl mx-auto pt-6 md:pt-10 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-2xl md:text-4xl font-bold text-white break-words pl-12 md:pl-0">
+            <h1 className="text-2xl md:text-4xl font-bold text-white break-words pl-12 md:pl-0 hidden lg:block">
               Dashboard Overview
             </h1>
           </div>

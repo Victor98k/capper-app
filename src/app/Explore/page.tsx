@@ -125,12 +125,12 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen bg-[#020817] text-gray-100">
       {/* Mobile Top Nav */}
-      <div className="sticky top-0 z-50 w-full bg-gray-900 border-b border-gray-800 p-4 flex items-center lg:hidden">
+      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] p-4 flex items-center">
         <div className="absolute left-4">
           <SideNav />
         </div>
-        <div className="flex-1 flex justify-end">
-          <h2 className="text-xl font-semibold pr-4">Explore</h2>
+        <div className="flex-1 text-right pr-4">
+          <h2 className="text-xl font-semibold">Explore</h2>
         </div>
       </div>
 

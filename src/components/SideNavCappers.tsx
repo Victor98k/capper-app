@@ -219,11 +219,10 @@ export function SideNav() {
       <div className="lg:hidden">
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="text-white focus:outline-none p-2 hover:bg-white/10 rounded-full transition-colors fixed top-4 left-4 z-50"
+          className="text-white focus:outline-none p-2 hover:bg-white/10 rounded-full transition-colors"
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
@@ -231,7 +230,7 @@ export function SideNav() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "-100%" }}
               transition={{ type: "tween", duration: 0.3 }}
-              className="fixed inset-0 bg-gray-900/95 backdrop-blur-md z-40"
+              className="fixed inset-0 bg-gray-900/95 backdrop-blur-md z-50"
             >
               <div className="flex flex-col h-full p-6">
                 {/* Header */}
@@ -251,7 +250,6 @@ export function SideNav() {
                     <X size={24} />
                   </button>
                 </div>
-
                 {/* Navigation Links */}
                 <div className="mt-8">
                   <motion.div

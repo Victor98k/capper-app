@@ -536,7 +536,7 @@ export default function CapperProfilePage({
       </div>
 
       {/* Add mobile header */}
-      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] border-b border-gray-800 p-4 flex items-center">
+      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] p-4 flex items-center">
         <div className="absolute left-4">
           <SideNav />
         </div>

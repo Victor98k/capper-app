@@ -543,76 +543,89 @@ function UserProfileContent() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#020817]">
-      <SideNav />
-      <Toaster position="top-right" expand={true} richColors closeButton />
-
-      <div className="flex-1 px-4 sm:px-6 py-6 sm:py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Make the profile header stack on mobile */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-            {/* Center the avatar on mobile */}
-            <div className="relative self-center sm:self-auto">
-              <Avatar className="h-32 w-32 border-4 border-[#020817]">
-                <AvatarImage
-                  //   src={user?.profileImage || ""}
-                  alt={username || "User"}
-                />
-                <AvatarFallback className="bg-[#4e43ff] text-3xl">
-                  {username?.charAt(0)?.toUpperCase() || "UN"}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            {/* Center text on mobile */}
-            <div className="text-center sm:text-left">
-              <h1 className="text-2xl font-bold text-white">
-                {user?.firstName} {user?.lastName}
-              </h1>
-              <p className="text-gray-400">@{username}</p>
-            </div>
-          </div>
-
-          {/* Make tabs scrollable on mobile */}
-          <div className="border-b border-[#2D3B4E] mb-6 sm:mb-8">
-            <nav className="flex gap-4 sm:gap-8 overflow-x-auto pb-1 sm:pb-0">
-              <button
-                onClick={() => setActiveTab("profile")}
-                className={`pb-4 font-medium whitespace-nowrap ${
-                  activeTab === "profile"
-                    ? "text-[#4e43ff] border-b-2 border-[#4e43ff]"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Profile
-              </button>
-              <button
-                onClick={() => setActiveTab("subscriptions")}
-                className={`pb-4 font-medium whitespace-nowrap ${
-                  activeTab === "subscriptions"
-                    ? "text-[#4e43ff] border-b-2 border-[#4e43ff]"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Subscriptions
-              </button>
-              <button
-                onClick={() => setActiveTab("preferences")}
-                className={`pb-4 font-medium whitespace-nowrap ${
-                  activeTab === "preferences"
-                    ? "text-[#4e43ff] border-b-2 border-[#4e43ff]"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Preferences
-              </button>
-            </nav>
-          </div>
-
-          {/* Adjust content padding for mobile */}
-          <div className="space-y-4 sm:space-y-6">{renderTabContent()}</div>
+    <div className="min-h-screen bg-[#020817] text-gray-100 flex flex-col">
+      {/* Mobile Top Nav */}
+      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] p-4 flex items-center">
+        <div className="absolute left-4">
+          <SideNav />
+        </div>
+        <div className="flex-1 text-right pr-4">
+          <h2 className="text-xl font-semibold">My Profile</h2>
         </div>
       </div>
+      <div className="flex flex-1">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <SideNav />
+        </div>
+        {/* Main Content */}
+        <div className="flex-1 px-4 sm:px-6 py-6 sm:py-8">
+          <Toaster position="top-right" expand={true} richColors closeButton />
+          <div className="max-w-4xl mx-auto">
+            {/* Make the profile header stack on mobile */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+              {/* Center the avatar on mobile */}
+              <div className="relative self-center sm:self-auto">
+                <Avatar className="h-32 w-32 border-4 border-[#020817]">
+                  <AvatarImage
+                    //   src={user?.profileImage || ""}
+                    alt={username || "User"}
+                  />
+                  <AvatarFallback className="bg-[#4e43ff] text-3xl">
+                    {username?.charAt(0)?.toUpperCase() || "UN"}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              {/* Center text on mobile */}
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl font-bold text-white">
+                  {user?.firstName} {user?.lastName}
+                </h1>
+                <p className="text-gray-400">@{username}</p>
+              </div>
+            </div>
 
+            {/* Make tabs scrollable on mobile */}
+            <div className="border-b border-[#2D3B4E] mb-6 sm:mb-8">
+              <nav className="flex gap-4 sm:gap-8 overflow-x-auto pb-1 sm:pb-0">
+                <button
+                  onClick={() => setActiveTab("profile")}
+                  className={`pb-4 font-medium whitespace-nowrap ${
+                    activeTab === "profile"
+                      ? "text-[#4e43ff] border-b-2 border-[#4e43ff]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={() => setActiveTab("subscriptions")}
+                  className={`pb-4 font-medium whitespace-nowrap ${
+                    activeTab === "subscriptions"
+                      ? "text-[#4e43ff] border-b-2 border-[#4e43ff]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Subscriptions
+                </button>
+                <button
+                  onClick={() => setActiveTab("preferences")}
+                  className={`pb-4 font-medium whitespace-nowrap ${
+                    activeTab === "preferences"
+                      ? "text-[#4e43ff] border-b-2 border-[#4e43ff]"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Preferences
+                </button>
+              </nav>
+            </div>
+
+            {/* Adjust content padding for mobile */}
+            <div className="space-y-4 sm:space-y-6">{renderTabContent()}</div>
+          </div>
+        </div>
+      </div>
       {/* Cancel Subscription Confirmation Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <DialogContent>
