@@ -114,18 +114,18 @@ function UserProfileContent() {
 
           const data = await response.json();
 
-          console.log("Full subscription data:", data);
-          console.log("Subscriptions array:", data.subscriptions);
+          // console.log("Full subscription data:", data);
+          // console.log("Subscriptions array:", data.subscriptions);
 
           // Log each subscription to see the structure
           if (data.subscriptions && data.subscriptions.length > 0) {
             data.subscriptions.forEach((sub: any, index: number) => {
-              console.log(`Subscription ${index + 1}:`, sub);
-              console.log(`Subscription ${index + 1} product:`, sub.product);
-              console.log(
-                `Subscription ${index + 1} productId:`,
-                sub.productId
-              );
+              // console.log(`Subscription ${index + 1}:`, sub);
+              // console.log(`Subscription ${index + 1} product:`, sub.product);
+              // console.log(
+              //   `Subscription ${index + 1} productId:`,
+              //   sub.productId
+              // );
             });
           }
 

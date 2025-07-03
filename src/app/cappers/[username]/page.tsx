@@ -329,9 +329,9 @@ export default function CapperProfilePage({
     checkSubscriptionStatus();
   }, [capper?.id, capper?.products]);
 
-  useEffect(() => {
-    console.log("capper", capper);
-  }, [capper]);
+  // useEffect(() => {
+  //   console.log("capper", capper);
+  // }, [capper]);
 
   useEffect(() => {
     const fetchPerformanceData = async () => {

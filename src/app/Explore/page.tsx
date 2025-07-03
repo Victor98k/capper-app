@@ -113,12 +113,12 @@ export default function ExplorePage() {
 
   // Add a debug log for individual capper data
   const debugCapperData = (capper: CapperProfile) => {
-    console.log("Individual Capper Data:", {
-      username: capper.user.username,
-      stats: capper.stats,
-      roi: capper.roi,
-      tags: capper.tags,
-    });
+    // console.log("Individual Capper Data:", {
+    //   username: capper.user.username,
+    //   stats: capper.stats,
+    //   roi: capper.roi,
+    //   tags: capper.tags,
+    // });
     return capper;
   };
 
