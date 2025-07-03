@@ -30,10 +30,12 @@ export default function BecomeCapper() {
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    if (isSubmitting) return; // Prevent double submit
+    setIsSubmitting(true);
     try {
       const formDataToSend = new FormData();
 
@@ -62,6 +64,8 @@ export default function BecomeCapper() {
     } catch (error) {
       console.error("Error submitting application:", error);
       toast.error("Error submitting application");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -460,10 +464,36 @@ export default function BecomeCapper() {
 
                 <button
                   type="submit"
-                  disabled={!acceptedTerms}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  disabled={!acceptedTerms || isSubmitting}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  Submit Application
+                  {isSubmitting ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8z"
+                        ></path>
+                      </svg>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Application"
+                  )}
                 </button>
               </form>
             </div>
