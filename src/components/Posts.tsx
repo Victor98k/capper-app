@@ -755,54 +755,60 @@ function InstagramPost({
               </div>
             )}
             {template !== "live-bet" && (
-              <p className="line-clamp-3 text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-3 sm:mb-4 whitespace-pre-wrap">
-                {content.slice(0, 120)}...{" "}
-                {isSubscribed || isOwnPost ? (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button className="text-[#4e43ff] hover:underline font-medium">
-                        See more
-                      </button>
-                    </DialogTrigger>
-                    <BetDialog
-                      bets={bets}
-                      isSubscribed={isSubscribed}
-                      isOwnPost={isOwnPost}
-                      capperInfo={capperInfo}
-                      router={router}
-                      title={title}
-                      content={content}
-                      odds={odds}
-                      tags={tags}
-                      bookmaker={bookmaker}
-                      capperId={capperId}
-                      stripeConnectId={capperInfo?.stripeConnectId}
-                    />
-                  </Dialog>
-                ) : (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <button className="text-[#4e43ff] hover:underline font-medium">
-                        See more
-                      </button>
-                    </DialogTrigger>
-                    <BetDialog
-                      bets={bets}
-                      isSubscribed={isSubscribed}
-                      isOwnPost={isOwnPost}
-                      capperInfo={capperInfo}
-                      router={router}
-                      title={title}
-                      content={content}
-                      odds={odds}
-                      tags={tags}
-                      bookmaker={bookmaker}
-                      capperId={capperId}
-                      stripeConnectId={capperInfo?.stripeConnectId}
-                    />
-                  </Dialog>
+              <>
+                <p className="line-clamp-3 text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2 whitespace-pre-wrap">
+                  {content.slice(0, 120)}...
+                </p>
+                {content.length > 120 && (
+                  <div className="mb-3 sm:mb-4">
+                    {isSubscribed || isOwnPost ? (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button className="text-[#4e43ff] hover:underline font-medium">
+                            See more
+                          </button>
+                        </DialogTrigger>
+                        <BetDialog
+                          bets={bets}
+                          isSubscribed={isSubscribed}
+                          isOwnPost={isOwnPost}
+                          capperInfo={capperInfo}
+                          router={router}
+                          title={title}
+                          content={content}
+                          odds={odds}
+                          tags={tags}
+                          bookmaker={bookmaker}
+                          capperId={capperId}
+                          stripeConnectId={capperInfo?.stripeConnectId}
+                        />
+                      </Dialog>
+                    ) : (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button className="text-[#4e43ff] hover:underline font-medium">
+                            See more
+                          </button>
+                        </DialogTrigger>
+                        <BetDialog
+                          bets={bets}
+                          isSubscribed={isSubscribed}
+                          isOwnPost={isOwnPost}
+                          capperInfo={capperInfo}
+                          router={router}
+                          title={title}
+                          content={content}
+                          odds={odds}
+                          tags={tags}
+                          bookmaker={bookmaker}
+                          capperId={capperId}
+                          stripeConnectId={capperInfo?.stripeConnectId}
+                        />
+                      </Dialog>
+                    )}
+                  </div>
                 )}
-              </p>
+              </>
             )}
             <p className="text-xs sm:text-xs md:text-xs mb-10 lg:text-sm text-gray-400 mt-1 mb-0">
               {new Date(createdAt).toLocaleDateString(undefined, {
