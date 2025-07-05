@@ -67,10 +67,10 @@ export async function POST(req: Request) {
       await resend.emails.send({
         from: "Cappers <hello@cappersports.co>",
         to: subscriber.email,
-        subject: `New post from ${capperWithUser.user.firstName} ${capperWithUser.user.lastName}: ${postTitle}`,
+        subject: `New post from @${capperWithUser.user.username}: ${postTitle}`,
         react: NewPostEmail({
           subscriberName: `${subscriber.firstName} ${subscriber.lastName}`,
-          capperName: `${capperWithUser.user.firstName} ${capperWithUser.user.lastName}`,
+          capperName: `@${capperWithUser.user.username}`,
           postTitle,
           postPreview,
           postId: profileUrl,
@@ -111,6 +111,7 @@ export async function GET(req: Request) {
         firstName: true,
         lastName: true,
         email: true,
+        username: true,
         capperProfile: {
           select: {
             id: true,
@@ -171,10 +172,10 @@ export async function GET(req: Request) {
         await resend.emails.send({
           from: "Cappers <hello@cappersports.co>",
           to: subscriber.email,
-          subject: `New post from ${user.firstName} ${user.lastName}: ${testData.postTitle}`,
+          subject: `New post from @${user.username}: ${testData.postTitle}`,
           react: NewPostEmail({
             subscriberName: `${subscriber.firstName} ${subscriber.lastName}`,
-            capperName: `${user.firstName} ${user.lastName}`,
+            capperName: `@${user.username}`,
             postTitle: testData.postTitle,
             postPreview: testData.postPreview,
             postId: testData.postId,
