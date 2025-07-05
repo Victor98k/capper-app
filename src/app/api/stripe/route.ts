@@ -302,18 +302,20 @@ export async function POST(req: Request) {
         // Continue without the coupon if coupon retrieval fails
       }
     }
-    // If this is a zero-price product (price.unit_amount === 1), apply the coupon from product metadata
+    // If this is a zero-price product (price.unit_amount === 1), apply the freeCouponId from product metadata
     else if (price.unit_amount === 1) {
       try {
         const product = await stripe.products.retrieve(productId, {
           stripeAccount: capper.user.stripeConnectId,
         });
-        if (product.metadata.couponId) {
+        const freeCouponId = product.metadata.freeCouponId;
+        if (freeCouponId) {
           sessionConfig.discounts = [
             {
-              coupon: product.metadata.couponId,
+              coupon: freeCouponId,
             },
           ];
+          console.log("Applied freeCouponId to session:", freeCouponId);
         }
       } catch (error) {
         console.error("Error retrieving product:", error);

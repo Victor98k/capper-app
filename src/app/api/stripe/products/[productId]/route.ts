@@ -169,31 +169,73 @@ export async function PUT(
     }
 
     // Update the product with new metadata
+    let updatedMetadata = {
+      ...existingProduct.metadata,
+      features: JSON.stringify(features),
+      hasDiscount: hasDiscount.toString(),
+      discountType: hasDiscount ? discountType : undefined,
+      discountValue: hasDiscount ? discountValue.toString() : undefined,
+      discountDuration: hasDiscount ? discountDuration : undefined,
+      discountDurationInMonths:
+        hasDiscount && discountDuration === "repeating"
+          ? discountDurationInMonths.toString()
+          : undefined,
+      couponId: couponId || undefined,
+    };
+
+    let freeCouponId = existingProduct.metadata.freeCouponId;
+    let newPriceObject = null;
+    if (price === 0) {
+      // Create a price of 1 unit
+      newPriceObject = await stripe.prices.create(
+        {
+          product: (await params).productId,
+          unit_amount: 1, // 1 cent/øre
+          currency: currency.toLowerCase(),
+          recurring: existingProduct.recurring || undefined,
+        },
+        { stripeAccount: user.stripeConnectId }
+      );
+
+      // Create a 100% off coupon for free products
+      const freeCoupon = await stripe.coupons.create(
+        {
+          percent_off: 100,
+          duration:
+            existingProduct.metadata.packageType === "recurring" ||
+            existingProduct.recurring
+              ? "forever"
+              : "once",
+        },
+        { stripeAccount: user.stripeConnectId }
+      );
+      freeCouponId = freeCoupon.id;
+      updatedMetadata.freeCouponId = freeCouponId;
+
+      // Set the new price as default
+      await stripe.products.update(
+        (await params).productId,
+        { default_price: newPriceObject.id },
+        { stripeAccount: user.stripeConnectId }
+      );
+    } else {
+      // If price is not zero, remove freeCouponId from metadata if it exists
+      if (updatedMetadata.freeCouponId) delete updatedMetadata.freeCouponId;
+    }
+
     const updatedProduct = await stripe.products.update(
       (await params).productId,
       {
         name,
         description,
-        metadata: {
-          ...existingProduct.metadata,
-          features: JSON.stringify(features),
-          hasDiscount: hasDiscount.toString(),
-          discountType: hasDiscount ? discountType : undefined,
-          discountValue: hasDiscount ? discountValue.toString() : undefined,
-          discountDuration: hasDiscount ? discountDuration : undefined,
-          discountDurationInMonths:
-            hasDiscount && discountDuration === "repeating"
-              ? discountDurationInMonths.toString()
-              : undefined,
-          couponId: couponId || undefined,
-        },
+        metadata: updatedMetadata,
       },
       { stripeAccount: user.stripeConnectId }
     );
 
-    // Create a new price if the price has changed
+    // Create a new price if the price has changed and is not zero
     const existingPrice = existingProduct.default_price as Stripe.Price;
-    if (price !== (existingPrice?.unit_amount || 0) / 100) {
+    if (price !== 0 && price !== (existingPrice?.unit_amount || 0) / 100) {
       const newPrice = await stripe.prices.create(
         {
           product: (await params).productId,
@@ -227,6 +269,7 @@ export async function PUT(
             ? discountDurationInMonths
             : undefined,
         couponId: couponId,
+        freeCouponId: freeCouponId,
       },
     });
   } catch (error) {
