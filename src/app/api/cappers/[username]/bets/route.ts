@@ -119,6 +119,8 @@ export async function GET(request: NextRequest) {
         units: Number(cumulativeUnits.toFixed(2)), // Cumulative units (rounded to 2 decimals)
         status: bet.status,
         unitChange: Number(unitResult.toFixed(2)), // Individual bet result
+        originalUnits: bet.units,
+        odds: bet.odds,
       };
     });
 

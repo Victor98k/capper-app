@@ -114,6 +114,8 @@ interface PerformanceData {
   units: number;
   status: string;
   unitChange: number;
+  originalUnits?: number;
+  odds?: number;
 }
 
 const calculateWinRate = (performanceData: PerformanceData[]) => {
@@ -192,17 +194,38 @@ const filterLast12Months = (data: PerformanceData[]) => {
 
 // Helper to calculate ROI from performance data
 const calculateROI = (performanceData: PerformanceData[]) => {
-  // Only consider WON/LOST bets
+  // Use backend method if possible
+  let hasBackendFields = performanceData.some(
+    (bet) =>
+      typeof bet.originalUnits === "number" && typeof bet.odds === "number"
+  );
+  if (hasBackendFields) {
+    let netProfit = 0;
+    let totalWagered = 0;
+    performanceData.forEach((bet) => {
+      if (bet.status === "WON" || bet.status === "LOST") {
+        const units = bet.originalUnits || 0;
+        const odds = bet.odds || 0;
+        totalWagered += units;
+        if (bet.status === "WON") {
+          netProfit += units * (odds - 1);
+        } else {
+          netProfit -= units;
+        }
+      }
+    });
+    if (totalWagered === 0) return 0;
+    return (netProfit / totalWagered) * 100;
+  }
+  // Fallback to previous method if backend fields are missing
   const completedBets = performanceData.filter(
     (bet) => bet.status === "WON" || bet.status === "LOST"
   );
   if (completedBets.length === 0) return 0;
-  // Total wagered (sum of abs(unitChange) for WON/LOST)
   const totalWagered = completedBets.reduce(
     (sum, bet) => sum + Math.abs(bet.unitChange),
     0
   );
-  // Net profit (sum of unitChange)
   const netProfit = completedBets.reduce((sum, bet) => sum + bet.unitChange, 0);
   if (totalWagered === 0) return 0;
   return (netProfit / totalWagered) * 100;

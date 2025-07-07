@@ -33,70 +33,15 @@ export async function PUT(req: NextRequest) {
       data: { status },
     });
 
-    // Fetch all bets for the user
-    const userBets = await prisma.bet.findMany({
-      where: { userId: updatedBet.userId },
-    });
-
-    // Calculate total bets and won bets
-    const totalBets = userBets.length;
-    const wonBets = userBets.filter((bet) => bet.status === "WON").length;
-
-    // Calculate winrate
-    const winrate = totalBets > 0 ? (wonBets / totalBets) * 100 : 0;
-
-    // Calculate total units bet and won
-    const totalUnitsBet = userBets.reduce(
-      (sum, bet) => sum + (bet.units || 0),
-      0
+    // Trigger stats update for the capper/user
+    await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/cappers/${updatedBet.userId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: updatedBet.userId, updateStats: true }),
+      }
     );
-    const totalUnitsWon = userBets
-      .filter((bet) => bet.status === "WON")
-      .reduce((sum, bet) => sum + (bet.units ?? 0) * (bet.odds - 1), 0);
-
-    // Calculate roi
-    const roi = totalUnitsBet > 0 ? (totalUnitsWon / totalUnitsBet) * 100 : 0;
-
-    // Update user and capper with new winrate and roi
-    await prisma.user.update({
-      where: { id: updatedBet.userId },
-      data: { winrate, roi },
-    });
-
-    // Fetch all bets for the capper
-    const capperBets = await prisma.bet.findMany({
-      where: { userId: updatedBet.userId },
-    });
-
-    // Calculate total bets and won bets for the capper
-    const totalCapperBets = capperBets.length;
-    const wonCapperBets = capperBets.filter(
-      (bet) => bet.status === "WON"
-    ).length;
-
-    // Calculate winrate for the capper
-    const capperWinrate =
-      totalCapperBets > 0 ? (wonCapperBets / totalCapperBets) * 100 : 0;
-
-    // Calculate total units bet and won for the capper
-    const totalCapperUnitsBet = capperBets.reduce(
-      (sum, bet) => sum + (bet.units || 0),
-      0
-    );
-    const totalCapperUnitsWon = capperBets
-      .filter((bet) => bet.status === "WON")
-      .reduce((sum, bet) => sum + (bet.units || 0), 0);
-
-    // Calculate roi for the capper
-    const capperRoi =
-      totalCapperUnitsBet > 0
-        ? (totalCapperUnitsWon / totalCapperUnitsBet) * 100
-        : 0;
-
-    await prisma.capper.update({
-      where: { userId: updatedBet.userId },
-      data: { roi: capperRoi, winrate: capperWinrate },
-    });
 
     return NextResponse.json(updatedBet);
   } catch (error) {
