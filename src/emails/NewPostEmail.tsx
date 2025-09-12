@@ -57,7 +57,11 @@ export const NewPostEmail = ({
         <Section style={btnContainer}>
           <Button
             style={button}
-            href={`https://cappersports.co/posts/${postId}`}
+            href={
+              postId.startsWith("http")
+                ? postId
+                : `https://cappersports.co/posts/${postId}`
+            }
           >
             Read Full Post
           </Button>

@@ -810,7 +810,7 @@ function InstagramPost({
                 )}
               </>
             )}
-            <p className="text-xs sm:text-xs md:text-xs mb-10 lg:text-sm text-gray-400 mt-1 mb-0">
+            <p className="text-xs sm:text-xs md:text-xs mb-8 lg:text-sm text-gray-400 mt-1">
               {new Date(createdAt).toLocaleDateString(undefined, {
                 year: "numeric",
                 month: "long",
