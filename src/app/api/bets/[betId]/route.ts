@@ -34,14 +34,17 @@ export async function PUT(req: NextRequest) {
     });
 
     // Trigger stats update for the capper/user
-    await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/cappers/${updatedBet.userId}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: updatedBet.userId, updateStats: true }),
-      }
-    );
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) ||
+      "http://localhost:3000";
+
+    await fetch(`${baseUrl}/api/cappers/${updatedBet.userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: updatedBet.userId, updateStats: true }),
+    });
 
     return NextResponse.json(updatedBet);
   } catch (error) {
