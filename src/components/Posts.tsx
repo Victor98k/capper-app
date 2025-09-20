@@ -824,7 +824,7 @@ function InstagramPost({
           <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2 items-center">
             {/* Likes */}
             <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
-              <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
+              <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2 mt-5">
                 LIKES
               </p>
               <div className="w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg flex items-center justify-center">
