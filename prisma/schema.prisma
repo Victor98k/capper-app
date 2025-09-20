@@ -41,6 +41,8 @@ model User {
   initialRoi Float?   // <-- add this line
    
 
+
+  Comment Comment[]
 }
 
 
@@ -103,6 +105,7 @@ model CapperPost {
 
   @@index([capperId])
   @@index([productId])
+  Comment Comment[]
 }
 
 model Subscription {
@@ -192,5 +195,19 @@ enum BetStatus {
   PENDING
   WON
   LOST
+}
+
+model Comment {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  postId    String     @db.ObjectId
+  post      CapperPost @relation(fields: [postId], references: [id])
+  userId    String     @db.ObjectId
+  user      User       @relation(fields: [userId], references: [id])
+
+  @@index([postId])
+  @@index([userId])
 }
   

@@ -9,6 +9,8 @@ import {
   Zap,
   Tag,
   Percent,
+  Trash2,
+  MessageCircle,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -26,6 +28,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Badge } from "./ui/badge";
 import { SubscribeButton } from "./SubscribeButton";
+import { useRef } from "react";
 
 interface PostProps {
   _id: string;
@@ -558,6 +561,361 @@ const BetDialog = ({
   </DialogContent>
 );
 
+// Instagram-style comments component
+function PostComments({
+  postId,
+  postOwnerId,
+  commentsCount,
+}: {
+  postId: string;
+  postOwnerId: string;
+  commentsCount?: number;
+}) {
+  const [comments, setComments] = useState<any[]>([]);
+  const [showInline, setShowInline] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [newComment, setNewComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/posts/${postId}/comments`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setComments(data);
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchComments();
+  }, [postId]);
+
+  useEffect(() => {
+    // Fetch current user id for permission checks
+    const fetchMe = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUserId(data.id);
+        }
+      } catch {}
+    };
+    fetchMe();
+  }, []);
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/posts/${postId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content: newComment }),
+      });
+      if (res.ok) {
+        const comment = await res.json();
+        setComments((prev) => [...prev, comment]);
+        setNewComment("");
+        inputRef.current?.blur();
+      } else {
+        const err = await res.json();
+        setError(err.error || "Failed to add comment");
+      }
+    } catch (e) {
+      setError("Failed to add comment");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    setDeleteTarget(commentId);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      const res = await fetch(`/api/posts/${postId}/comments`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ commentId: deleteTarget }),
+      });
+      if (res.ok) {
+        setComments((prev) => prev.filter((c) => c.id !== deleteTarget));
+      } else {
+        setDeleteError("Failed to delete comment");
+      }
+    } catch {
+      setDeleteError("Failed to delete comment");
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
+  const visibleComments = comments.slice(-2);
+  const hasMore = comments.length > 2;
+
+  const MAX_COMMENT_LENGTH = 240;
+
+  // Inline section for adding and seeing 2 comments
+  const inlineSection = (
+    <div className="mt-2 bg-gray-900/80 rounded-lg p-3 border border-gray-800">
+      <form
+        onSubmit={handleAddComment}
+        className="flex items-center gap-2 mb-2"
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          className="flex-1 rounded-full px-3 py-1 bg-gray-800 text-xs text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#4e43ff]"
+          placeholder="Add a comment..."
+          value={newComment}
+          onChange={(e) => {
+            if (e.target.value.length <= MAX_COMMENT_LENGTH)
+              setNewComment(e.target.value);
+          }}
+          disabled={submitting}
+          maxLength={MAX_COMMENT_LENGTH}
+        />
+        <div
+          className={`text-[10px] mt-1 ml-2 ${newComment.length === MAX_COMMENT_LENGTH ? "text-red-400" : "text-gray-400"}`}
+        >
+          {newComment.length}/{MAX_COMMENT_LENGTH}
+        </div>
+        <Button
+          type="submit"
+          size="sm"
+          className="bg-[#4e43ff] text-white px-3 py-1 rounded-full text-xs font-semibold"
+          disabled={submitting || !newComment.trim()}
+        >
+          Post
+        </Button>
+      </form>
+      {error && <div className="text-xs text-red-500 mb-2">{error}</div>}
+      <div className="space-y-2">
+        {loading ? (
+          <div className="text-xs text-gray-400">Loading comments...</div>
+        ) : comments.length === 0 ? (
+          <div className="text-xs text-gray-400">
+            No comments yet. Be the first!
+          </div>
+        ) : (
+          <>
+            {visibleComments.map((comment) => {
+              const canDelete =
+                currentUserId &&
+                (comment.userId === currentUserId ||
+                  postOwnerId === currentUserId);
+              return (
+                <div key={comment.id} className="flex items-start gap-2 group">
+                  <Avatar className="h-7 w-7 border border-gray-700">
+                    <AvatarImage
+                      src={comment.user?.imageUrl || ""}
+                      alt={comment.user?.username || ""}
+                    />
+                    <AvatarFallback className="bg-violet-600 text-white text-xs">
+                      {comment.user?.username?.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <span className="text-xs font-semibold text-white mr-1">
+                      @{comment.user?.username}
+                    </span>
+                    <span className="text-xs text-gray-300">
+                      {comment.content}
+                    </span>
+                    <div className="text-[10px] text-gray-500 mt-0.5">
+                      {comment.createdAt
+                        ? new Date(comment.createdAt).toLocaleString()
+                        : ""}
+                    </div>
+                  </div>
+                  {canDelete && (
+                    <button
+                      className="ml-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                      title="Delete comment"
+                      onClick={() => setDeleteTarget(comment.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {hasMore && (
+              <Dialog open={showModal} onOpenChange={setShowModal}>
+                <DialogTrigger asChild>
+                  <button
+                    className="text-xs text-[#4e43ff] hover:underline mt-1"
+                    onClick={() => setShowModal(true)}
+                  >
+                    See all comments
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="bg-gray-900 border border-gray-800 max-w-lg w-full">
+                  <DialogHeader>
+                    <DialogTitle>All Comments</DialogTitle>
+                  </DialogHeader>
+                  <form
+                    onSubmit={handleAddComment}
+                    className="flex items-center gap-2 mb-2"
+                  >
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      className="flex-1 rounded-full px-3 py-1 bg-gray-800 text-xs text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#4e43ff]"
+                      placeholder="Add a comment..."
+                      value={newComment}
+                      onChange={(e) => {
+                        if (e.target.value.length <= MAX_COMMENT_LENGTH)
+                          setNewComment(e.target.value);
+                      }}
+                      disabled={submitting}
+                      maxLength={MAX_COMMENT_LENGTH}
+                    />
+                    <div
+                      className={`text-[10px] mt-1 ml-2 ${newComment.length === MAX_COMMENT_LENGTH ? "text-red-400" : "text-gray-400"}`}
+                    >
+                      {newComment.length}/{MAX_COMMENT_LENGTH}
+                    </div>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="bg-[#4e43ff] text-white px-3 py-1 rounded-full text-xs font-semibold"
+                      disabled={submitting || !newComment.trim()}
+                    >
+                      Post
+                    </Button>
+                  </form>
+                  {error && (
+                    <div className="text-xs text-red-500 mb-2">{error}</div>
+                  )}
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {comments.map((comment) => {
+                      const canDelete =
+                        currentUserId &&
+                        (comment.userId === currentUserId ||
+                          postOwnerId === currentUserId);
+                      return (
+                        <div
+                          key={comment.id}
+                          className="flex items-start gap-2 group"
+                        >
+                          <Avatar className="h-7 w-7 border border-gray-700">
+                            <AvatarImage
+                              src={comment.user?.imageUrl || ""}
+                              alt={comment.user?.username || ""}
+                            />
+                            <AvatarFallback className="bg-violet-600 text-white text-xs">
+                              {comment.user?.username
+                                ?.slice(0, 2)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <span className="text-xs font-semibold text-white mr-1">
+                              @{comment.user?.username}
+                            </span>
+                            <span className="text-xs text-gray-300">
+                              {comment.content}
+                            </span>
+                            <div className="text-[10px] text-gray-500 mt-0.5">
+                              {comment.createdAt
+                                ? new Date(comment.createdAt).toLocaleString()
+                                : ""}
+                            </div>
+                          </div>
+                          {canDelete && (
+                            <button
+                              className="ml-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                              title="Delete comment"
+                              onClick={() => setDeleteTarget(comment.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mt-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="flex items-center gap-1 text-xs text-gray-300 hover:text-[#4e43ff] px-2 py-1"
+        onClick={() => setShowInline((v) => !v)}
+      >
+        <MessageCircle className="w-4 h-4 mr-1" />
+        Comments{comments.length > 0 ? ` (${comments.length})` : ""}
+      </Button>
+      {showInline && inlineSection}
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent className="bg-gray-900 border border-gray-800 max-w-xs w-full">
+          <DialogHeader>
+            <DialogTitle>Delete Comment?</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-gray-300 mb-4">
+            Are you sure you want to delete this comment? This action cannot be
+            undone.
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!deleteError} onOpenChange={() => setDeleteError(null)}>
+        <DialogContent className="bg-gray-900 border border-gray-800 max-w-xs w-full">
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-red-400 mb-4">{deleteError}</div>
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" onClick={() => setDeleteError(null)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 function InstagramPost({
   _id,
   title,
@@ -820,6 +1178,12 @@ function InstagramPost({
               })}
             </p>
           </div>
+          {/* Comments UI */}
+          <PostComments
+            postId={_id}
+            postOwnerId={capperId}
+            commentsCount={comments}
+          />
           {/* Badges section - Move to bottom with mt-auto */}
           <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2 items-center">
             {/* Likes */}
