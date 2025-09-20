@@ -225,6 +225,8 @@ function NewPostPage() {
     "text-only"
   );
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  // Add loading state
+  const [isLoading, setIsLoading] = useState(false);
   // const [crop, setCrop] = useState({ x: 0, y: 0 });
   // const [zoom, setZoom] = useState(1);
   // const [showCropper, setShowCropper] = useState(false);
@@ -420,6 +422,7 @@ function NewPostPage() {
 
   const handleSubmit = async () => {
     setShowConfirmDialog(false);
+    setIsLoading(true); // Start loading
 
     try {
       // Validate required fields first
@@ -438,6 +441,7 @@ function NewPostPage() {
             "All fields are required including the odds screenshot for verification" +
             (postTemplate !== "live-bet" ? " and analysis/content" : ""),
         });
+        setIsLoading(false); // Stop loading on error
         return;
       }
 
@@ -530,6 +534,7 @@ function NewPostPage() {
             description:
               error instanceof Error ? error.message : "Unknown error occurred",
           });
+          setIsLoading(false); // Stop loading on error
           return;
         }
       }
@@ -548,6 +553,7 @@ function NewPostPage() {
         toast.error("Failed to create post", {
           description: error.error || "Something went wrong",
         });
+        setIsLoading(false); // Stop loading on error
         return;
       }
 
@@ -589,9 +595,11 @@ function NewPostPage() {
       setOddsScreenshotPreview(null);
       setBetDate(new Date().toISOString().split("T")[0]);
       setPostTemplate("text-only");
+      setIsLoading(false); // Stop loading on success
     } catch (error) {
       console.error("Error creating post:", error);
       toast.error("Failed to create post");
+      setIsLoading(false); // Stop loading on error
     }
   };
 
@@ -1197,10 +1205,11 @@ function NewPostPage() {
                           Cancel
                         </Button> */}
                         <Button
-                          onClick={handleCreatePostClick}
-                          className="px-8 py-6 text-lg bg-[#4e43ff] hover:bg-[#4e43ff]/90"
+                          onClick={handleSubmit}
+                          className="bg-[#4e43ff] hover:bg-[#4e43ff]/90 text-white"
+                          disabled={isLoading}
                         >
-                          Create Post
+                          {isLoading ? <Loader /> : "Confirm & Submit"}
                         </Button>
                         <Dialog
                           open={showConfirmDialog}
