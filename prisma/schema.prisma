@@ -102,6 +102,7 @@ model CapperPost {
   oddsDate      DateTime?
   units         Float    @default(0)
   productName   String?
+  previewText   String?
 
   @@index([capperId])
   @@index([productId])

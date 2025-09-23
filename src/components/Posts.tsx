@@ -34,6 +34,7 @@ interface PostProps {
   _id: string;
   title: string;
   content: string;
+  previewText?: string;
   imageUrl?: string;
   odds: string[];
   bets: string[];
@@ -920,6 +921,7 @@ function InstagramPost({
   _id,
   title,
   content,
+  previewText,
   imageUrl,
   odds,
   bets,
@@ -1115,57 +1117,60 @@ function InstagramPost({
             {template !== "live-bet" && (
               <>
                 <p className="line-clamp-3 text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2 whitespace-pre-wrap">
-                  {content.slice(0, 120)}...
+                  {previewText && previewText.trim().length > 0
+                    ? previewText
+                    : content.slice(0, 120) + "..."}
                 </p>
-                {content.length > 120 && (
-                  <div className="mb-3 sm:mb-4">
-                    {isSubscribed || isOwnPost ? (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button className="text-[#4e43ff] hover:underline font-medium">
-                            See more
-                          </button>
-                        </DialogTrigger>
-                        <BetDialog
-                          bets={bets}
-                          isSubscribed={isSubscribed}
-                          isOwnPost={isOwnPost}
-                          capperInfo={capperInfo}
-                          router={router}
-                          title={title}
-                          content={content}
-                          odds={odds}
-                          tags={tags}
-                          bookmaker={bookmaker}
-                          capperId={capperId}
-                          stripeConnectId={capperInfo?.stripeConnectId}
-                        />
-                      </Dialog>
-                    ) : (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button className="text-[#4e43ff] hover:underline font-medium">
-                            See more
-                          </button>
-                        </DialogTrigger>
-                        <BetDialog
-                          bets={bets}
-                          isSubscribed={isSubscribed}
-                          isOwnPost={isOwnPost}
-                          capperInfo={capperInfo}
-                          router={router}
-                          title={title}
-                          content={content}
-                          odds={odds}
-                          tags={tags}
-                          bookmaker={bookmaker}
-                          capperId={capperId}
-                          stripeConnectId={capperInfo?.stripeConnectId}
-                        />
-                      </Dialog>
-                    )}
-                  </div>
-                )}
+                {(!previewText || previewText.trim().length === 0) &&
+                  content.length > 120 && (
+                    <div className="mb-3 sm:mb-4">
+                      {isSubscribed || isOwnPost ? (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button className="text-[#4e43ff] hover:underline font-medium">
+                              See more
+                            </button>
+                          </DialogTrigger>
+                          <BetDialog
+                            bets={bets}
+                            isSubscribed={isSubscribed}
+                            isOwnPost={isOwnPost}
+                            capperInfo={capperInfo}
+                            router={router}
+                            title={title}
+                            content={content}
+                            odds={odds}
+                            tags={tags}
+                            bookmaker={bookmaker}
+                            capperId={capperId}
+                            stripeConnectId={capperInfo?.stripeConnectId}
+                          />
+                        </Dialog>
+                      ) : (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button className="text-[#4e43ff] hover:underline font-medium">
+                              See more
+                            </button>
+                          </DialogTrigger>
+                          <BetDialog
+                            bets={bets}
+                            isSubscribed={isSubscribed}
+                            isOwnPost={isOwnPost}
+                            capperInfo={capperInfo}
+                            router={router}
+                            title={title}
+                            content={content}
+                            odds={odds}
+                            tags={tags}
+                            bookmaker={bookmaker}
+                            capperId={capperId}
+                            stripeConnectId={capperInfo?.stripeConnectId}
+                          />
+                        </Dialog>
+                      )}
+                    </div>
+                  )}
               </>
             )}
             <p className="text-xs sm:text-xs md:text-xs mb-8 lg:text-sm text-gray-400 mt-1">

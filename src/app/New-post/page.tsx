@@ -198,6 +198,7 @@ function NewPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [previewText, setPreviewText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -449,6 +450,7 @@ function NewPostPage() {
       const postData = {
         title,
         content: postTemplate === "live-bet" ? content || "" : content,
+        previewText, // <-- add this
         tags,
         bets,
         odds,
@@ -921,12 +923,38 @@ function NewPostPage() {
                         </div>
                       </div>
 
+                      {/* Preview/Teaser Text Section */}
+                      <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
+                        <LabelWithTooltip
+                          label="Preview/Teaser Text (optional)"
+                          tooltip="Write a short teaser to get readers interested. If left blank, the start of your analysis will be shown."
+                        />
+                        <div className="relative">
+                          <textarea
+                            value={previewText}
+                            onChange={(e) => setPreviewText(e.target.value)}
+                            className="mt-1 w-full min-h-[60px] p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
+                            placeholder="Write a short teaser or preview for your post (optional)..."
+                            maxLength={200}
+                          />
+                          <span
+                            className={`absolute right-2 bottom-2 text-sm ${
+                              previewText.length === 200
+                                ? "text-red-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {previewText.length}/200
+                          </span>
+                        </div>
+                      </div>
+
                       {/* Content Input */}
                       {postTemplate !== "live-bet" && (
                         <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
                           <LabelWithTooltip
-                            label="Content"
-                            tooltip="Provide detailed analysis and reasoning for your picks"
+                            label="Analysis"
+                            tooltip="Provide detailed analysis and reasoning for your picks. If you do not write a Preview/Teaser Text, the beginning of this analysis will be shown as the post preview."
                             required
                           />
                           <div className="relative">
@@ -940,7 +968,7 @@ function NewPostPage() {
                                 }
                               }}
                               className="mt-1 w-full min-h-[200px] p-2 border rounded-md bg-[#1a1a1a] border-[#4e43ff]/20 text-white placeholder-gray-400"
-                              placeholder="Write your post content..."
+                              placeholder="Write your analysis here... If you do not provide a Preview/Teaser Text, the start of this analysis will be shown as the post preview."
                               maxLength={MAX_CONTENT_LENGTH}
                             />
                             <span
@@ -1275,6 +1303,7 @@ function NewPostPage() {
                       _id="preview"
                       title={title}
                       content={content}
+                      previewText={previewText}
                       imageUrl={imagePreview || ""}
                       odds={odds}
                       bets={bets}
