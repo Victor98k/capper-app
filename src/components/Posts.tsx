@@ -1116,7 +1116,7 @@ function InstagramPost({
             )}
             {template !== "live-bet" && (
               <>
-                <p className="line-clamp-3 text-xs sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2 whitespace-pre-wrap">
+                <p className="text-xs sm:line-clamp-3 sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2 whitespace-pre-wrap">
                   {previewText && previewText.trim().length > 0
                     ? previewText
                     : content.slice(0, 120) + "..."}
