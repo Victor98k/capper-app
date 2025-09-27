@@ -1092,7 +1092,7 @@ function InstagramPost({
         </div>
         <div className="px-3 sm:px-3 py-3 sm:py-4 flex-1 flex flex-col">
           <div className="max-h-[180px] overflow-hidden">
-            <h2 className="line-clamp-2 text-sm sm:text-base md:text-base lg:text-lg font-bold text-white mb-2">
+            <h2 className="line-clamp-2 text-lg sm:text-xl md:text-2xl lg:text-2xl font-bold text-white mb-2">
               {title}
             </h2>
             {template === "live-bet" && (
@@ -1173,22 +1173,7 @@ function InstagramPost({
                   )}
               </>
             )}
-            <p className="text-xs sm:text-xs md:text-xs mb-8 lg:text-sm text-gray-400 mt-1">
-              {new Date(createdAt).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
           </div>
-          {/* Comments UI */}
-          <PostComments
-            postId={_id}
-            postOwnerId={capperId}
-            commentsCount={comments}
-          />
           {/* Badges section - Move to bottom with mt-auto */}
           <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2 items-center">
             {/* Likes */}
@@ -1276,6 +1261,21 @@ function InstagramPost({
               </div>
             )}
           </div>
+          {/* PostComments and date moved below badges */}
+          <PostComments
+            postId={_id}
+            postOwnerId={capperId}
+            commentsCount={comments}
+          />
+          <p className="text-xs sm:text-xs md:text-xs mb-2 lg:text-sm text-gray-400 mt-1">
+            {new Date(createdAt).toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
         </div>
       </div>
     </Card>
