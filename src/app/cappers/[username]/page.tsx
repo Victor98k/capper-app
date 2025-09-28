@@ -917,13 +917,12 @@ export default function CapperProfilePage({
                     </div>
                   </div>
                 )}
-
                 {/* Key Metrics Display - Right under the graph */}
                 {performanceData.length > 0 && (
                   <div className="mt-6 pt-4 border-t border-gray-700">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
                       {/* Units Won */}
-                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
+                      {/* <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <TrendingUp className="h-5 w-5 text-green-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -938,10 +937,10 @@ export default function CapperProfilePage({
                             .toFixed(1)}
                           u
                         </p>
-                      </div>
+                      </div> */}
 
                       {/* Units Lost */}
-                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
+                      {/* <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <TrendingDown className="h-5 w-5 text-red-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -955,10 +954,10 @@ export default function CapperProfilePage({
                             .toFixed(1)}
                           u
                         </p>
-                      </div>
+                      </div> */}
 
                       {/* Net Profit */}
-                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
+                      {/* <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <Zap className="h-5 w-5 text-yellow-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -981,10 +980,10 @@ export default function CapperProfilePage({
                             0}
                           u
                         </p>
-                      </div>
+                      </div> */}
 
                       {/* Biggest Win */}
-                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
+                      {/* <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <CheckCircle className="h-5 w-5 text-green-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -1001,10 +1000,10 @@ export default function CapperProfilePage({
                           ).toFixed(1)}
                           u
                         </p>
-                      </div>
+                      </div> */}
 
                       {/* Average Bet Size */}
-                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
+                      {/* <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <User className="h-5 w-5 text-blue-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -1020,10 +1019,10 @@ export default function CapperProfilePage({
                           ).toFixed(1)}
                           u
                         </p>
-                      </div>
+                      </div> */}
 
                       {/* Last 10 Bets Performance */}
-                      <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
+                      {/* <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <Star className="h-5 w-5 text-blue-400" />
                           <span className="text-sm text-gray-300 font-medium">
@@ -1039,7 +1038,7 @@ export default function CapperProfilePage({
                             return `${wins}W-${last10.length - wins}L`;
                           })()}
                         </p>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 )}
