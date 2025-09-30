@@ -950,27 +950,6 @@ function InstagramPost({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const checkLikeStatus = async () => {
-      try {
-        const response = await fetch(`/api/posts/${_id}/like`, {
-          credentials: "include",
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setIsLiked(data.isLiked);
-          if (data.likes !== undefined) {
-            setLikeCount(data.likes);
-          }
-        }
-      } catch (error) {
-        console.error("Error checking like status:", error);
-      }
-    };
-
-    checkLikeStatus();
-  }, [_id]);
-
   const handleLike = async () => {
     try {
       const method = isLiked ? "DELETE" : "POST";
@@ -1008,6 +987,32 @@ function InstagramPost({
   };
 
   useEffect(() => {
+    const checkLikeStatus = async () => {
+      try {
+        const response = await fetch(`/api/posts/${_id}/like`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setIsLiked(data.isLiked);
+          if (data.likes !== undefined) {
+            setLikeCount(data.likes);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking like status:", error);
+      }
+    };
+
+    checkLikeStatus();
+  }, [_id]);
+
+  useEffect(() => {
+    // If productId is blank/falsy, treat as public (all users can view)
+    if (!productId) {
+      setIsSubscribed(true);
+      return;
+    }
     const checkSubscription = async () => {
       try {
         const response = await fetch(
