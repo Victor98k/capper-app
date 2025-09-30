@@ -571,7 +571,7 @@ export default function CapperProfilePage({
       <main className="flex-1 p-2 sm:p-4 lg:p-8">
         <div className="w-full max-w-none">
           {/* Profile Header - More compact on mobile */}
-          <div className="bg-gray-800/30 rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
+          <div className="bg-[#020817] rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
             {/* Profile Info Section - Make it more compact on mobile */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
               {/* Avatar - Smaller on mobile */}
@@ -595,7 +595,51 @@ export default function CapperProfilePage({
                     <h1 className="text-xl sm:text-2xl md:text-3xl pb-6 font-bold flex items-center justify-center sm:justify-start gap-2">
                       @{capper?.user?.username}
                       <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
+                      {/* Inline sport badges for desktop */}
+                      <span className="hidden sm:flex items-center gap-2 ml-4">
+                        {capper.tags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#4e43ff] text-gray-300 border-0"
+                          >
+                            <span className="text-base md:text-xl">
+                              {sportEmojiMap[tag] || "🎯"}
+                            </span>
+                            <span className="text-xs md:text-base">{tag}</span>
+                          </Badge>
+                        ))}
+                      </span>
                     </h1>
+                    {/* Stats row below username */}
+                    <div className="flex flex-row flex-wrap justify-center sm:justify-start gap-4 mb-2 text-sm sm:text-base text-gray-400 font-medium">
+                      <span>
+                        <span className="text-white font-bold text-lg sm:text-xl">
+                          {capper.subscriberIds.length.toLocaleString()}
+                        </span>
+                        <span className="text-gray-400 font-normal text-sm sm:text-base">
+                          {" "}
+                          Subscribers
+                        </span>
+                      </span>
+                      <span>
+                        <span className="text-white font-bold text-lg sm:text-xl">
+                          {calculateWinRate(performanceData)}
+                        </span>
+                        <span className="text-gray-400 font-normal text-sm sm:text-base">
+                          {" "}
+                          Winrate
+                        </span>
+                      </span>
+                      <span>
+                        <span className="text-white font-bold text-lg sm:text-xl">
+                          {`${calculateROI(filterLast12Months(performanceData)).toFixed(2)}%`}
+                        </span>
+                        <span className="text-gray-400 font-normal text-sm sm:text-base">
+                          {" "}
+                          ROI (12mo)
+                        </span>
+                      </span>
+                    </div>
 
                     {/* Title - if exists */}
                     {capper?.title && (
@@ -633,18 +677,17 @@ export default function CapperProfilePage({
                 </div>
 
                 {/* Tags */}
-                <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3 mb-4">
+                {/* Mobile only badges below username */}
+                <div className="flex flex-wrap justify-center sm:hidden gap-2 mb-4">
                   {capper.tags.map((tag) => (
                     <Badge
                       key={tag}
-                      className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 bg-[#4e43ff] text-gray-300 border-0"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#4e43ff] text-gray-300 border-0"
                     >
-                      <span className="text-base sm:text-lg md:text-xl">
+                      <span className="text-base">
                         {sportEmojiMap[tag] || "🎯"}
                       </span>
-                      <span className="text-xs sm:text-sm md:text-base">
-                        {tag}
-                      </span>
+                      <span className="text-xs">{tag}</span>
                     </Badge>
                   ))}
                 </div>
@@ -656,20 +699,20 @@ export default function CapperProfilePage({
 
                 {/* Communication Channels Section */}
                 <div className="mt-6">
-                  <div className="flex items-center gap-2 mb-3">
+                  {/* <div className="flex items-center gap-2 mb-3">
                     <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
                     <p className="text-xs sm:text-sm md:text-base text-gray-400">
                       get bet notifications via:{" "}
                     </p>
-                  </div>
+                  </div> */}
                   <div className="flex flex-wrap gap-2 sm:gap-3">
                     {/* Email Notifications Badge - Always visible */}
-                    <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-violet-600/20 to-violet-400/20 border border-violet-500/20">
+                    {/* <div className="inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full bg-gradient-to-r from-violet-600/20 to-violet-400/20 border border-violet-500/20">
                       <Mail className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-violet-400" />
                       <span className="text-xs sm:text-sm md:text-base text-gray-200">
                         E-mail Notifications
                       </span>
-                    </div>
+                    </div> */}
 
                     {/* Social Media Badges - Shown if they exist */}
                     {capper.socialLinks?.instagram?.username &&
@@ -752,26 +795,10 @@ export default function CapperProfilePage({
             </div>
 
             {/* Stats Overview - Match Betting Performance Card Design and Size */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-4xl mx-auto mt-4 sm:mt-6">
-              <StatCard
-                icon={<Users style={{ color: "#4e43ff" }} />}
-                title="Subscribers"
-                value={capper.subscriberIds.length.toLocaleString()}
-              />
-              <StatCard
-                icon={<Trophy style={{ color: "#4e43ff" }} />}
-                title="Win Rate"
-                value={calculateWinRate(performanceData)}
-              />
-              <StatCard
-                icon={<TrendingUp style={{ color: "#4e43ff" }} />}
-                title="ROI (12mo)"
-                value={`${calculateROI(filterLast12Months(performanceData)).toFixed(2)}%`}
-              />
-            </div>
+            {/* Removed StatCard grid as stats are now above */}
 
             {/* Previous ROI Section - aligned with stats cards */}
-            <div className="max-w-4xl mx-auto mt-6 mb-2">
+            {/* <div className="max-w-4xl mx-auto mt-6 mb-2">
               <h3 className="text-lg font-semibold text-gray-200 mb-2 flex items-center gap-2">
                 Previous ROI Before Joining Cappers
                 <CheckCircle className="h-5 w-5 text-blue-400" />
@@ -788,10 +815,10 @@ export default function CapperProfilePage({
                   small
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Performance Chart - Moved here */}
-            <Card className="mt-8 bg-gray-800/30 border-gray-700  backdrop-blur-sm">
+            <Card className="mt-8 bg-[#020817] border-gray-700 backdrop-blur-sm">
               <CardHeader className="p-2 sm:p-6">
                 <CardTitle className="text-white font-bold text-2xl">
                   Betting Performance
@@ -805,17 +832,35 @@ export default function CapperProfilePage({
                   <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={performanceData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                         <XAxis
                           dataKey="date"
                           stroke="#9CA3AF"
+                          ticks={Array.from(
+                            new Set(
+                              performanceData.map((d) => {
+                                const date = new Date(d.date);
+                                return `${date.getFullYear()}-${date.getMonth()}`;
+                              })
+                            )
+                          )
+                            .map((key) => {
+                              const [year, month] = key.split("-");
+                              // Find the first data point for this month
+                              const first = performanceData.find((d) => {
+                                const dDate = new Date(d.date);
+                                return (
+                                  dDate.getFullYear() === Number(year) &&
+                                  dDate.getMonth() === Number(month)
+                                );
+                              });
+                              return first ? first.date : undefined;
+                            })
+                            .filter((d): d is string => Boolean(d))}
                           tickFormatter={(date) =>
-                            new Date(date).toLocaleDateString()
+                            new Date(date).toLocaleString("default", {
+                              month: "short",
+                            })
                           }
-                        />
-                        <YAxis
-                          stroke="#9CA3AF"
-                          tickFormatter={(value) => `${value}u`}
                         />
                         <Tooltip
                           contentStyle={{
