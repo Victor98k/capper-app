@@ -401,11 +401,53 @@ const BetDialog = ({
   bookmaker?: string;
   capperId: string;
   stripeConnectId?: string;
-}) => (
-  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md sm:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
+}) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    let isAtTop = false;
+
+    const handleScroll = () => {
+      const scrollTop = dialog.scrollTop;
+      isAtTop = scrollTop <= 0;
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      if (isAtTop && e.deltaY < 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Find and click the close button or trigger close
+        const closeButton = document.querySelector('[data-state="open"] button[aria-label="Close"]') as HTMLButtonElement;
+        if (closeButton) {
+          closeButton.click();
+        } else {
+          // Fallback: dispatch escape key
+          const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' });
+          document.dispatchEvent(escapeEvent);
+        }
+      }
+    };
+
+    dialog.addEventListener('scroll', handleScroll);
+    dialog.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      dialog.removeEventListener('scroll', handleScroll);
+      dialog.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
+  return (
+  <DialogContent 
+    ref={dialogRef}
+    className="bg-gray-900 text-gray-100 border-gray-800 w-full max-w-none max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl px-3 mt-[5vh] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-right-1/2 data-[state=open]:slide-in-from-bottom-[15vh] data-[state=closed]:slide-out-to-bottom-[15vh]"
+  >
     {isSubscribed || isOwnPost ? (
       <>
-        <DialogHeader className="space-y-4">
+        <DialogHeader className="space-y-4 text-left">
           {/* Title and Bookmaker Section */}
           <div className="border-l-4 border-[#4e43ff] pl-4">
             <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
@@ -452,7 +494,7 @@ const BetDialog = ({
         </DialogHeader>
 
         {/* Stats Grid: Odds and Sports */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-2 gap-4 mt-0">
           {/* Odds Section */}
           {odds.length > 0 && (
             <div className="bg-gray-800/30 p-4 rounded-lg">
@@ -492,7 +534,7 @@ const BetDialog = ({
         </div>
 
         {/* Bookmaker section */}
-        <div className="mt-3 bg-gray-800/30 p-3 rounded-lg">
+        <div className="mt-0 bg-gray-800/30 p-3 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
               <span className="text-sm">🎲</span>
@@ -503,7 +545,7 @@ const BetDialog = ({
         </div>
 
         {/* Content section */}
-        <div className="mt-3 bg-gray-800/30 p-4 rounded-lg">
+        <div className="mt-0 bg-gray-800/30 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
               <span className="text-sm">📊</span>
@@ -520,7 +562,7 @@ const BetDialog = ({
       </>
     ) : (
       <>
-        <DialogHeader>
+        <DialogHeader className="text-left">
           <DialogTitle className="text-xl font-bold mb-4">
             Subscribe to View Bets
           </DialogTitle>
@@ -560,7 +602,8 @@ const BetDialog = ({
       </>
     )}
   </DialogContent>
-);
+  );
+};
 
 // Instagram-style comments component
 function PostComments({
@@ -678,7 +721,7 @@ function PostComments({
 
   // Inline section for adding and seeing 2 comments
   const inlineSection = (
-    <div className="mt-2 bg-gray-900/80 rounded-lg p-3 border border-gray-800">
+    <div className="mt-2 bg-gray-900/80 rounded-lg p-3 border border-gray-800 hidden">
       <form
         onSubmit={handleAddComment}
         className="flex items-center gap-2 mb-2"
@@ -867,7 +910,7 @@ function PostComments({
   );
 
   return (
-    <div className="mt-2">
+    <div className="mt-2 hidden">
       <Button
         variant="ghost"
         size="sm"
@@ -1095,18 +1138,18 @@ function InstagramPost({
             </Dialog>
           )}
         </div>
-        <div className="px-3 sm:px-3 py-3 sm:py-4 flex-1 flex flex-col">
+        <div className="px-3 sm:px-3 py-[0.86rem] sm:py-[1.15rem] flex-1 flex flex-col">
           <div className="max-h-[180px] overflow-hidden">
-            <h2 className="line-clamp-2 text-lg sm:text-xl md:text-2xl lg:text-2xl font-bold text-white mb-2">
-              {title}
-            </h2>
-            {template === "live-bet" && (
-              <div className="mb-4 flex justify-start">
-                <span className="px-4 py-1 bg-red-600 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg animate-pulse border-2 border-white uppercase tracking-widest">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h2 className="line-clamp-2 text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white leading-tight flex-1 mr-2">
+                {title}
+              </h2>
+              {template === "live-bet" && (
+                <span className="px-3 py-1 bg-transparent text-red-600 text-xs sm:text-sm font-bold rounded-full animate-pulse border-2 border-red-600 uppercase tracking-widest whitespace-nowrap">
                   LIVE BET
                 </span>
-              </div>
-            )}
+              )}
+            </div>
             {/* If there's an image */}
             {imageUrl && (
               <div className="relative w-full aspect-[4/3] mb-3 sm:mb-4 rounded-lg overflow-hidden">
@@ -1121,7 +1164,7 @@ function InstagramPost({
             )}
             {template !== "live-bet" && (
               <>
-                <p className="text-xs sm:line-clamp-3 sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2 whitespace-pre-wrap">
+                <p className="text-xs line-clamp-2 sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2">
                   {previewText && previewText.trim().length > 0
                     ? previewText
                     : content.slice(0, 120) + "..."}
@@ -1180,10 +1223,10 @@ function InstagramPost({
             )}
           </div>
           {/* Badges section - Move to bottom with mt-auto */}
-          <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2 items-center">
+          <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2 items-center mt-3.5">
             {/* Likes */}
             <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
-              <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2 mt-5">
+              <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2">
                 LIKES
               </p>
               <div className="w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg flex items-center justify-center">
@@ -1272,7 +1315,7 @@ function InstagramPost({
             postOwnerId={capperId}
             commentsCount={comments}
           />
-          <p className="text-xs sm:text-xs md:text-xs mb-2 lg:text-sm text-gray-400 mt-1">
+          <p className="text-xs sm:text-xs md:text-xs mb-2 lg:text-sm text-gray-400 mt-[0.3rem]">
             {new Date(createdAt).toLocaleDateString(undefined, {
               year: "numeric",
               month: "long",

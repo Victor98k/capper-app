@@ -568,7 +568,7 @@ export default function CapperProfilePage({
         </div>
       </div>
 
-      <main className="flex-1 p-2 sm:p-4 lg:p-8">
+      <main className="flex-1 p-1 sm:p-2 lg:p-4">
         <div className="w-full max-w-none">
           {/* Profile Header - More compact on mobile */}
           <div className="bg-[#020817] rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">

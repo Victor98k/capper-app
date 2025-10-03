@@ -312,9 +312,9 @@ const MyCappers = dynamic(
             </div> */}
 
             {/* Main Content */}
-            <main className="flex-1 pt-1 px-4">
-              <div className="max-w-7xl mx-auto">
-                <div className="px-2 sm:px-4">
+            <main className="flex-1 pt-1 px-2">
+              <div className="max-w-none mx-auto">
+                <div className="px-1 sm:px-2">
                   {/* <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 text-center md:text-left text-[#4e43ff]">
                     My Cappers
                   </h1> */}
@@ -324,7 +324,7 @@ const MyCappers = dynamic(
                       {allPosts.map((post) => (
                         <div
                           key={post._id}
-                          className="flex justify-center border-b border-gray-800 pb-6 md:pb-8 last:border-b-0 last:pb-0"
+                          className="flex justify-center border-b border-gray-800 last:border-b-0"
                         >
                           <Post {...post} />
                         </div>

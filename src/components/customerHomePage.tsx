@@ -18,15 +18,11 @@ export function CustomerHomepageComponent() {
           <SideNav />
         </div>
 
-        {/* Center - Logo */}
+        {/* Center - Header Text */}
         <div className="flex-1 flex justify-center">
-          <Image
-            src={logo}
-            alt="Cappers Logo"
-            width={120}
-            height={40}
-            priority
-          />
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+            Explore
+          </h1>
         </div>
       </div>
 
