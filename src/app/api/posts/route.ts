@@ -146,7 +146,9 @@ export async function GET(req: Request) {
           previewText: post.previewText,
           imageUrl: post.imageUrl || "",
           odds: post.odds,
-          bets: post.bets,
+          bets: Array.isArray(post.bets)
+            ? post.bets.filter((b: string) => b && b.trim() !== "")
+            : [],
           tags: post.tags || [],
           bookmaker: post.bookmaker,
           capperId: post.capperId,
@@ -278,7 +280,9 @@ export async function POST(req: Request) {
       previewText: post.previewText,
       imageUrl: post.imageUrl || "",
       odds: post.odds,
-      bets: post.bets,
+      bets: Array.isArray(post.bets)
+        ? post.bets.filter((b) => b && b.trim() !== "")
+        : [],
       tags: post.tags,
       bookmaker: post.bookmaker,
       capperId: post.capper.id,
