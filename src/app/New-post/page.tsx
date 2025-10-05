@@ -429,7 +429,6 @@ function NewPostPage() {
       // Validate required fields first
       if (
         !title ||
-        !selectedProduct ||
         !tags.length ||
         !bets.length ||
         !odds.length ||
@@ -457,7 +456,7 @@ function NewPostPage() {
         units: betUnits,
         bookmaker: selectedBookmaker,
         username: localStorage.getItem("username"),
-        productId: selectedProduct,
+        productId: selectedProduct, // This can now be blank if not selected
         template: postTemplate,
         imageUrl: null, // Will be updated if image is uploaded
         productName: selectedProductName,
@@ -866,13 +865,13 @@ function NewPostPage() {
                       <div className="space-y-4 pb-6 border-b border-[#4e43ff]/10">
                         <LabelWithTooltip
                           label="Select Bundle"
-                          tooltip="Choose which subscription bundle this post belongs to"
-                          required
+                          tooltip="Choose which subscription bundle this post belongs to (optional)"
+                          // required
                         />
                         <Select
                           value={selectedProduct}
                           onValueChange={handleProductSelect}
-                          required
+                          // required
                         >
                           <SelectTrigger className="bg-[#1a1a1a] border-[#4e43ff]/20 text-white">
                             <SelectValue placeholder="Select a bundle" />
