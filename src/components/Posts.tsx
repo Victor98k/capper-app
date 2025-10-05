@@ -402,10 +402,10 @@ const BetDialog = ({
   capperId: string;
   stripeConnectId?: string;
 }) => (
-  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-full max-w-none sm:w-[90vw] sm:max-w-md lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl mx-auto h-[90vh] sm:max-h-[85vh] overflow-y-auto sm:h-auto rounded-2xl mt-[10vh] sm:mt-0 px-3 sm:px-6 pt-6 sm:pt-4 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-right-1/2 data-[state=open]:slide-in-from-bottom-full data-[state=closed]:slide-out-to-bottom-full sm:data-[state=closed]:fade-out-0 sm:data-[state=open]:fade-in-0">
+  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md sm:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
     {isSubscribed || isOwnPost ? (
       <>
-        <DialogHeader className="space-y-4 text-left">
+        <DialogHeader className="space-y-4">
           {/* Title and Bookmaker Section */}
           <div className="border-l-4 border-[#4e43ff] pl-4">
             <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
@@ -414,83 +414,66 @@ const BetDialog = ({
             </p>
           </div>
 
-  return (
-    <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md sm:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
-      {isSubscribed || isOwnPost ? (
-        <>
-          <DialogHeader className="space-y-4">
-            {/* Title and Bookmaker Section */}
-            <div className="border-l-4 border-[#4e43ff] pl-4">
-              <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
-              <p className="text-xs text-[#4e43ff] font-semibold mt-1">
-                {capperInfo.username}'s Pick
-              </p>
-            </div>
-
-            {/* Prominent Bets Display */}
-            {Array.isArray(bets) && bets.length > 0 && (
-              <div className="flex justify-flex-start bg-[#4e43ff]/10 p-4 rounded-lg border border-[#4e43ff]/20">
-                <div className="h-10 w-10 mr-4 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
-                  <span className="text-2xl">🎯</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-base font-semibold text-[#4e43ff]">
-                      {bets.length > 1 ? "PARLAY BET" : "BET"}
-                    </p>
-                    {bets.length > 1 && (
-                      <span className="text-sm bg-[#4e43ff]/20 text-[#4e43ff] px-2 py-0.5 rounded-full">
-                        {bets.length} legs
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    {bets.map((bet, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-2 bg-[#4e43ff]/5 p-2 rounded-lg"
-                      >
-                        <span className="text-sm font-mono text-[#4e43ff]">
-                          #{index + 1}
-                        </span>
-                        <p className="text-base font-semibold text-gray-100">
-                          {bet}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          {/* Prominent Bets Display */}
+          {Array.isArray(bets) && bets.length > 0 && (
+            <div className="flex justify-flex-start bg-[#4e43ff]/10 p-4 rounded-lg border border-[#4e43ff]/20">
+              <div className="h-10 w-10 mr-4 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
+                <span className="text-2xl">🎯</span>
               </div>
-            )}
-          </DialogHeader>
-
-          {/* Stats Grid: Odds and Sports */}
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            {/* Odds Section */}
-            {odds.length > 0 && (
-              <div className="bg-gray-800/30 p-4 rounded-lg">
-                <p className="text-xs text-[#4e43ff] font-semibold mb-2">
-                  ODDS
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {odds.map((odd, index) => (
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-base font-semibold text-[#4e43ff]">
+                    {bets.length > 1 ? "PARLAY BET" : "BET"}
+                  </p>
+                  {bets.length > 1 && (
+                    <span className="text-sm bg-[#4e43ff]/20 text-[#4e43ff] px-2 py-0.5 rounded-full">
+                      {bets.length} legs
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {bets.map((bet, index) => (
                     <div
                       key={index}
-                      className="bg-[#4e43ff]/10 px-3 py-1 rounded-lg"
+                      className="flex items-start gap-2 bg-[#4e43ff]/5 p-2 rounded-lg"
                     >
-                      <span className="text-lg font-bold text-[#4e43ff]">
-                        {odd}x
+                      <span className="text-sm font-mono text-[#4e43ff]">
+                        #{index + 1}
                       </span>
+                      <p className="text-base font-semibold text-gray-100">
+                        {bet}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+            </div>
+          )}
+        </DialogHeader>
 
         {/* Stats Grid: Odds and Sports */}
-        <div className="grid grid-cols-2 gap-4 mt-0 sm:mt-4">
+        <div className="grid grid-cols-2 gap-4 mt-4">
           {/* Odds Section */}
           {odds.length > 0 && (
+            <div className="bg-gray-800/30 p-4 rounded-lg">
+              <p className="text-xs text-[#4e43ff] font-semibold mb-2">ODDS</p>
+              <div className="flex flex-wrap gap-2">
+                {odds.map((odd, index) => (
+                  <div
+                    key={index}
+                    className="bg-[#4e43ff]/10 px-3 py-1 rounded-lg"
+                  >
+                    <span className="text-lg font-bold text-[#4e43ff]">
+                      {odd}x
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sports Section */}
+          {tags.length > 0 && (
             <div className="bg-gray-800/30 p-4 rounded-lg">
               <p className="text-xs text-[#4e43ff] font-semibold mb-2">SPORT</p>
               <div className="flex flex-wrap gap-2">
@@ -507,18 +490,23 @@ const BetDialog = ({
                 ))}
               </div>
             </div>
-          </div>
+          )}
+        </div>
 
         {/* Bookmaker section */}
-        <div className="mt-0 sm:mt-4 bg-gray-800/30 p-3 rounded-lg">
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
-              <span className="text-sm">🎲</span>
+        {bookmaker && (
+          <div className="mt-4 bg-gray-800/30 p-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
+                <span className="text-sm">🎲</span>
+              </div>
+              <span className="text-sm text-gray-300">{bookmaker}</span>
             </div>
           </div>
+        )}
 
         {/* Content section */}
-        <div className="mt-0 sm:mt-4 bg-gray-800/30 p-4 rounded-lg">
+        <div className="mt-4 bg-gray-800/30 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
               <span className="text-sm">📊</span>
@@ -527,6 +515,7 @@ const BetDialog = ({
               {content}
             </DialogDescription>
           </div>
+        </div>
 
         {/* Add padding to bottom to ensure content is fully scrollable */}
         <div className="pb-[20vh] sm:pb-4"></div>
@@ -560,20 +549,20 @@ const BetDialog = ({
                   </li>
                 </ul>
               </div>
-            </DialogDescription>
-          </DialogHeader>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
 
-          {/* Render Subscription Plans */}
-          <SubscriptionPlans
-            capperId={capperId}
-            capperUsername={capperInfo.username}
-            stripeConnectId={stripeConnectId}
-          />
-        </>
-      )}
-    </DialogContent>
-  );
-};
+        {/* Render Subscription Plans */}
+        <SubscriptionPlans
+          capperId={capperId}
+          capperUsername={capperInfo.username}
+          stripeConnectId={stripeConnectId}
+        />
+      </>
+    )}
+  </DialogContent>
+);
 
 // Instagram-style comments component
 function PostComments({
@@ -957,18 +946,6 @@ function InstagramPost({
   isOwnPost,
   template = "text-only",
 }: PostProps) {
-  // Debug logging
-  console.log(
-    `Post ${_id} - bets:`,
-    bets,
-    "type:",
-    typeof bets,
-    "isArray:",
-    Array.isArray(bets),
-    "length:",
-    bets?.length
-  );
-
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
