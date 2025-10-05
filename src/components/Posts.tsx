@@ -402,10 +402,10 @@ const BetDialog = ({
   capperId: string;
   stripeConnectId?: string;
 }) => (
-  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-[90vw] max-w-md sm:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto max-h-[90vh] overflow-y-auto sm:max-h-[85vh] rounded-2xl">
+  <DialogContent className="bg-gray-900 text-gray-100 border-gray-800 w-full max-w-none sm:w-[90vw] sm:max-w-md lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl mx-auto h-[90vh] sm:max-h-[85vh] overflow-y-auto sm:h-auto rounded-2xl mt-[10vh] sm:mt-0 px-3 sm:px-6 pt-6 sm:pt-4 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-right-1/2 data-[state=open]:slide-in-from-bottom-full data-[state=closed]:slide-out-to-bottom-full sm:data-[state=closed]:fade-out-0 sm:data-[state=open]:fade-in-0">
     {isSubscribed || isOwnPost ? (
       <>
-        <DialogHeader className="space-y-4">
+        <DialogHeader className="space-y-4 text-left">
           {/* Title and Bookmaker Section */}
           <div className="border-l-4 border-[#4e43ff] pl-4">
             <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
@@ -452,7 +452,7 @@ const BetDialog = ({
         </DialogHeader>
 
         {/* Stats Grid: Odds and Sports */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-2 gap-4 mt-0 sm:mt-4">
           {/* Odds Section */}
           {odds.length > 0 && (
             <div className="bg-gray-800/30 p-4 rounded-lg">
@@ -492,7 +492,7 @@ const BetDialog = ({
         </div>
 
         {/* Bookmaker section */}
-        <div className="mt-3 bg-gray-800/30 p-3 rounded-lg">
+        <div className="mt-0 sm:mt-4 bg-gray-800/30 p-3 rounded-lg">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
               <span className="text-sm">🎲</span>
@@ -503,7 +503,7 @@ const BetDialog = ({
         </div>
 
         {/* Content section */}
-        <div className="mt-3 bg-gray-800/30 p-4 rounded-lg">
+        <div className="mt-0 sm:mt-4 bg-gray-800/30 p-4 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <div className="h-6 w-6 rounded-full bg-[#4e43ff]/20 flex items-center justify-center">
               <span className="text-sm">📊</span>
@@ -516,7 +516,7 @@ const BetDialog = ({
         </div>
 
         {/* Add padding to bottom to ensure content is fully scrollable */}
-        <div className="pb-4"></div>
+        <div className="pb-[20vh] sm:pb-4"></div>
       </>
     ) : (
       <>
@@ -1043,7 +1043,7 @@ function InstagramPost({
   return (
     <Card className="overflow-hidden bg-[#020817] border-0 w-full max-w-none mx-auto">
       <div className="bg-[#020817] w-full mx-auto relative">
-        <div className="flex items-center justify-between p-3 sm:p-4">
+        <div className="flex items-center justify-between px-3 pt-[1.25rem] pb-0 sm:p-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 sm:h-16 sm:w-16 border border-gray-700">
               <AvatarImage
@@ -1097,16 +1097,16 @@ function InstagramPost({
         </div>
         <div className="px-3 sm:px-3 py-3 sm:py-4 flex-1 flex flex-col">
           <div className="max-h-[180px] overflow-hidden">
-            <h2 className="line-clamp-2 text-lg sm:text-xl md:text-2xl lg:text-2xl font-bold text-white mb-2">
-              {title}
-            </h2>
-            {template === "live-bet" && (
-              <div className="mb-4 flex justify-start">
-                <span className="px-4 py-1 bg-red-600 text-white text-xs sm:text-sm font-bold rounded-full shadow-lg animate-pulse border-2 border-white uppercase tracking-widest">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h2 className="line-clamp-2 text-lg sm:text-xl md:text-2xl lg:text-2xl font-bold text-white flex-1 mr-2 leading-[1.26] sm:leading-normal">
+                {title}
+              </h2>
+              {template === "live-bet" && (
+                <span className="px-3 py-1 bg-transparent text-red-600 text-xs sm:text-sm font-bold rounded-full animate-pulse border-2 border-red-600 uppercase tracking-widest whitespace-nowrap">
                   LIVE BET
                 </span>
-              </div>
-            )}
+              )}
+            </div>
             {/* If there's an image */}
             {imageUrl && (
               <div className="relative w-full aspect-[4/3] mb-3 sm:mb-4 rounded-lg overflow-hidden">
@@ -1121,7 +1121,7 @@ function InstagramPost({
             )}
             {template !== "live-bet" && (
               <>
-                <p className="text-xs sm:line-clamp-3 sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2 whitespace-pre-wrap">
+                <p className="text-xs line-clamp-2 sm:text-sm md:text-sm lg:text-base text-gray-200 mb-1 sm:mb-2 whitespace-pre-wrap">
                   {previewText && previewText.trim().length > 0
                     ? previewText
                     : content.slice(0, 120) + "..."}
@@ -1180,10 +1180,10 @@ function InstagramPost({
             )}
           </div>
           {/* Badges section - Move to bottom with mt-auto */}
-          <div className="flex flex-row justify-between gap-1 sm:gap-2 pb-2 -mt-1 md:-mt-2 items-center">
+          <div className="flex flex-row justify-between gap-1 sm:gap-2 mt-5 md:-mt-2 items-center">
             {/* Likes */}
             <div className="flex-shrink-0 flex flex-col items-center min-w-[80px] sm:min-w-[100px] max-w-[100px] sm:max-w-[140px]">
-              <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2 mt-5">
+              <p className="text-[10px] sm:text-xs font-semibold text-white mb-1 sm:mb-2 mt-0 sm:mt-5">
                 LIKES
               </p>
               <div className="w-full h-[32px] sm:h-[36px] md:h-[48px] px-1 sm:px-4 rounded-lg flex items-center justify-center">
@@ -1267,12 +1267,14 @@ function InstagramPost({
             )}
           </div>
           {/* PostComments and date moved below badges */}
-          <PostComments
-            postId={_id}
-            postOwnerId={capperId}
-            commentsCount={comments}
-          />
-          <p className="text-xs sm:text-xs md:text-xs mb-2 lg:text-sm text-gray-400 mt-1">
+          <div className="hidden">
+            <PostComments
+              postId={_id}
+              postOwnerId={capperId}
+              commentsCount={comments}
+            />
+          </div>
+          <p className="text-xs sm:text-xs md:text-xs mb-2 lg:text-sm text-gray-400 mt-1 pt-1 sm:pt-0">
             {new Date(createdAt).toLocaleDateString(undefined, {
               year: "numeric",
               month: "long",
