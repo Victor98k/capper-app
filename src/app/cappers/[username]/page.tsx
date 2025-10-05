@@ -611,30 +611,30 @@ export default function CapperProfilePage({
                       </span>
                     </h1>
                     {/* Stats row below username */}
-                    <div className="flex flex-row flex-wrap justify-center sm:justify-start gap-4 mb-2 text-sm sm:text-base text-gray-400 font-medium">
-                      <span>
-                        <span className="text-white font-bold text-lg sm:text-xl">
+                    <div className="flex flex-row justify-center sm:justify-start gap-2 sm:gap-4 mb-2 text-sm sm:text-base text-gray-400 font-medium">
+                      <span className="flex-shrink-0">
+                        <span className="text-white font-bold text-base sm:text-xl">
                           {capper.subscriberIds.length.toLocaleString()}
                         </span>
-                        <span className="text-gray-400 font-normal text-sm sm:text-base">
+                        <span className="text-gray-400 font-normal text-xs sm:text-base">
                           {" "}
                           Subscribers
                         </span>
                       </span>
-                      <span>
-                        <span className="text-white font-bold text-lg sm:text-xl">
+                      <span className="flex-shrink-0">
+                        <span className="text-white font-bold text-base sm:text-xl">
                           {calculateWinRate(performanceData)}
                         </span>
-                        <span className="text-gray-400 font-normal text-sm sm:text-base">
+                        <span className="text-gray-400 font-normal text-xs sm:text-base">
                           {" "}
                           Winrate
                         </span>
                       </span>
-                      <span>
-                        <span className="text-white font-bold text-lg sm:text-xl">
+                      <span className="flex-shrink-0">
+                        <span className="text-white font-bold text-base sm:text-xl">
                           {`${calculateROI(filterLast12Months(performanceData)).toFixed(2)}%`}
                         </span>
-                        <span className="text-gray-400 font-normal text-sm sm:text-base">
+                        <span className="text-gray-400 font-normal text-xs sm:text-base">
                           {" "}
                           ROI (12mo)
                         </span>
