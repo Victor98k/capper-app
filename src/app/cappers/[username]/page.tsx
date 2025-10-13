@@ -193,14 +193,21 @@ const filterLast12Months = (data: PerformanceData[]) => {
 };
 
 // Helper to filter performance data by timeframe
-const filterByTimeframe = (data: PerformanceData[], timeframe: "1M" | "3M" | "6M" | "1Y" | "ALL") => {
+const filterByTimeframe = (
+  data: PerformanceData[],
+  timeframe: "1M" | "3M" | "6M" | "1Y" | "ALL"
+) => {
   if (timeframe === "ALL") return data;
-  
+
   const now = new Date();
   const monthsMap = { "1M": 1, "3M": 3, "6M": 6, "1Y": 12 };
   const months = monthsMap[timeframe];
-  const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
-  
+  const cutoffDate = new Date(
+    now.getFullYear(),
+    now.getMonth() - months,
+    now.getDate()
+  );
+
   return data.filter((bet) => {
     const betDate = new Date(bet.date);
     return betDate >= cutoffDate && betDate <= now;
@@ -263,7 +270,9 @@ export default function CapperProfilePage({
   const POSTS_PER_PAGE = 6;
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [showSeeMoreButton, setShowSeeMoreButton] = useState(false);
-  const [timeframe, setTimeframe] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">("ALL");
+  const [timeframe, setTimeframe] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">(
+    "ALL"
+  );
 
   const {
     data,
@@ -610,7 +619,7 @@ export default function CapperProfilePage({
                   <span>@{capper?.user?.username}</span>
                   <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
                 </h1>
-                
+
                 {/* Stats - Below username, beside image (removed Winrate) */}
                 <div className="flex flex-row justify-start gap-3 text-sm text-gray-400 font-medium flex-wrap">
                   <span className="flex-shrink-0">
@@ -636,12 +645,16 @@ export default function CapperProfilePage({
             </div>
 
             {/* Mobile Bio - 3 lines max, no line breaks, 20% smaller */}
-            <div className="sm:hidden text-gray-100 text-xs mb-4 overflow-hidden" style={{ 
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              textOverflow: 'clip'
-            }}>
+            <div
+              className="block sm:hidden text-gray-100 text-xs mb-4 overflow-hidden"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                textOverflow: "clip",
+              }}
+              data-mobile-only="true"
+            >
               {capper.bio}
             </div>
 
@@ -1042,12 +1055,12 @@ export default function CapperProfilePage({
               <CardHeader className="p-0 sm:p-6">
                 <div className="hidden sm:flex justify-between items-center">
                   <div>
-                <CardTitle className="text-white font-bold text-2xl">
-                  Betting Performance
-                </CardTitle>
-                <CardDescription className="text-white">
-                  Total units over time
-                </CardDescription>
+                    <CardTitle className="text-white font-bold text-2xl">
+                      Betting Performance
+                    </CardTitle>
+                    <CardDescription className="text-white">
+                      Total units over time
+                    </CardDescription>
                   </div>
                   {/* Timeframe Filter Buttons - Desktop */}
                   <div className="flex gap-2">
@@ -1071,7 +1084,9 @@ export default function CapperProfilePage({
                 {performanceData.length > 0 ? (
                   <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={filterByTimeframe(performanceData, timeframe)}>
+                      <LineChart
+                        data={filterByTimeframe(performanceData, timeframe)}
+                      >
                         <XAxis
                           dataKey="date"
                           stroke="#9CA3AF"
@@ -1109,7 +1124,12 @@ export default function CapperProfilePage({
                           }}
                           labelStyle={{ color: "#9CA3AF" }}
                           formatter={(value: any, name: string, props: any) => {
-                            const bet = performanceData[props.payload.index];
+                            // Get the filtered data that's actually being displayed
+                            const filteredData = filterByTimeframe(
+                              performanceData,
+                              timeframe
+                            );
+                            const bet = filteredData[props.payload.index];
                             if (!bet) return [value + "u", "Total Units"];
 
                             const betResult =
@@ -1163,11 +1183,16 @@ export default function CapperProfilePage({
                           stroke="#8B5CF6"
                           strokeWidth={2}
                           dot={(props: any) => {
-                            const bet = performanceData[props.index];
+                            // Get the filtered data that's actually being displayed
+                            const filteredData = filterByTimeframe(
+                              performanceData,
+                              timeframe
+                            );
+                            const bet = filteredData[props.index];
                             let fillColor = "#8B5CF6";
                             if (bet) {
                               if (bet.status === "START") {
-                                fillColor = "#FFD600"; // Gul för startpunkt
+                                fillColor = "#FFD600"; // Yellow for start point
                               } else if (bet.status === "WON") {
                                 fillColor = "#22c55e";
                               } else if (bet.status === "LOST") {
@@ -1399,16 +1424,16 @@ export default function CapperProfilePage({
                 <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8 mb-8">
                   {allPosts.slice(0, 4).map((post, index) => (
                     <div key={post._id} className="flex flex-col">
-                    <InstagramPost
-                      {...post}
-                      capperInfo={{
-                        firstName: capper.user.firstName,
-                        lastName: capper.user.lastName,
-                        username: capper.user.username,
-                        profileImage: capper.profileImage,
-                        isVerified: true,
-                      }}
-                    />
+                      <InstagramPost
+                        {...post}
+                        capperInfo={{
+                          firstName: capper.user.firstName,
+                          lastName: capper.user.lastName,
+                          username: capper.user.username,
+                          profileImage: capper.profileImage,
+                          isVerified: true,
+                        }}
+                      />
                       {/* Mobile separator - only show between posts, not after last one */}
                       {index < allPosts.slice(0, 4).length - 1 && (
                         <div className="md:hidden flex justify-center py-[0.5rem]">
@@ -1451,16 +1476,16 @@ export default function CapperProfilePage({
                 <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
                   {allPosts.map((post, index) => (
                     <div key={post._id} className="flex flex-col">
-                    <InstagramPost
-                      {...post}
-                      capperInfo={{
-                        firstName: capper.user.firstName,
-                        lastName: capper.user.lastName,
-                        username: capper.user.username,
-                        profileImage: capper.profileImage,
-                        isVerified: true,
-                      }}
-                    />
+                      <InstagramPost
+                        {...post}
+                        capperInfo={{
+                          firstName: capper.user.firstName,
+                          lastName: capper.user.lastName,
+                          username: capper.user.username,
+                          profileImage: capper.profileImage,
+                          isVerified: true,
+                        }}
+                      />
                       {/* Mobile separator - only show between posts, not after last one */}
                       {index < allPosts.length - 1 && (
                         <div className="md:hidden flex justify-center py-[0.5rem]">
