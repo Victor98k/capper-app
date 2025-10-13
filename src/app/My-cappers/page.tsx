@@ -321,12 +321,17 @@ const MyCappers = dynamic(
 
                   <div className="w-full mx-auto">
                     <div className="space-y-0 md:space-y-6">
-                      {allPosts.map((post) => (
-                        <div
-                          key={post._id}
-                          className="flex justify-center border-b border-gray-800 pb-0 md:pb-8 last:border-b-0 last:pb-0 w-full sm:w-auto"
-                        >
-                          <Post {...post} />
+                      {allPosts.map((post, index) => (
+                        <div key={post._id} className="flex flex-col">
+                          <div className="flex justify-center w-full sm:w-auto">
+                            <Post {...post} />
+                          </div>
+                          {/* Mobile separator - only show between posts, not after last one */}
+                          {index < allPosts.length - 1 && (
+                            <div className="md:hidden flex justify-center py-[0.5rem]">
+                              <div className="w-[80vw] border-b border-gray-800"></div>
+                            </div>
+                          )}
                         </div>
                       ))}
 

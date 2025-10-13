@@ -102,3 +102,10 @@ video {
   z-index: 1;
   background-color: rgb(17, 24, 39);
 }
+
+/* Hide mobile bio on desktop screens */
+@media (min-width: 640px) {
+  [data-mobile-only="true"] {
+    display: none !important;
+  }
+}
