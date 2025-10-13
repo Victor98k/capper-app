@@ -192,6 +192,21 @@ const filterLast12Months = (data: PerformanceData[]) => {
   });
 };
 
+// Helper to filter performance data by timeframe
+const filterByTimeframe = (data: PerformanceData[], timeframe: "1M" | "3M" | "6M" | "1Y" | "ALL") => {
+  if (timeframe === "ALL") return data;
+  
+  const now = new Date();
+  const monthsMap = { "1M": 1, "3M": 3, "6M": 6, "1Y": 12 };
+  const months = monthsMap[timeframe];
+  const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
+  
+  return data.filter((bet) => {
+    const betDate = new Date(bet.date);
+    return betDate >= cutoffDate && betDate <= now;
+  });
+};
+
 // Helper to calculate ROI from performance data
 const calculateROI = (performanceData: PerformanceData[]) => {
   // Use backend method if possible
@@ -248,6 +263,7 @@ export default function CapperProfilePage({
   const POSTS_PER_PAGE = 6;
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [showSeeMoreButton, setShowSeeMoreButton] = useState(false);
+  const [timeframe, setTimeframe] = useState<"1M" | "3M" | "6M" | "1Y" | "ALL">("ALL");
 
   const {
     data,
@@ -559,7 +575,7 @@ export default function CapperProfilePage({
       </div>
 
       {/* Add mobile header */}
-      <div className="lg:hidden sticky top-0 z-50 w-full bg-[#020817] p-4 flex items-center">
+      <div className="sm:hidden sticky top-0 z-50 w-full bg-[#020817] p-4 flex items-center">
         <div className="absolute left-4">
           <SideNav />
         </div>
@@ -572,10 +588,191 @@ export default function CapperProfilePage({
         <div className="w-full max-w-none">
           {/* Profile Header - More compact on mobile */}
           <div className="bg-[#020817] rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
-            {/* Profile Info Section - Make it more compact on mobile */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-              {/* Avatar - Smaller on mobile */}
-              <Avatar className="h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40">
+            {/* Mobile Layout: Image + Username/Stats side by side */}
+            <div className="flex sm:hidden items-start gap-3 mb-4">
+              {/* Avatar - 30% larger than 54px */}
+              <Avatar className="h-[70px] w-[70px] flex-shrink-0">
+                <AvatarImage
+                  src={capper?.profileImage || capper?.imageUrl || ""}
+                  alt={`${capper?.user?.firstName || ""} ${
+                    capper?.user?.lastName || ""
+                  }`}
+                />
+                <AvatarFallback className="bg-[#4e43ff] text-white text-lg uppercase">
+                  {capper?.user?.username?.slice(0, 2).toUpperCase() || ""}
+                </AvatarFallback>
+              </Avatar>
+
+              {/* Username, Badge, and Stats */}
+              <div className="flex-1 min-w-0">
+                {/* Username and Badge - same size as Betting Performance */}
+                <h1 className="text-lg font-bold flex items-start gap-2 mb-2">
+                  <span>@{capper?.user?.username}</span>
+                  <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                </h1>
+                
+                {/* Stats - Below username, beside image (removed Winrate) */}
+                <div className="flex flex-row justify-start gap-3 text-sm text-gray-400 font-medium flex-wrap">
+                  <span className="flex-shrink-0">
+                    <span className="text-white font-bold text-sm">
+                      {capper.subscriberIds.length.toLocaleString()}
+                    </span>
+                    <span className="text-gray-400 font-normal text-xs">
+                      {" "}
+                      Subscribers
+                    </span>
+                  </span>
+                  <span className="flex-shrink-0">
+                    <span className="text-white font-bold text-sm">
+                      {`${calculateROI(filterLast12Months(performanceData)).toFixed(2)}%`}
+                    </span>
+                    <span className="text-gray-400 font-normal text-xs">
+                      {" "}
+                      ROI (12mo)
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Bio - 3 lines max, no line breaks, 20% smaller */}
+            <div className="sm:hidden text-gray-100 text-xs mb-4 overflow-hidden" style={{ 
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              textOverflow: 'clip'
+            }}>
+              {capper.bio}
+            </div>
+
+            {/* Mobile Sport Badges and Subscribe Button - Same row */}
+            <div className="sm:hidden flex justify-between items-center gap-2 mb-4">
+              {/* Sport badges on the left - matching subscribe button size */}
+              <div className="flex flex-wrap gap-2">
+                {capper.tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#4e43ff] text-gray-300 border-0 rounded-lg text-xs"
+                  >
+                    <span className="text-xs">
+                      {sportEmojiMap[tag] || "🎯"}
+                    </span>
+                    <span className="text-xs">{tag}</span>
+                  </Badge>
+                ))}
+              </div>
+
+              {/* Subscribe button on the right */}
+              <div className="ml-auto">
+                {isSubscribed ? (
+                  <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-transparent border border-[#4e43ff] text-[#4e43ff] rounded-lg text-xs whitespace-nowrap">
+                    Subscribed
+                  </button>
+                ) : (
+                  <SubscribeButton
+                    capperId={capper.id}
+                    isSubscribed={isSubscribed}
+                    scrollToBundles={true}
+                    className="inline-flex items-center gap-2 !px-3 !py-1.5 bg-[#4e43ff] text-gray-300 border-0 rounded-lg !text-xs whitespace-nowrap"
+                    onClick={() => {
+                      document
+                        .getElementById("subscription-plans")
+                        ?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                    }}
+                  >
+                    Subscribe
+                  </SubscribeButton>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Social Links */}
+            <div className="sm:hidden mb-[1.3rem]">
+              <div className="flex flex-wrap gap-2">
+                {capper.socialLinks?.instagram?.username &&
+                  capper.socialLinks?.instagram?.url && (
+                    <a
+                      href={capper.socialLinks.instagram.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-pink-600/20 to-purple-600/20 hover:from-pink-600/30 hover:to-purple-600/30 transition-all border border-pink-500/20 hover:border-pink-500/40"
+                    >
+                      <Instagram className="h-4 w-4 text-pink-400" />
+                      <span className="text-xs text-gray-200">
+                        @{capper.socialLinks.instagram.username}
+                      </span>
+                    </a>
+                  )}
+
+                {capper.socialLinks?.x?.username &&
+                  capper.socialLinks?.x?.url && (
+                    <a
+                      href={capper.socialLinks.x.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-600/20 to-blue-400/20 hover:from-blue-600/30 hover:to-blue-400/30 transition-all border border-blue-500/20 hover:border-blue-500/40"
+                    >
+                      <Twitter className="h-4 w-4 text-blue-400" />
+                      <span className="text-xs text-gray-200">
+                        @{capper.socialLinks.x.username}
+                      </span>
+                    </a>
+                  )}
+
+                {capper.socialLinks?.youtube?.username &&
+                  capper.socialLinks?.youtube?.url && (
+                    <a
+                      href={capper.socialLinks.youtube.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-red-600/20 to-red-400/20 hover:from-red-600/30 hover:to-red-400/30 transition-all border border-red-500/20 hover:border-red-500/40"
+                    >
+                      <Youtube className="h-4 w-4 text-red-400" />
+                      <span className="text-xs text-gray-200">
+                        {capper.socialLinks.youtube.username}
+                      </span>
+                    </a>
+                  )}
+
+                {capper.socialLinks?.discord?.username &&
+                  capper.socialLinks?.discord?.url && (
+                    <a
+                      href={capper.socialLinks.discord.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-600/20 to-indigo-400/20 hover:from-indigo-600/30 hover:to-indigo-400/30 transition-all border border-indigo-500/20 hover:border-indigo-500/40"
+                    >
+                      <MessageSquare className="h-4 w-4 text-indigo-400" />
+                      <span className="text-xs text-gray-200">
+                        {capper.socialLinks.discord.username}
+                      </span>
+                    </a>
+                  )}
+
+                {capper.socialLinks?.whatsapp?.username &&
+                  capper.socialLinks?.whatsapp?.url && (
+                    <a
+                      href={capper.socialLinks.whatsapp.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-green-600/20 to-green-400/20 hover:from-green-600/30 hover:to-green-400/30 transition-all border border-green-500/20 hover:border-green-500/40"
+                    >
+                      <Phone className="h-4 w-4 text-green-400" />
+                      <span className="text-xs text-gray-200">
+                        {capper.socialLinks.whatsapp.username}
+                      </span>
+                    </a>
+                  )}
+              </div>
+            </div>
+
+            {/* Desktop Layout: Original side by side */}
+            <div className="hidden sm:flex items-start gap-6">
+              {/* Avatar - Desktop size */}
+              <Avatar className="h-32 w-32 md:h-40 md:w-40">
                 <AvatarImage
                   src={capper?.profileImage || capper?.imageUrl || ""}
                   alt={`${capper?.user?.firstName || ""} ${
@@ -587,16 +784,16 @@ export default function CapperProfilePage({
                 </AvatarFallback>
               </Avatar>
 
-              {/* Profile Details - Center on mobile */}
-              <div className="flex-1 text-center sm:text-left">
-                <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start gap-2 sm:gap-4">
+              {/* Profile Details - Desktop */}
+              <div className="flex-1 text-left">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-4">
                   <div>
                     {/* Name and Verification */}
-                    <h1 className="text-xl sm:text-2xl md:text-3xl pb-6 font-bold flex items-center justify-center sm:justify-start gap-2">
+                    <h1 className="text-2xl md:text-3xl pb-6 font-bold flex items-center justify-start gap-2">
                       @{capper?.user?.username}
-                      <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
+                      <CheckCircle className="h-6 w-6 text-blue-400" />
                       {/* Inline sport badges for desktop */}
-                      <span className="hidden sm:flex items-center gap-2 ml-4">
+                      <span className="flex items-center gap-2 ml-4">
                         {capper.tags.map((tag) => (
                           <Badge
                             key={tag}
@@ -610,31 +807,31 @@ export default function CapperProfilePage({
                         ))}
                       </span>
                     </h1>
-                    {/* Stats row below username */}
-                    <div className="flex flex-row justify-center sm:justify-start gap-2 sm:gap-4 mb-2 text-sm sm:text-base text-gray-400 font-medium">
+                    {/* Stats row below username - Desktop */}
+                    <div className="flex flex-row justify-start gap-4 mb-2 text-base text-gray-400 font-medium">
                       <span className="flex-shrink-0">
-                        <span className="text-white font-bold text-base sm:text-xl">
+                        <span className="text-white font-bold text-xl">
                           {capper.subscriberIds.length.toLocaleString()}
                         </span>
-                        <span className="text-gray-400 font-normal text-xs sm:text-base">
+                        <span className="text-gray-400 font-normal text-base">
                           {" "}
                           Subscribers
                         </span>
                       </span>
                       <span className="flex-shrink-0">
-                        <span className="text-white font-bold text-base sm:text-xl">
+                        <span className="text-white font-bold text-xl">
                           {calculateWinRate(performanceData)}
                         </span>
-                        <span className="text-gray-400 font-normal text-xs sm:text-base">
+                        <span className="text-gray-400 font-normal text-base">
                           {" "}
                           Winrate
                         </span>
                       </span>
                       <span className="flex-shrink-0">
-                        <span className="text-white font-bold text-base sm:text-xl">
+                        <span className="text-white font-bold text-xl">
                           {`${calculateROI(filterLast12Months(performanceData)).toFixed(2)}%`}
                         </span>
-                        <span className="text-gray-400 font-normal text-xs sm:text-base">
+                        <span className="text-gray-400 font-normal text-base">
                           {" "}
                           ROI (12mo)
                         </span>
@@ -643,7 +840,7 @@ export default function CapperProfilePage({
 
                     {/* Title - if exists */}
                     {capper?.title && (
-                      <p className="text-base sm:text-lg text-violet-400 mb-2 sm:mb-4">
+                      <p className="text-lg text-violet-400 mb-4">
                         {capper.title}
                       </p>
                     )}
@@ -678,7 +875,7 @@ export default function CapperProfilePage({
 
                 {/* Tags */}
                 {/* Mobile only badges below username */}
-                <div className="flex flex-wrap justify-center sm:hidden gap-2 mb-4">
+                <div className="flex flex-wrap justify-start sm:hidden gap-2 mb-4">
                   {capper.tags.map((tag) => (
                     <Badge
                       key={tag}
@@ -817,21 +1014,64 @@ export default function CapperProfilePage({
               </div>
             </div> */}
 
+            {/* Mobile Betting Performance Header */}
+            <div className="sm:hidden mb-4">
+              <h2 className="text-white font-bold text-lg mb-3">
+                Betting Performance
+              </h2>
+              {/* Timeframe Filter Buttons - Mobile */}
+              <div className="flex gap-2 overflow-x-auto">
+                {(["1M", "3M", "6M", "1Y", "ALL"] as const).map((tf) => (
+                  <button
+                    key={tf}
+                    onClick={() => setTimeframe(tf)}
+                    className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-colors ${
+                      timeframe === tf
+                        ? "bg-[#4e43ff] text-gray-300"
+                        : "bg-gray-800 text-gray-400"
+                    }`}
+                  >
+                    {tf}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Performance Chart - Moved here */}
-            <Card className="mt-8 bg-[#020817] border-gray-700 backdrop-blur-sm">
-              <CardHeader className="p-2 sm:p-6">
+            <Card className="mt-0 sm:mt-8 bg-[#020817] border-0 sm:border-gray-700 backdrop-blur-sm -mx-4 sm:mx-0">
+              <CardHeader className="p-0 sm:p-6">
+                <div className="hidden sm:flex justify-between items-center">
+                  <div>
                 <CardTitle className="text-white font-bold text-2xl">
                   Betting Performance
                 </CardTitle>
                 <CardDescription className="text-white">
                   Total units over time
                 </CardDescription>
+                  </div>
+                  {/* Timeframe Filter Buttons - Desktop */}
+                  <div className="flex gap-2">
+                    {(["1M", "3M", "6M", "1Y", "ALL"] as const).map((tf) => (
+                      <button
+                        key={tf}
+                        onClick={() => setTimeframe(tf)}
+                        className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+                          timeframe === tf
+                            ? "bg-[#4e43ff] text-white"
+                            : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        }`}
+                      >
+                        {tf}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="p-2 sm:p-6">
+              <CardContent className="p-0 sm:p-6">
                 {performanceData.length > 0 ? (
                   <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={performanceData}>
+                      <LineChart data={filterByTimeframe(performanceData, timeframe)}>
                         <XAxis
                           dataKey="date"
                           stroke="#9CA3AF"
@@ -964,7 +1204,7 @@ export default function CapperProfilePage({
                 )}
                 {/* Key Metrics Display - Right under the graph */}
                 {performanceData.length > 0 && (
-                  <div className="mt-6 pt-4 border-t border-gray-700">
+                  <div className="hidden sm:block mt-6 pt-4 border-t border-gray-700">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
                       {/* Units Won */}
                       {/* <div className="bg-gray-700/50 p-2 sm:p-4 rounded-lg">
@@ -1136,11 +1376,19 @@ export default function CapperProfilePage({
 
           {/* Posts Section */}
           <div className="mb-12">
-            <div className="mb-6 text-center">
+            {/* Mobile Latest Picks Header */}
+            <div className="sm:hidden mb-4 pl-4">
+              <h2 className="text-lg font-bold text-white mb-3">
+                Latest picks
+              </h2>
+            </div>
+
+            {/* Desktop Header */}
+            <div className="hidden sm:block mb-6 text-center">
               <h2 className="text-2xl font-bold text-white">
                 {capper.user.username}'s Posts
               </h2>
-              <p className="text-gray-400 mt-2">
+              <p className="text-base text-gray-400 mt-2">
                 Latest picks and predictions from {capper.user.username}
               </p>
             </div>
@@ -1148,10 +1396,10 @@ export default function CapperProfilePage({
             {/* Show preview posts for non-subscribers */}
             {!isSubscribed && (
               <>
-                <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  {allPosts.slice(0, 4).map((post) => (
+                <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8 mb-8">
+                  {allPosts.slice(0, 4).map((post, index) => (
+                    <div key={post._id} className="flex flex-col">
                     <InstagramPost
-                      key={post._id}
                       {...post}
                       capperInfo={{
                         firstName: capper.user.firstName,
@@ -1161,6 +1409,13 @@ export default function CapperProfilePage({
                         isVerified: true,
                       }}
                     />
+                      {/* Mobile separator - only show between posts, not after last one */}
+                      {index < allPosts.slice(0, 4).length - 1 && (
+                        <div className="md:hidden flex justify-center py-[0.5rem]">
+                          <div className="w-[80vw] border-b border-gray-800"></div>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
 
@@ -1193,10 +1448,10 @@ export default function CapperProfilePage({
             {/* Show all paginated posts for subscribers */}
             {isSubscribed && (
               <>
-                <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {allPosts.map((post) => (
+                <div className="w-full max-w-none grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8">
+                  {allPosts.map((post, index) => (
+                    <div key={post._id} className="flex flex-col">
                     <InstagramPost
-                      key={post._id}
                       {...post}
                       capperInfo={{
                         firstName: capper.user.firstName,
@@ -1206,6 +1461,13 @@ export default function CapperProfilePage({
                         isVerified: true,
                       }}
                     />
+                      {/* Mobile separator - only show between posts, not after last one */}
+                      {index < allPosts.length - 1 && (
+                        <div className="md:hidden flex justify-center py-[0.5rem]">
+                          <div className="w-[80vw] border-b border-gray-800"></div>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
 
@@ -1229,7 +1491,7 @@ export default function CapperProfilePage({
 
             {/* Subscription Packages Section */}
             <div className="mt-12" id="subscription-plans">
-              <h2 className="text-2xl font-semibold text-white mb-6">
+              <h2 className="text-lg sm:text-2xl font-semibold text-white mb-6 pl-4 sm:pl-0">
                 Subscription Plans
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
